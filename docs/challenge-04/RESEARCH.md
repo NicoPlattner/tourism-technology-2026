@@ -159,8 +159,8 @@ Target: daily stays per municipality and total, Nov 2026 – Apr 2027.
    accuracy comparison and SHAP. Keep it only if it beats the GLM in the
    backtest by a clear margin; otherwise use it only as an explanation
    cross-check.
-4. **Optional zero-shot comparator** (Chronos / TimesFM). Cheap to run, adds a
-   "we checked foundation models" line, but no explanations. Low priority.
+4. **Zero-shot challenger: Chronos-2** (tested, see §7a). Good at short
+   horizons, no explanations. Use as an ensemble member for h ≤ 3 months.
 
 Not recommended for this data size: Prophet (too smooth around holiday
 edges, adds little over the GLM), deep sequence models, per-municipality
@@ -256,13 +256,7 @@ analogue years)".
 
 ## 5. Plan until submission (Sun 13:00)
 
-| When | Task |
-|---|---|
-| Sat evening | Get partner data (manual download → `data/raw/partner/`). Profile schema, gaps, zeros. Answer the open questions below. |
-| Sat night | Feature table: calendar, market holidays (incl. hand-made DK/GB), events, Open-Meteo snow. Baselines + backtest harness. |
-| Sun early | GLM shape model + deviation waterfall + conformal intervals. LightGBM/SHAP cross-check if time allows. |
-| Sun 09:00 | Technical jury: show commits, backtest table, one worked deviation example. |
-| Sun 11:00 | Export JSON for UI (forecast, intervals, drivers, actions with grade); freeze. |
+Superseded by [PLAN.md](PLAN.md).
 
 ## 6. Checks to run once partner data is in
 
@@ -278,7 +272,76 @@ analogue years)".
 7. Event calendar: which events fall in Nov 2026 – Apr 2027 (season opening
    concert, closing concert), and do past ones show in the residuals?
 
-## 7. Sources and licences
+## 7. Extended research (round 2)
+
+Additional data sources: [DATA-SOURCES.md](DATA-SOURCES.md). Execution plan:
+[PLAN.md](PLAN.md).
+
+### 7a. Foundation model check: Chronos-2 zero-shot (`models/probe_chronos2.py`)
+
+Same backtest as §2a (TR53 monthly, winter months, median APE). Context
+2010 → origin in log space, CPU, ~1 min.
+
+| Model | h1–3 | h4–6 | h7–12 |
+|---|---|---|---|
+| best baseline (avg2y / ETS) | 7.5 % | 4.9 % | 4.7 % |
+| Chronos-2 univariate | 7.7 % | 13.1 % | 9.0 % |
+| Chronos-2 + Easter-month & COVID covariates | **5.5 %** | 11.6 % | 8.1 % |
+
+Short horizons improve with a known-future covariate; longer horizons are
+worse than averaging the last two years (the COVID hole in the context
+probably hurts). Verdict: useful short-horizon ensemble member and a credible
+"we tested state of the art" line, not the main model. TabPFN-TS is the
+alternative for small data with simple covariate effects (a TSALM 2026
+workshop study found it better at short horizons and simple covariate links,
+Chronos-2 better univariately).
+
+### 7b. Snow: expect little effect on totals, test on short lead times
+
+- Literature: Töglhofer et al. (185 Austrian ski areas, 1972–2007): 1 SD in
+  snow conditions moves overnight stays by only 0.6–1.9 %, and **high-lying
+  areas show no dependence on local snow**. A 28-resort dynamic panel finds
+  2–3 % per SD, with domestic guests reacting more than foreign ones.
+- Our check (SNOWGRID, Idalpe 2,300 m): December mean snow depth 16 / 90 /
+  25 / 17 cm in 2022–2025, while December stays rose steadily
+  337k → 356k → 391k → 424k. No visible snow effect on monthly totals.
+- So: model snow only for early season (until mid-December) and short-lead
+  bookings (lead-time class 0–7 days), and report "snow is **not** the reason"
+  when the data says so. That is an explanation too.
+
+### 7c. Methods added to the toolbox
+
+| Need | Method | Why it fits | Priority |
+|---|---|---|---|
+| "Is the forecast systematically wrong?" | **Theil decomposition** of forecast MSE into bias / variance / covariance shares + tracking signal (cumulative error ÷ MAD) per month and weekday | Turns "systematic error" into a number with a standard test | P1 |
+| Municipality and time consistency | **Hierarchical reconciliation (MinT)**: Ischgl + Galtür + Kappl + See = total; days add up to month | Coherent numbers across UI views, usually more accurate (Hyndman et al., tourism data) | P2 |
+| Weekly signals → monthly target | **MIDAS / distributed lag** | Lead-time intake and Google Trends are weekly; MIDAS with weekly search data beat monthly-only models in published tourism studies | P2 |
+| Short-term nowcast | **Pickup models** (additive is the usual benchmark, often best in studies) | Only with on-the-books by stay date (ASK) | P1 if data arrives |
+| Event effects with uncertainty | **Synthetic control / Bayesian structural time series** (CausalImpact style): donors = other regions' daily index 2022–2025 | "The opening concert adds X ± Y stays" for past events | P2 |
+| Drift-robust intervals | **Adaptive conformal inference** on top of split conformal | Keeps coverage when the season deviates | P2 |
+| Change detection | EWMA / CUSUM (P1); Bayesian online change-point detection (P3) | Early alarm per market/period | P1 |
+| Search interest | Google Trends per country (manual CSV) | Market-level leading signal; review papers warn it is noisy, so validate first | P2 |
+
+Rejected: deep sequence models (TFT, N-BEATS, DeepAR) for lack of history;
+Prophet (adds nothing over the GLM, blurs holiday edges); Wikipedia pageviews
+as a leading indicator (tested, coincident only, see DATA-SOURCES.md).
+
+### 7d. Literature used
+
+- Athanasopoulos, Hyndman, Song, Wu (2011), *The tourism forecasting
+  competition*, IJF 27(3).
+- Hyndman, Ahmed, Athanasopoulos, Shang (2011), optimal combination for
+  hierarchical time series (demonstrated on Australian tourism).
+- Töglhofer, Eigner, Prettenthaler (2011), *Impacts of snow conditions on
+  tourism demand in Austrian ski areas*, Climate Research 46.
+- Weatherford & Kimes (2003); Ellero & Pellegrini (2014): pickup and
+  regression methods for hotel forecasting; additive pickup as benchmark.
+- Ansari et al. (2025), *Chronos-2: From Univariate to Universal
+  Forecasting*, arXiv 2510.15821.
+- Mikulić & Baumgärtner (2025), critical review of Google Trends / Baidu
+  index use in tourism forecasting, Tourism Management.
+
+## 8. Sources and licences
 
 - Nächtigungsprognose API and code: Österreich Werbung with JOANNEUM
   RESEARCH, TU Wien, University of Klagenfurt, CC BY 4.0.
