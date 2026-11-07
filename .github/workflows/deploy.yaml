@@ -1,13 +1,13 @@
 name: Deploy to Kubernetes
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/deploy.yaml'
-      - 'k8s/**'
-      - 'scripts/render-ingress.py'
   workflow_dispatch:
+    inputs:
+      deploy_root:
+        description: Deploy to the domain root (only when explicitly requested)
+        type: boolean
+        default: false
+        required: true
 
 concurrency:
   group: pangolin-ci
@@ -18,20 +18,42 @@ permissions:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_type == 'branch'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
-    env:
-      APP_HOST: ${{ vars.APP_HOST }}
-      INGRESS_CLASS: ${{ vars.INGRESS_CLASS || 'nginx' }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate and render optional ingress
-        run: python3 scripts/render-ingress.py
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.3
+
+      - name: Select deployment target
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          DEPLOY_ROOT: ${{ inputs.deploy_root }}
+        run: |
+          set -euo pipefail
+          # Safe branch names retain their spelling; other names get a unique slug.
+          branch_hash=$(printf '%s' "$BRANCH_NAME" | sha256sum | cut -c1-16)
+          if [[ "$BRANCH_NAME" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
+            path="/$BRANCH_NAME"
+          else
+            slug=$(printf '%s' "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-40)
+            path="/branch-${slug:-ref}-$branch_hash"
+          fi
+          release="branch-$branch_hash"
+          if [[ "$DEPLOY_ROOT" == "true" ]]; then
+            path=/
+            release=tourism-root
+          fi
+          printf 'DEPLOY_PATH=%s\nRELEASE_NAME=%s\n' "$path" "$release" >> "$GITHUB_ENV"
+
+      - name: Validate Helm chart
+        run: helm lint helm/tourism-technology
 
       - name: Validate Pangolin secrets
         env:
@@ -115,55 +137,37 @@ jobs:
           done
           kubectl get deployments -n tourism-technology-2026
 
-      - name: Deploy smoke application
+      - name: Deploy Helm release
         run: |
-          kubectl --request-timeout=30s -n tourism-technology-2026 apply -f k8s/app.yaml
-          if [[ -n "$APP_HOST" ]]; then
-            kubectl --request-timeout=30s -n tourism-technology-2026 apply -f "$RUNNER_TEMP/ingress.json"
-          else
-            kubectl --request-timeout=30s -n tourism-technology-2026 delete ingress tourism-technology-2026 --ignore-not-found
-          fi
-          kubectl -n tourism-technology-2026 rollout status deployment/tourism-technology-2026 --timeout=180s
-
-      - name: Deploy hello world application
-        run: |
-          kubectl --request-timeout=30s -n tourism-technology-2026 apply -f k8s/hello-world.yaml
-          kubectl -n tourism-technology-2026 rollout status deployment/hello-world --timeout=180s
-
-      - name: Verify application through service
-        run: |
-          kubectl -n tourism-technology-2026 port-forward service/tourism-technology-2026 18080:80 \
-            > "$RUNNER_TEMP/port-forward.log" 2>&1 &
-          forward_pid=$!
-          trap 'kill "$forward_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..15}; do
-            if curl -fsS --max-time 5 http://127.0.0.1:18080/ | grep -Fxq 'tourism-technology-2026 deployment OK'; then
-              printf 'Smoke application deployed and verified in tourism-technology-2026.\n' >> "$GITHUB_STEP_SUMMARY"
-              if [[ -n "$APP_HOST" ]]; then
-                printf '\nIngress configured for https://%s (public DNS/Pangolin not verified).\n' "$APP_HOST" >> "$GITHUB_STEP_SUMMARY"
-              fi
-              exit 0
-            fi
-            sleep 2
-          done
-          cat "$RUNNER_TEMP/port-forward.log" "$RUNNER_TEMP/port-forward-hello.log"
-          exit 1
+          helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
+            --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
+            --wait --timeout 3m
 
       - name: Verify hello world through service
         run: |
-          kubectl -n tourism-technology-2026 port-forward service/hello-world 18081:80 \
+          kubectl -n tourism-technology-2026 port-forward "service/$RELEASE_NAME" 18081:80 \
             > "$RUNNER_TEMP/port-forward-hello.log" 2>&1 &
           forward_pid=$!
           trap 'kill "$forward_pid" 2>/dev/null || true' EXIT
           for attempt in {1..15}; do
-            if curl -fsS --max-time 5 http://127.0.0.1:18081/hello-world | grep -Fxq 'Hello, World!'; then
-              printf '\nHello world deployed; ingress configured for https://hackathon.daria-and-nico.com/hello-world (public DNS/Pangolin not verified).\n' >> "$GITHUB_STEP_SUMMARY"
+            if curl -fsS --max-time 5 "http://127.0.0.1:18081$DEPLOY_PATH" | grep -Fxq 'Hello, World!'; then
+              printf '\nService verified. URL: https://hackathon.daria-and-nico.com%s (public route not verified).\n' "$DEPLOY_PATH" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep 2
           done
           cat "$RUNNER_TEMP/port-forward-hello.log"
           exit 1
+
+      - name: Verify public URL
+        run: |
+          url="https://hackathon.daria-and-nico.com$DEPLOY_PATH"
+          if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fxq 'Hello, World!'; then
+            printf 'Public URL verified: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf 'Public URL verification failed: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
 
       - name: Deployment diagnostics
         if: failure() && steps.pangolin.outcome == 'success'
@@ -183,4 +187,4 @@ jobs:
         if: always()
         run: |
           sudo pangolin down || true
-          rm -f "$RUNNER_TEMP/kubeconfig" "$RUNNER_TEMP/ingress.json" "$RUNNER_TEMP/install-pangolin.sh" "$RUNNER_TEMP/port-forward.log" "$RUNNER_TEMP/port-forward-hello.log"
+          rm -f "$RUNNER_TEMP/kubeconfig" "$RUNNER_TEMP/install-pangolin.sh" "$RUNNER_TEMP/port-forward-hello.log"
