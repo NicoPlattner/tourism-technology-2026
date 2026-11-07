@@ -172,10 +172,13 @@ jobs:
 
       - name: Deploy Helm release
         run: |
-          # After a failed deploy, Helm merges into the live API Deployment and
-          # keeps fields later chart versions removed; start it fresh instead.
+          # After a failed deploy, Helm merges into live objects and keeps what
+          # later versions removed: old fields on the API Deployment, and old
+          # hashed bundles in the site ConfigMap (until it exceeds 1 MiB).
+          # Start those fresh instead.
           if helm -n tourism-technology-2026 status "$RELEASE_NAME" 2>/dev/null | grep -q '^STATUS: failed'; then
             kubectl -n tourism-technology-2026 delete deployment "$RELEASE_NAME-api" --ignore-not-found
+            kubectl -n tourism-technology-2026 delete configmap "$RELEASE_NAME-site" --ignore-not-found
           fi
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
