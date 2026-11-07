@@ -23,7 +23,8 @@ from common import ROOT, design, load, peak_mask, rescale_to_month
 sys.path.insert(0, str(ROOT / "data"))
 OUT = ROOT / "out"
 START, END = "2026-11-01", "2027-04-30"
-# 80 % multiplicative half-widths from results_conformal.csv (calibrated on 23/24, tested on 24/25)
+# 80 % multiplicative half-widths for open mode (open-data calibration 23/24 -> 24/25, coverage 0.85);
+# real mode reads results_real_conformal.json
 CONF = {"normal": 1.35, "peak": 1.29}
 
 

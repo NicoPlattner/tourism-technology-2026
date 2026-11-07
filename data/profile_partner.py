@@ -1,4 +1,4 @@
-"""Profile the partner files and answer the open checks (RESEARCH.md §6).
+"""Profile the TVB partner files and answer the data checks (see docs/challenge-04/DATA.md).
 
     python3 data/profile_partner.py            # full report -> data/processed/partner_profile.md (git-ignored)
     python3 data/profile_partner.py --public   # structure-only report -> docs/challenge-04/DATA-PROFILE.md

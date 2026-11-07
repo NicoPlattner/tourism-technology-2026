@@ -166,8 +166,4 @@ if __name__ == "__main__":
             print("\nMonthly tracking signal:")
             print(res["tracking"].round(2).to_string())
     else:
-        period = slice("2023-11-01", "2025-04-30")
-        A, F = f.pseudo_actual.loc[period], f.official_daily.loc[period]
-        res = explain(A, F, f)
-        print("DEMO (open data): pseudo-actual vs official TR53 daily, in-sample")
-        print(res["summary"].round(0).to_string())
+        print("TVB data not loaded: run data/fetch_partner.py and data/build_features.py first.")
