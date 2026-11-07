@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { ViewProps } from '../App';
 import { SeasonChart, Legend, type SeriesKey } from '../components/charts';
 import { Confidence } from '../components/ui';
-import { approx, shortDate, signedPct } from '../analysis/format';
+import RotatingCircle from '../components/RotatingCircle';
+import { approx, pct, shortDate, signedPct } from '../analysis/format';
 
 const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
 
@@ -17,6 +18,10 @@ export default function Overview({ ds, model, go }: ViewProps) {
   const nextFc = next.reduce((a, d) => a + (d.forecast ?? 0), 0);
   const nextPy = next.reduce((a, d) => a + (d.previousYear ?? 0), 0);
   const full = cap.filter((c) => c.occupancy >= 0.85).length;
+  const cap30 = cap.filter((c) => c.date < addDays(ds.today, 30));
+  const occ30 = cap30.reduce((a, c) => a + c.expected, 0) / Math.max(1, cap30.reduce((a, c) => a + c.beds, 0));
+  const ev = ds.days.find((d) => d.date >= ds.today && d.events.length);
+  const opening = ev ? { date: ev.date, name: ev.events[0], days: Math.round((Date.parse(ev.date) - Date.parse(ds.today)) / 864e5) } : null;
 
   // next school holiday per partner market
   const nextHol = Object.keys(ds.marketMix).map((m) => {
@@ -26,10 +31,22 @@ export default function Overview({ ds, model, go }: ViewProps) {
 
   return (
     <div className="view">
+      <section className="hero-dark">
+        <div className="hero-copy">
+          <p className="eyebrow light">Winter 2026/27</p>
+          <h1 className="mega">{opening ? <>{opening.days} days<br />to opening</> : <>Season<br />ahead</>}</h1>
+          {opening && <p className="hero-sub">{opening.name} · {shortDate(opening.date)}</p>}
+        </div>
+        <RotatingCircle text="Relax • If you can •" size={210} tone="dark">
+          <span className="rc-num">{full}</span>
+          <span className="rc-label">days near full</span>
+        </RotatingCircle>
+      </section>
+
       <section className="kpis">
         <Kpi label="Season so far" value={approx(actual)} delta={actual / fcPast - 1} note="vs forecast" onClick={() => go('season')} />
         <Kpi label="Next 30 days" value={approx(nextFc)} delta={nextFc / nextPy - 1} note="vs last year" onClick={() => go('season')} />
-        <Kpi label="Days near full" value={String(full)} note={`of ${cap.length}`} accent onClick={() => go('capacity')} />
+        <Kpi label="Beds booked" value={pct(occ30)} note="avg. next 30 days" onClick={() => go('capacity')} />
         <button className="kpi" onClick={() => go('season')}>
           <span className="k-label">Next holidays</span>
           {nextHol.map((h) => <span key={h.m} className="k-line"><b>{h.m}</b> {h.start <= ds.today ? 'now' : shortDate(h.start)}</span>)}
