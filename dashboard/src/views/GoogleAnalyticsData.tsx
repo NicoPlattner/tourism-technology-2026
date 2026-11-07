@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { realtime, summary, type GaConnection, type GaRealtime, type GaSummary } from '../data/googleAnalytics';
+import { realtime, type GaConnection, type GaRealtime } from '../data/googleAnalytics';
 
 const fmt = (n: number) => n.toLocaleString('en-GB');
 const REFRESH_MS = 60_000;
 
-interface Data { realtime?: GaRealtime; summary?: GaSummary; rtError?: string; sumError?: string; updated?: Date; loading?: boolean }
+interface Data { realtime?: GaRealtime; error?: string; updated?: Date; loading?: boolean }
 
-// Live numbers for one connected GA4 property. The Realtime report (last 30
-// minutes) works right away; the standard 28-day report fills in once Google
-// has processed the data, which takes up to 48 hours for a new property.
+// Live numbers for one connected GA4 property from the Realtime report, which
+// works right away on a new property. Google keeps realtime data for the last
+// 30 minutes only.
 export default function GoogleAnalyticsData({ connections }: { connections: GaConnection[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [data, setData] = useState<Data>({});
@@ -16,14 +16,8 @@ export default function GoogleAnalyticsData({ connections }: { connections: GaCo
 
   const load = useCallback(async (c: GaConnection) => {
     setData((d) => ({ ...d, loading: true }));
-    const [rt, sum] = await Promise.allSettled([realtime(c.token, c.property.id), summary(c.token, c.property.id)]);
-    setData({
-      realtime: rt.status === 'fulfilled' ? rt.value : undefined,
-      rtError: rt.status === 'rejected' ? (rt.reason as Error).message : undefined,
-      summary: sum.status === 'fulfilled' ? sum.value : undefined,
-      sumError: sum.status === 'rejected' ? (sum.reason as Error).message : undefined,
-      updated: new Date(),
-    });
+    try { setData({ realtime: await realtime(c.token, c.property.id), updated: new Date() }); }
+    catch (e) { setData({ error: (e as Error).message, updated: new Date() }); }
   }, []);
 
   useEffect(() => {
@@ -44,14 +38,12 @@ export default function GoogleAnalyticsData({ connections }: { connections: GaCo
   }
 
   const rt = data.realtime;
-  const sum = data.summary;
-  const noProcessed = sum && sum.sessions === 0 && sum.activeUsers === 0 && sum.views === 0;
 
   return (
     <div className="card ga-data" aria-busy={data.loading}>
       <div className="ga-data-head">
         <h2>Website data</h2>
-        <button className="ga-remove" onClick={() => load(conn)} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
+        <button className="ga-link" onClick={() => load(conn)} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
       </div>
       {connections.length > 1 && (
         <div className="ga-tabs" role="tablist" aria-label="Property">
@@ -74,19 +66,7 @@ export default function GoogleAnalyticsData({ connections }: { connections: GaCo
             </div>
           )}
         </>
-      ) : data.rtError ? <p className="warn small">{data.rtError}</p> : <p className="muted small">Loading…</p>}
-
-      <h3 className="ga-sub">Last 28 days <span className="muted small">· incl. today</span></h3>
-      {sum ? (
-        <>
-          <dl className="ga-kpis">
-            <div><dt>Sessions</dt><dd>{fmt(sum.sessions)}</dd></div>
-            <div><dt>Users</dt><dd>{fmt(sum.activeUsers)}</dd></div>
-            <div><dt>Views</dt><dd>{fmt(sum.views)}</dd></div>
-          </dl>
-          {noProcessed && <p className="muted small">No processed data yet — Google needs up to 48 hours for a new property. The realtime numbers above are live.</p>}
-        </>
-      ) : data.sumError ? <p className="warn small">{data.sumError}</p> : <p className="muted small">Loading…</p>}
+      ) : data.error ? <p className="warn small">{data.error}</p> : <p className="muted small">Loading…</p>}
 
       {data.updated && <p className="muted small ga-updated">Updated {data.updated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · refreshes every minute</p>}
     </div>

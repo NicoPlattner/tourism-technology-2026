@@ -32,12 +32,12 @@ and weather live when it loads.
 **Google Analytics.** The Data tab has a *Connect Google Analytics* button. It
 opens a Google login (Google Identity Services, browser-only token flow) asking
 for the read-only scope `https://www.googleapis.com/auth/analytics.readonly`
-and then asks you to pick a property — always explicitly. Several properties
-(also from different Google accounts) can be added and removed again. The
-*Website data* panel shows the selected property's Realtime report (active
-users, countries and pages in the last 30 minutes, refreshed every minute) and
-the standard 28-day report, which only fills in once Google has processed the
-data (up to 48 h for a new property). Connections live in memory: the access
+and then asks you to pick properties — always explicitly. One login is reused to add
+more; properties from another Google account can be added too, and each can be
+removed again. The
+*Website data* panel shows the selected property's Realtime report: active
+users, countries and pages in the last 30 minutes (Google's realtime limit),
+refreshed every minute. Connections live in memory: the access
 token lasts about an hour and a reload clears them. Set the public OAuth
 client ID as the Actions variable `GOOGLE_CLIENT_ID` (deploy) or
 `VITE_GOOGLE_CLIENT_ID` in `dashboard/.env` (committed default, used for local dev). The OAuth client
