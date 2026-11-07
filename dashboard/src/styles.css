@@ -247,8 +247,14 @@ footer { padding: 24px clamp(16px, 3vw, 36px) 40px; color: var(--muted); font-si
 .ga-head, .ga-data-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ga-link { background: none; border: 0; padding: 0; font: inherit; font-size: 13px; color: var(--red-dark); text-decoration: underline; cursor: pointer; }
 .ga-link:disabled { opacity: 0.5; cursor: default; }
-.ga-conns { list-style: none; margin: 8px 0 16px; padding: 0; }
+.ga-account { margin: 10px 0 16px; padding-top: 10px; border-top: 1px solid var(--line); }
+.ga-account-head { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: baseline; margin-bottom: 4px; }
+.ga-account-head b { overflow: hidden; text-overflow: ellipsis; }
+.ga-none { margin: 4px 0 0; }
+.ga-conns { list-style: none; margin: 4px 0 0; padding: 0; }
 .ga-conns > li { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line-soft); }
+.ga-expired { margin: 0 0 14px; padding: 14px 16px; background: #fff8e6; border: 1px solid #f0d9a0; }
+.ga-expired p { margin: 0 0 10px; }
 .ga-picker { margin: 4px 0 0; padding: 16px; background: var(--bg); border: 1px solid var(--line); }
 .ga-picker-title { margin: 0 0 8px; }
 .ga-acct { border: 0; margin: 0 0 10px; padding: 0; }

@@ -155,6 +155,7 @@ test("all periods update all market contexts without stale recommendations", asy
 test("existing navigation, Google Analytics connect and Actions export remain functional", async ({
   page,
 }) => {
+  await page.route(/\/api\/ga$/, (r) => r.fulfill({ json: { configured: true, accounts: [], connections: [] } }));
   await page.goto("./");
   await page.getByRole("link", { name: "Data", exact: true }).click();
   await expect(page).toHaveURL(/#data$/);

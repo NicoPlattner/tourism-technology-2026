@@ -1,3 +1,10 @@
 image: nginxinc/nginx-unprivileged:1.27-alpine
 ingress:
   path: /
+api:
+  image: node:22-alpine
+  storage:
+    size: 64Mi
+    storageClass: ""  # empty: the cluster's default storage class
+# Set by the deploy workflow so the API restarts when the Google secret changes.
+googleSecretChecksum: ""

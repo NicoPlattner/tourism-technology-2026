@@ -1,4 +1,3 @@
-import type { Dispatch, SetStateAction } from 'react';
 import type { ViewProps } from '../App';
 import type { GaState } from '../data/googleAnalytics';
 import type { SourceStatus } from '../data/types';
@@ -7,15 +6,15 @@ import GoogleAnalyticsData from './GoogleAnalyticsData';
 
 const STATUS: Record<SourceStatus, string> = { connected: 'Connected', live: 'Live', snapshot: 'Open data', sample: 'Sample', planned: 'Next' };
 
-export default function Sources({ ds, ga, setGa }: ViewProps & { ga: GaState; setGa: Dispatch<SetStateAction<GaState>> }) {
+export default function Sources({ ds, ga, setGa, gaError }: ViewProps & { ga: GaState | null; setGa: (s: GaState) => void; gaError?: string }) {
   const active = ds.sources.filter((s) => s.status !== 'planned');
   const next = ds.sources.filter((s) => s.status === 'planned');
 
   return (
     <div className="view">
       <section className="grid2">
-        <GoogleAnalyticsCard ga={ga} setGa={setGa} />
-        <GoogleAnalyticsData connections={ga.connections} />
+        <GoogleAnalyticsCard ga={ga} setGa={setGa} loadError={gaError} />
+        <GoogleAnalyticsData connections={ga?.connections.filter((c) => !ga.accounts.find((a) => a.id === c.accountId)?.error) ?? []} />
       </section>
 
       <section className="card">

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
-import { GA_INITIAL, type GaState } from './data/googleAnalytics';
+import { gaApi, type GaState } from './data/googleAnalytics';
 import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
 import { longDate } from './analysis/format';
@@ -28,7 +28,8 @@ const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(readTab);
-  const [ga, setGa] = useState<GaState>(GA_INITIAL);
+  const [ga, setGa] = useState<GaState | null>(null);
+  const [gaError, setGaError] = useState<string | undefined>();
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
   const [logoOk, setLogoOk] = useState(true);
 
@@ -37,6 +38,16 @@ export default function App() {
     addEventListener('hashchange', onHash);
     refreshOpenData().then(setLive).catch(() => setLive(null));
     return () => removeEventListener('hashchange', onHash);
+  }, []);
+
+  // The Google Analytics connection lives on the server; reload it when the
+  // tab comes back so changes made on another device show up.
+  useEffect(() => {
+    const load = () => gaApi.state().then((s) => { setGa(s); setGaError(undefined); }).catch((e: Error) => setGaError(e.message));
+    load();
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   const ds = useMemo(() => buildDataset(SAMPLE, { openForecast: live?.openForecast, weather: live?.weather, retrieved: live?.retrieved }), [live]);
@@ -77,7 +88,7 @@ export default function App() {
         {tab === 'why' && <Why {...props} />}
         {tab === 'capacity' && <Capacity {...props} />}
         {tab === 'actions' && <Actions {...props} />}
-        {tab === 'data' && <Sources {...props} ga={ga} setGa={setGa} />}
+        {tab === 'data' && <Sources {...props} ga={ga} setGa={setGa} gaError={gaError} />}
       </main>
 
       <footer>

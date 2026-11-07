@@ -6,13 +6,15 @@
   "description": "Demand Radar for TVB Paznaun-Ischgl \u2014 overnight stays, forecast and bed capacity explained (TTF Hackathon 2026, challenge 04)",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && mkdir -p ../helm/tourism-technology/api && cp server/server.mjs ../helm/tourism-technology/api/server.mjs",
     "preview": "vite preview",
     "data:open": "node scripts/fetch-open-data.mjs",
     "data:sample": "node scripts/make-sample-data.mjs",
     "typecheck": "tsc --noEmit",
     "test:unit": "tsx --test tests/campaign-data.test.ts",
-    "test": "playwright test"
+    "test": "playwright test",
+    "server": "node server/server.mjs",
+    "test:server": "node --test server/server.test.mjs"
   },
   "dependencies": {
     "d3-array": "3.2.4",
