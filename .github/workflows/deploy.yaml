@@ -65,6 +65,13 @@ jobs:
           npm run build
           npm run test:unit
 
+      - name: Validate nginx routing
+        run: |
+          web_image=$(awk '/^image:/ {print $2}' helm/tourism-technology/values.yaml)
+          docker run --rm --user 101 --tmpfs /tmp \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/helm/tourism-technology/nginx.conf,dst=/etc/nginx/nginx.conf,readonly" \
+            --entrypoint nginx "$web_image" -t
+
       - name: Validate Helm chart
         run: helm lint helm/tourism-technology
 
