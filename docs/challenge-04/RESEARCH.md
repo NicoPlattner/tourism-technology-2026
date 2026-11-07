@@ -99,10 +99,13 @@ Easter mid/late April (2017, 2019, 2022, 2023, 2025)→ 0.33–0.39
 2027: Easter 2027-03-28, official forecast         → 0.30
 ```
 
-Hypothesis (n = 2 analogue years, confidence low–medium): the official
-forecast places **~30,000 too many stays in April 2027** (forecast 218k vs
-~188k at a 0.26 share) and too few in March. This is a concrete, checkable
-example of a "systematic forecast error" for the pitch and an early action
+Hypothesis, **revised 7 Nov night** (`models/anchor.py`): a regression of the
+April share on Easter day-of-year over 25 seasons (corr 0.75, residual SD
+0.034) predicts **0.287** for 2027, i.e. April ~**15k below** the official
+218k (anchor 203k) and March correspondingly higher. The first estimate
+(~30k, from the two analogue years alone) was too strong. 15k is within one
+residual SD (~24k), so confidence is **low (grade C)**. Still a useful,
+checkable example of a calendar-driven forecast error and an early action
 (push April 2027 late-season offers from January). Validate with the partner
 daily file once March/April 2026 actuals are visible and with the daily open
 index 2022–2025 (2024 had a late-March Easter).
@@ -251,8 +254,7 @@ score = expected_gap_stays × addressable_share(market) × feasibility
   which market*, *expected effect range*, *grade*, *evidence links*.
 
 Example from open data alone: "April 2027 late-season push to DE/NL/BE
-families, start January 2027, expected gap ~10–30k stays, grade C (2
-analogue years)".
+families, start January 2027, expected gap ~15k stays (±24k), grade C".
 
 ## 5. Plan until submission (Sun 13:00)
 

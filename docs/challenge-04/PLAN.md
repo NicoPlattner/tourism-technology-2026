@@ -6,6 +6,14 @@ training and testing. Written Sat 7 Nov 2026 evening. Submission **Sun 8 Nov
 [RESEARCH.md](RESEARCH.md); the data catalogue is in
 [DATA-SOURCES.md](DATA-SOURCES.md).
 
+## Status (7 Nov, night)
+
+Done on open data: fetchers, feature table, daily-shape backtest, conformal
+intervals, deviation explainer, Easter-corrected anchor, winter 26/27 JSON
+export, partner loader/profiler. Results: [RESULTS.md](RESULTS.md). Blocked
+on partner files: real-actual backtest, lead-time early warning, bed
+utilisation, action scoring.
+
 ## 1. What we deliver (the story the numbers must support)
 
 > "Paznaun-Ischgl's forecast is accurate per month but wrong per day and per
@@ -24,8 +32,8 @@ Three demo-able outputs, each backed by a backtest:
 
 Headline examples already found in open data (to confirm with partner data):
 the official daily series contains artefact zeros and breaches its own bed cap;
-the official forecast probably puts ~30k too many stays into April 2027
-(Easter 28 March).
+the official forecast may put ~15k too many stays into April 2027
+(Easter 28 March; low confidence, see RESULTS.md).
 
 ## 2. Architecture
 
