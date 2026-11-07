@@ -19,23 +19,20 @@ in-sample comparison flatters the official forecast.
 import json
 import pathlib
 
+import sys
+
 import numpy as np
 import pandas as pd
 from dateutil.easter import easter
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 ROOT = pathlib.Path(__file__).resolve().parent
 RAW, STATIC, OUT = ROOT / "raw" / "open", ROOT / "static", ROOT / "processed"
 REGION = "Paznaun - Ischgl"
 START, END = "2022-01-01", "2027-08-31"
 
-# ASSUMED market mix (share of winter stays), not verified: DE/NL/BE values come from a web-search
-# snippet of an MCI poster (Paznaun-Ischgl DE 50 %, NL 13 %, BE 7 %), the rest are placeholders.
-# Replace with nationality data from the TVB or Statistik Austria STATcube.
-MARKET_SHARE = {"DE": .50, "NL": .13, "BE": .07, "CH": .05, "AT": .05, "DK": .04, "GB": .04,
-                "PL": .03, "CZ": .02, "SE": .02, "FR": .02, "LU": .01, "IT": .01}
-# German Länder population (millions, 2023) to weight Land-level holidays.
-DE_POP = {"BW": 11.3, "BY": 13.4, "BE": 3.9, "BB": 2.6, "HB": .7, "HH": 1.9, "HE": 6.4, "MV": 1.6,
-          "NI": 8.1, "NW": 18.1, "RP": 4.2, "SL": 1.0, "SN": 4.1, "ST": 2.2, "SH": 3.0, "TH": 2.1}
+from holiday_features import MARKET_SHARE, build as build_holidays  # noqa: E402
 
 
 def calendar(idx: pd.DatetimeIndex) -> pd.DataFrame:
@@ -59,47 +56,16 @@ def calendar(idx: pd.DatetimeIndex) -> pd.DataFrame:
 
 
 def holiday_intensity(idx: pd.DatetimeIndex) -> pd.DataFrame:
-    hd = RAW / "holidays"
-    out = pd.DataFrame(index=idx)
-    for c in [m for m in MARKET_SHARE if (hd / f"{m}_SchoolHolidays.json").exists()]:
-        subs = json.loads((hd / f"{c}_subdivisions.json").read_text())
-        if c == "DE":  # Länder, population-weighted
-            w = {f"DE-{k}": v for k, v in DE_POP.items()}
-        else:  # leaves of the subdivision tree (e.g. NL municipalities), equal weight
-            def leaves(nodes):
-                return [x for n in nodes for x in (leaves(n["children"]) if n.get("children") else [n["code"]])]
-            w = {k: 1.0 for k in leaves(subs)} or {c: 1.0}
-        days = pd.DataFrame(0.0, index=idx, columns=list(w))
-        for kind in ("SchoolHolidays", "PublicHolidays"):
-            for h in json.loads((hd / f"{c}_{kind}.json").read_text()):
-                if kind == "PublicHolidays" and not h.get("nationwide", False):
-                    continue
-                rng = (idx >= h["startDate"]) & (idx <= h["endDate"])
-                if h.get("nationwide", False) or not h.get("subdivisions"):
-                    days.loc[rng, :] = 1.0
-                    continue
-                for sub in h["subdivisions"]:
-                    code = sub["code"]
-                    hit = [k for k in w if k == code or k.startswith(code + "-") or code.startswith(k + "-")]
-                    days.loc[rng, hit] = 1.0
-        tot = sum(w.values())
-        s = sum(days[k] * (v / tot) for k, v in w.items())
-        out[f"hol_{c}"] = s
-    st = pd.read_csv(STATIC / "school_holidays_dk_gb.csv", comment="#")
-    for c, g in st.groupby("country"):
-        s = pd.Series(0.0, index=idx)
-        for r in g.itertuples():
-            rng = (idx >= r.start) & (idx <= r.end)
-            s[rng] = np.minimum(s[rng] + r.share, 1.0)
-        out[f"hol_{c}"] = s
-    cols = [f"hol_{m}" for m in MARKET_SHARE if f"hol_{m}" in out]
-    out["hol_weighted"] = sum(out[c] * MARKET_SHARE[c[4:]] for c in cols) / sum(MARKET_SHARE[c[4:]] for c in cols)
-    at = json.loads((hd / "AT_PublicHolidays.json").read_text()) if (hd / "AT_PublicHolidays.json").exists() else []
-    out["at_public_holiday"] = 0
-    for h in at:
-        if h.get("nationwide"):
-            out.loc[(idx >= h["startDate"]) & (idx <= h["endDate"]), "at_public_holiday"] = 1
-    return out
+    """School holidays, public holidays (national + regional), long weekends and bridge days per
+    source market, population-weighted, year-specific (data/holiday_features.py).
+    hol_<C> / hol_weighted are kept as aliases of school_<C> / school_weighted."""
+    h = build_holidays(idx)
+    for c in MARKET_SHARE:
+        if f"school_{c}" in h:
+            h[f"hol_{c}"] = h[f"school_{c}"]
+    h["hol_weighted"] = h["school_weighted"]
+    h["at_public_holiday"] = (h["pub_AT"] >= .5).astype(int)
+    return h
 
 
 def season(idx: pd.DatetimeIndex) -> pd.DataFrame:

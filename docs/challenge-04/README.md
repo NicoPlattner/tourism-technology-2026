@@ -58,11 +58,11 @@ Partner and contact: TVB Paznaun-Ischgl, Raphael Tonitz (on site both days).
 ## Run everything
 
 ```bash
-pip install pandas pyarrow scikit-learn statsmodels lightgbm xlrd openpyxl
+pip install pandas pyarrow scikit-learn statsmodels lightgbm xlrd openpyxl holidays
 ```
 
 ```bash
-python3 data/fetch_open_data.py TR53 && python3 data/fetch_drivers.py && python3 data/fetch_macro.py
+python3 data/fetch_open_data.py TR53 && python3 data/fetch_drivers.py && python3 data/fetch_macro.py && python3 data/fetch_tirol_stats.py && python3 data/market_mix.py
 ```
 
 ```bash
@@ -83,11 +83,16 @@ back to open data.
 data/
   fetch_open_data.py   official forecast API (TR53 monthly + daily)
   fetch_drivers.py     forecast repo data, OpenHolidays, SNOWGRID, Open-Meteo
+  fetch_tirol_stats.py Landesstatistik Tirol: Paznaun origin mix, beds, key figures per municipality/season
+  market_mix.py        monthly market weights: Paznaun season mix x Tirol monthly pattern (Statistik Austria)
+  holiday_features.py  school / public / regional holidays, long weekends, bridge days per market
+  make_static_holidays.py  generates static/school_holidays_extra.csv (DK, GB, SE; IT/PL/FR gaps)
   fetch_macro.py       Eurostat, ECB, geopolitical risk, policy uncertainty, long snow series
   fetch_partner.py     TVB datasets via TTF Space (ttf_mcp.py = minimal MCP client)
+  fetch_other.py       other challenges' Data Space products (mobile data, guest cards, TOURDATA)
   load_partner.py      loaders for the TVB files; profile_partner.py = data checks
   build_features.py    -> data/processed/features_daily.parquet (one row per day)
-  static/              hand-made tables: DK/GB school holidays, season dates
+  static/              generated school-holiday supplement, season dates
 models/
   common.py            feature matrix, metrics, helpers
   anchor.py            monthly level: 2-season average + Easter regression
@@ -95,7 +100,7 @@ models/
   explain.py           graded deviation drivers, Theil, tracking signal, waterfall
   early_warning.py     occupancy from free beds, booking lead-time mix
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
-  probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers)
+  probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
 ```
 
 ## Primary sources

@@ -35,7 +35,7 @@ Consequences:
 | Previous year, date-aligned (TVB column) | baseline | 14.3 % daily error winter 25/26 | baseline only |
 | Previous year, holiday-aligned (weekday, Christmas by date, Easter by offset) | daily pattern | 10.8 %; removes 25 % of the day-level deviation vs the TVB previous-year column | keep |
 | LightGBM (Poisson) on calendar, market holidays, season phase, events, snow | daily pattern | 14.1 % alone, strong in combination | keep |
-| Average of holiday-aligned previous year and LightGBM, × level | main ex-ante model | **10.5 % daily, 3.7 % monthly, bias −1.2 %** (winter 25/26); summer bias +2.6 % vs TVB +11.9 % | current main model |
+| Average of holiday-aligned previous year and LightGBM, × level | main ex-ante model | **9.5 % daily (10.5 % before the holiday-data rebuild), 3.7 % monthly, bias −1.2 %** (winter 25/26); summer bias +2.6 % vs TVB +11.9 % | current main model |
 | TVB forecast | benchmark / member | 5.5 % daily in winter (likely booking-informed), +2.7 % winter and **+11.9 % summer bias**, too high in 11 of 12 months | use its daily pattern, correct its level |
 | Official TR53 daily | baseline | in-sample, misses the season opening (16.7k vs 40.9k in one week) | baseline only |
 | Poisson GLM, ridge "year-over-year delta" model | daily pattern | worse than baselines with this little history | explanation only |

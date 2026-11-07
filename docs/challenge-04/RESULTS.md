@@ -62,16 +62,21 @@ LightGBM SHAP agrees:
 
 | Driver | Effect (stays, season) | Grade | Reading |
 |---|---|---|---|
-| snow depth < 30 cm (ski area) | +51.7k | A* | actual **above** forecast on low-snow days, i.e. low snow did not hurt. *Confounded with December (the only under-forecast month, 17 cm mean snow); one season cannot separate them |
-| Fri/Sat nights | −23.1k | A | forecast too high on weekends |
-| German school holidays | +12.9k | A | forecast too low in German holiday weeks |
-| other TVB event days | −6.9k | A | forecast too high on smaller event days |
-| early season (first 3 weeks) | +11.2k | B | |
-| Polish/Czech holidays | −20.8k | B | |
+| snow depth < 30 cm (ski area) | +48.0k | A* | actual **above** forecast on low-snow days, i.e. low snow did not hurt. *Confounded with December (the only under-forecast month, 17 cm mean snow); one season cannot separate them |
+| Fri/Sat nights | −22.0k | A | forecast too high on weekends |
+| German school holidays | +11.0k | A | forecast too low in German holiday weeks |
+| early season (first 3 weeks) | +12.3k | B | |
+| Polish/Czech school holidays | +8.4k | B | sign changed after the holiday-data fix (was −20.8k with unweighted, incomplete calendars) |
+| other TVB event days | −5.0k | B | forecast too high on smaller event days |
+| long weekends / bridge days (source markets) | −3.4k / −0.9k | C | no clear winter effect |
 
-Summer (R² 0.07): the over-forecast is mainly a **level shift** (about −10k
-stays per peak-summer week). Polish/Czech holidays +61k (grade A) coincide with
-the summer peak and are confounded with it. Explanations are weak in summer:
+Updated 8 Nov after the holiday-data rebuild (section A7).
+
+Summer (R² 0.08): the over-forecast is mainly a **level shift** (about −10k
+stays per peak-summer week). Polish/Czech holidays +41k (grade A) coincide with
+the summer peak and are confounded with it. **Bridge-day long weekends** in
+the source markets (Ascension, Corpus Christi): forecast too high, −1.1k
+(grade A, small). Explanations are weak in summer:
 we say so instead of inventing reasons.
 
 ## A4. Our forecast vs TVB forecast and baselines (`real_backtest.py`)
@@ -84,15 +89,16 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
 | TVB previous-year column | 14.3 % | 6.3 % | −1.2 % | 20.6 % | +6.6 % |
 | previous year, holiday-aligned | 10.8 % | 5.9 % | −3.5 % | **15.4 %** | +4.0 % |
 | official TR53 × level (in-sample) | 10.4 % | 0.8 % | +0.8 % | 24.5 % | +2.3 % |
-| **ours (ensemble)** | 10.5 % | **3.7 %** | −1.2 % | 17.7 % | **+2.6 %** |
+| **ours (ensemble)** | **9.5 %** | **3.7 %** | −1.2 % | 18.9 % | **+2.6 %** |
 
-- Ours has the lowest monthly error and bias of all ex-ante methods. It beats
-  the TVB previous-year column clearly (10.5 % vs 14.3 % daily). In summer
-  its bias is +2.6 % vs +11.9 % for the TVB forecast.
+- Ours has the lowest monthly error and bias of all ex-ante methods and the
+  best ex-ante daily error in winter. It beats the TVB previous-year column
+  clearly (9.5 % vs 14.3 % daily). In summer its bias is +2.6 % vs +11.9 %
+  for the TVB forecast.
 - Use: TVB forecast for daily patterns inside the winter; **our model as an
   independent check of the level**, especially Nov, Mar and summer.
-- Conformal 80 % band, calibrated on real winter 24/25: coverage **0.77** on
-  25/26; half-width ×/÷1.69 normal days, ×/÷1.22 peak days.
+- Conformal 80 % band, calibrated on real winter 24/25: coverage **0.79** on
+  25/26; half-width ×/÷1.67 normal days, ×/÷1.28 peak days.
 
 ## A5. Capacity and booking behaviour (`early_warning.py`)
 
@@ -124,15 +130,56 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
 | Jan 2027 | 548.1k | 567.0k | +3 % | |
 | Feb 2027 | 565.1k | 581.2k | +3 % | |
 | Mar 2027 | 518.0k | 571.8k | **+10 %** | TVB was +7 % too high in Mar 2026; Easter 28 Mar is inside March |
-| 1–4 Apr 2027 | 54.0k | 49.2k | −9 % | TVB file ends 4 Apr |
+| 1–4 Apr 2027 | 52.3k | 49.2k | −6 % | TVB file ends 4 Apr |
 
-- 23 predicted tight days (≥ 95 % of last year's capacity): Christmas–3 Jan,
-  February weekends and half-terms, early March, Good Friday.
-- 43 in-season days with spare capacity (< 80 %), 17 days where the TVB
+(after the holiday-data rebuild; monthly totals unchanged, daily pattern updated)
+
+- 17 predicted tight days (≥ 95 % of last year's capacity): 29 Dec–2 Jan,
+  February weekends and half-terms (5–6, 13–14, 18–20 Feb), early March
+  weekends, Easter (25–26 Mar).
+- 40 in-season days with spare capacity (< 80 %), 15 days where the TVB
   forecast lies outside our 80 % band, 6 TVB forecast zeros.
 - Watch list for marketing: **November 2026 and March 2027** (TVB forecast
   much higher than ours and historically too high), spare in-season days in
   January and March.
+
+## A7. Holiday data rebuild (8 Nov)
+
+What changed (`data/holiday_features.py`, `data/make_static_holidays.py`):
+- School holidays population-weighted per state / canton / language community
+  / voivodeship; Belgian communities separated (the French-speaking community
+  has a two-week Carnival break since the 2022 reform); French overseas
+  calendars excluded.
+- Gaps filled: Denmark, UK (England pattern) and Sweden (incl. sport holidays
+  weeks 7–11) for 2021/22–2026/27; Italy summer 2026 and 2026/27; Poland
+  Christmas, Easter and summer 2026/27; France summer 2027. Audit: every
+  market now has ~115–250 holiday days per full year.
+- New per market: public holidays (national + regional, e.g. Corpus Christi
+  only in some German states, Swiss cantonal days), long weekends, bridge days
+  and bridge-extended long weekends, all population-weighted and year-specific.
+
+Effect on the real-data backtest (winter 25/26, ex ante):
+
+| Model | before | after |
+|---|---|---|
+| LightGBM daily error | 14.1 % | **11.5 %** |
+| ensemble daily error | 10.5 % | **9.5 %** |
+| ensemble peak-day error | 8.4 % | **7.8 %** |
+| conformal 80 % coverage | 0.77 | **0.79** |
+| summer ensemble daily error | 17.7 % | 18.9 % |
+
+Then market weights switched from the assumed mix to real data: first
+Statistik Austria's monthly Tirol mix (German states weighted by guest
+origin): ensemble 9.5 → 9.4 %, peak days 7.8 → 7.2 %; then Paznaun's own
+season mix from Landesstatistik Tirol × Tirol's monthly pattern: ensemble
+**9.5 %**, peak days **7.2 %**, coverage 0.78. The forecast is insensitive to
+the exact weights; their value is in market-level explanations and actions.
+
+Ablation: the gain comes from the corrected school-holiday data (LightGBM
+11.6 % with school holidays only). Long weekends and bridge days add almost
+nothing to winter forecasts (few public holidays in winter) and slightly hurt
+summer forecasts; they stay in the explanation layer, where bridge-day
+weekends show a small, significant summer over-forecast.
 
 # B. Supporting results (long history and open data)
 
@@ -146,3 +193,5 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
 | Calendar shift | 25 % of the day-level deviation between actual and the TVB previous-year column disappears with weekday and holiday alignment (winter 25/26) | `real_backtest.py` helpers |
 | Macro drivers vs season growth (20 seasons) | all \|r\| < 0.31; leave-one-out error 2.69 pp (ridge) vs 2.24 pp (mean growth) | `probe_macro.py` |
 | Snow vs season growth | r 0.50; +0.45 pp per +10 cm Dec–Mar mean snow vs last season | `probe_macro.py` |
+| Mobile network data (Drei, Salzburger Sportwelt) vs official stays | 47–49 % of official stays in winter, 30–36 % in summer; country shares biased by roaming (vs guest cards: share correlation 0.81) | `probe_mobile_guestcards.py` |
+| Holiday response per market (mobile data, Feb–Apr 2026) | presence on own holiday days vs other days: NL ×10, GB ×7, BE ×5, LU ×3, DK ×2.8, FR ×2.6, SE ×2.3, DE ×0.9 | `probe_mobile_guestcards.py` |

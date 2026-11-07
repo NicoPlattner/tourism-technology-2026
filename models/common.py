@@ -25,6 +25,12 @@ def design(f: pd.DataFrame, snow: bool = True) -> pd.DataFrame:
         if f"hol_{m}" in f:
             X[f"hol_{m}"] = f[f"hol_{m}"]
     X["at_public_holiday"] = f.at_public_holiday
+    for k in ("pub", "longwe", "bridge", "longwe_bridge"):  # source-market long weekends and bridge days
+        if f"{k}_weighted" in f:
+            X[f"{k}_weighted"] = f[f"{k}_weighted"]
+    for c in ("DE", "NL", "AT", "CH"):
+        if f"longwe_bridge_{c}" in f:
+            X[f"longwe_bridge_{c}"] = f[f"longwe_bridge_{c}"]
     X["xmas_newyear"] = f.xmas_newyear
     X["pre_xmas"] = f.pre_xmas
     X["carnival_week"] = f.carnival_week
