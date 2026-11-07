@@ -87,6 +87,7 @@ data/
   make_static_holidays.py  generates static/school_holidays_extra.csv (DK, GB, SE; IT/PL/FR gaps)
   fetch_macro.py       Eurostat, ECB, geopolitical risk, policy uncertainty, long snow series
   fetch_partner.py     TVB datasets via TTF Space (ttf_mcp.py = minimal MCP client)
+  fetch_other.py       other challenges' Data Space products (mobile data, guest cards, TOURDATA)
   load_partner.py      loaders for the TVB files; profile_partner.py = data checks
   build_features.py    -> data/processed/features_daily.parquet (one row per day)
   static/              generated school-holiday supplement, season dates
@@ -97,7 +98,7 @@ models/
   explain.py           graded deviation drivers, Theil, tracking signal, waterfall
   early_warning.py     occupancy from free beds, booking lead-time mix
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
-  probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers)
+  probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
 ```
 
 ## Primary sources

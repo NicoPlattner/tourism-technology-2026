@@ -69,7 +69,28 @@ are regime breaks: handled as flags and scenarios, not as regressors.
 Use: context in the pitch and stress scenarios ("what if DE confidence drops
 like in 2022"), not inside the forecast.
 
-## 5. Tested and rejected, or blocked
+## 5. Other products in the TTF Data Space (checked 8 Nov, 25 products)
+
+Fetched with `data/fetch_other.py` (raw files git-ignored; licences forbid
+redistribution), analysed in `models/probe_mobile_guestcards.py`. None covers
+Paznaun except TOURDATA; the Salzburg data serves as a comparable ski region.
+
+| Product | Content | What we found | Use for Challenge 04 |
+|---|---|---|---|
+| Hutchison Drei mobile visitors, Salzburger Sportwelt, Feb–Nov 2026 (licence: non-commercial, no redistribution) | daily visitors by home country, stay length, dwell time, age, gender, weather | **Level not reliable**: overnight visitor-days = 47–49 % of official stays in winter, 30–36 % in summer (coverage shifts with the market mix); monthly correlation 0.95. **Country shares biased** by roaming: vs guest cards Danish 28 % vs 15 %, Czech 1.4 % vs 12 % (share correlation 0.81). "Home postcode" of foreign phones = the Austrian postcode where they sleep; age and gender only for Austrian contracts | **Holiday response per market** (transferable timing): presence on own school-holiday days vs other days in Feb–Apr: NL ×10, GB ×7, BE ×5, LU ×3, DK ×2.8, FR ×2.6, SE ×2.3, DE ×0.9, AT ×0.7. Benelux and UK demand is concentrated in their holiday weeks; German demand is spread out |
+| Guest card usage, Salzburger Sportwelt, winters and summers 2019/20–2026 (licence: non-commercial, no redistribution) | every card use with origin country and age band | Winter market mix stable across seasons (DE 24–31 %, DK 15–24 %, AT 15–19 %, NL 8–10 %, CZ 8–11 %); Danish share falling (24 % → 15 %), Czech and Polish rising | prior for market-mix trends in Austrian ski regions; not Paznaun's mix |
+| Guest cards per type and season, Salzburger Sportwelt | card counts per municipality and season | seasonal volumes | context only |
+| TOURDATA downloads per tourism region (edition "paznaun-ischgl") | all POIs, gastronomy, accommodations, events, tours | 1,081 accommodation listings (871 holiday flats, 127 hotels, 44 pensions …; Kappl 372, Ischgl 298, Galtür 164, See 147); star rating for 188; **no bed counts** | supply structure (flat-heavy valley: holiday flats are the majority of listings), events and POIs |
+| LuxActive OTA prices and availability | five Salzburg regions only | – | shows the data type a provider could deliver for Paznaun |
+| Ibelsa PMS demo, Upper Austria TOURDATA, "Austrian Holidays" (another team) | – | not relevant / covered better by our own holiday data | – |
+
+Conclusion: the Data Space has **no nationality data for Paznaun**. The
+mobile data shows how strongly each market follows its own school holidays,
+which we can use as a prior for market-specific holiday effects, but its
+country shares and levels are too biased to replace TVB or Statistik Austria
+nationality data.
+
+## 6. Tested and rejected, or blocked
 
 | Source | Result |
 |---|---|
@@ -79,7 +100,7 @@ like in 2022"), not inside the forecast.
 | FRED oil prices | Blocked |
 | OTA price scraping | Not used (terms of service) |
 
-## 6. Still missing (ask the TVB or Statistik Austria)
+## 7. Still missing (ask the TVB or Statistik Austria)
 
 1. **Guest nationality** (monthly top markets): needed to say "which market"
    with confidence. Public substitute: Statistik Austria STATcube
@@ -89,9 +110,11 @@ like in 2022"), not inside the forecast.
    nights): would enable a real pickup nowcast.
 4. Confirmation that lead-time rows are arrival weeks.
 
-## 7. Licences to cite
+## 8. Licences to cite
 
 TVB Paznaun-Ischgl (TTF 2026 data licence) · Österreich Werbung / JOANNEUM
 RESEARCH / TU Wien / AAU (CC BY 4.0) · GeoSphere Austria (CC BY 4.0) ·
-Open-Meteo (CC BY 4.0) · OpenHolidays (ODbL) · Eurostat and ECB (reuse with
+Open-Meteo (CC BY 4.0) · OpenHolidays (ODbL) · Hutchison Drei and Salzburger
+Sportwelt TTF licences (non-commercial, attribution) · Austria Tourism TOURDATA
+TTF licence · Eurostat and ECB (reuse with
 attribution) · GPR index (Caldara & Iacoviello) · EPU (Baker, Bloom & Davis).

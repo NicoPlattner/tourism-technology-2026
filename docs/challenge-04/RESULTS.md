@@ -186,3 +186,5 @@ weekends show a small, significant summer over-forecast.
 | Calendar shift | 25 % of the day-level deviation between actual and the TVB previous-year column disappears with weekday and holiday alignment (winter 25/26) | `real_backtest.py` helpers |
 | Macro drivers vs season growth (20 seasons) | all \|r\| < 0.31; leave-one-out error 2.69 pp (ridge) vs 2.24 pp (mean growth) | `probe_macro.py` |
 | Snow vs season growth | r 0.50; +0.45 pp per +10 cm Dec–Mar mean snow vs last season | `probe_macro.py` |
+| Mobile network data (Drei, Salzburger Sportwelt) vs official stays | 47–49 % of official stays in winter, 30–36 % in summer; country shares biased by roaming (vs guest cards: share correlation 0.81) | `probe_mobile_guestcards.py` |
+| Holiday response per market (mobile data, Feb–Apr 2026) | presence on own holiday days vs other days: NL ×10, GB ×7, BE ×5, LU ×3, DK ×2.8, FR ×2.6, SE ×2.3, DE ×0.9 | `probe_mobile_guestcards.py` |
