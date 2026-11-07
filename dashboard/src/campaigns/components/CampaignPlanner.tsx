@@ -27,7 +27,6 @@ export default function CampaignPlanner({
         <span className="cp-market-code">{campaign.market}</span>
         <div>
           <h3>{campaign.country}</h3>
-          <p>{campaign.title}</p>
         </div>
         <span className="cp-platform">
           <InstagramIcon /> Instagram
@@ -57,11 +56,6 @@ export default function CampaignPlanner({
           <small>Marketing runs before travel</small>
         </div>
       </dl>
-      <div className="cp-theme">
-        <span>Creative direction</span>
-        <strong>{campaign.theme}</strong>
-        {campaign.variation && <span className="tag data">Mock variation</span>}
-      </div>
       <CampaignReasoning campaign={campaign} />
       <SocialPostPreview campaign={campaign} />
       <div className="cp-plan-action">

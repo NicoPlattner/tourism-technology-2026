@@ -52,7 +52,7 @@ export default function CampaignReviewDialog({
       <div className="cp-review-content">
         <div className="cp-review-intro">
           <span className="status sample">Fictional demo</span>
-          <h3>{campaign.title}</h3>
+          <h3>{campaign.country} campaign</h3>
           <p>
             {campaign.country} · {campaign.ageGroup} years · {campaign.segment}
           </p>
