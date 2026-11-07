@@ -147,6 +147,8 @@ explain.
 
 ## 6. Starting points for the model research (not decisions)
 
+Research results and the recommended approach: [RESEARCH.md](RESEARCH.md).
+
 - **Baselines first**: previous year aligned by weekday and holiday,
   seasonal-naive, and the official forecast (TR53 / partner file). Every model
   must beat these in a backtest.
