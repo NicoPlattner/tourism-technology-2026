@@ -3,7 +3,7 @@
 Reads data/raw/open/TR53_{month,day}.json (run data/fetch_open_data.py first).
 Prints: (1) audit of the official daily forecast (zero days, bed-cap breaches),
 (2) rolling-origin backtest of simple monthly baselines, (3) Easter effect on
-the March/April split. Results are recorded in docs/challenge-04/RESEARCH.md.
+the March/April split. Results are recorded in docs/challenge-04/RESULTS.md (section B).
 """
 import json
 import pathlib

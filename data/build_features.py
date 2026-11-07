@@ -165,16 +165,62 @@ def targets(idx: pd.DatetimeIndex) -> pd.DataFrame:
     return f.drop(columns="month_start")
 
 
+PARTNER = ROOT / "raw" / "partner"
+
+
+def partner(f: pd.DataFrame) -> pd.DataFrame:
+    """TVB Paznaun-Ischgl data (members-only, never committed; the parquet output is git-ignored).
+
+    real_actual   daily actual stays 2024-11-04 .. 2026-10-31: `actual`, extended one year back with
+                  `previous_year` (verified: previous_year(t) == actual(t - 365 days) on every overlap day)
+    partner_fc    the TVB forecast column (origin unknown; not the TR53 forecast)
+    partner_py    previous_year as delivered (same calendar date one year earlier)
+    free_beds     `available_beds` = still bookable beds (falls to ~1,100 in February while stays peak)
+    capacity_est  real_actual + free_beds (occupied + free)
+    occupancy     real_actual / capacity_est
+    ev_*          partner event calendar 2026-2027 (one row per event day)
+    """
+    idx = f.index
+    o = PARTNER / "overnight_stays_2025-11_2027-04.csv"
+    if not o.exists():
+        return pd.DataFrame(index=idx)
+    o = pd.read_csv(o, parse_dates=["date"]).set_index("date")
+    out = pd.DataFrame(index=idx)
+    out["partner_fc"] = o.forecast.reindex(idx)
+    out["partner_py"] = o.previous_year.reindex(idx)
+    act = o.actual.dropna()
+    back = o.previous_year.copy()
+    back.index = back.index - pd.Timedelta(days=365)
+    out["real_actual"] = act.combine_first(back).reindex(idx)
+    b = pd.read_csv(PARTNER / "available_beds_2025-02_2026-11.csv", parse_dates=["date"]).set_index("date")
+    out["free_beds"] = b.available_beds.reindex(idx)
+    out["capacity_est"] = out.real_actual + out.free_beds
+    out["occupancy"] = out.real_actual / out.capacity_est
+    ev = pd.read_csv(PARTNER / "event_calendar_2026-2027.csv", parse_dates=["date"])
+    name = ev.event.str.lower()
+    kinds = {"ev_any": name.str.len() > 0,
+             "ev_concert": name.str.contains("concert|konzert|t.o.m|tom ", regex=True),
+             "ev_sport": name.str.contains("freeride|trophy|contest|cup|race|rennen|world", regex=True),
+             "ev_season_edge": name.str.contains("erster skitag|saisonab|opening|closing", regex=True)}
+    for k, m in kinds.items():
+        out[k] = idx.isin(ev.loc[m, "date"]).astype(int)
+    out["ev_calendar_covered"] = ((idx >= "2026-01-01") & (idx <= "2027-12-31")).astype(int)
+    return out
+
+
 def dq_flags(f: pd.DataFrame) -> pd.DataFrame:
     f["dq_official_zero"] = (f.official_daily < 1).astype(int)
     f["dq_official_over_cap"] = (f.official_daily > f.beds_static).astype(int)
     f["dq_pseudo_missing"] = f.pseudo_actual.isna().astype(int)
+    if "partner_fc" in f:
+        f["dq_partner_fc_zero"] = (f.partner_fc == 0).astype(int)
     return f
 
 
 def build() -> pd.DataFrame:
     idx = pd.date_range(START, END, freq="D", name="date")
     f = pd.concat([calendar(idx), holiday_intensity(idx), season(idx), events(idx), snow(idx), targets(idx)], axis=1)
+    f = pd.concat([f, partner(f)], axis=1)
     return dq_flags(f)
 
 
