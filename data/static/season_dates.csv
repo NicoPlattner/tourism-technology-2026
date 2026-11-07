@@ -1,0 +1,10 @@
+# Silvretta Arena Ischgl/Samnaun winter season dates. confidence: high = press release, medium = recalled / to verify.
+# 2025/26 start: service.ischgl.com press (first ski day 27 Nov 2025, opening concert Rita Ora 29 Nov 2025);
+# 2025/26 end: FIRN post-season package until 3 May 2026 (samnaun.ch). 2026/27 start: tirol.at / snow-online (26 Nov 2026,
+# Westlife 28 Nov 2026). Earlier seasons and 2026/27 end: to verify with the TVB.
+season,first_day,last_day,opening_concert,closing_concert,confidence
+2022/23,2022-11-24,2023-05-01,2022-11-26,2023-04-30,medium
+2023/24,2023-11-30,2024-05-01,2023-12-02,2024-04-30,medium
+2024/25,2024-11-28,2025-05-01,2024-11-30,2025-04-30,medium
+2025/26,2025-11-27,2026-05-03,2025-11-29,2026-04-19,high-start
+2026/27,2026-11-26,2027-05-02,2026-11-28,,high-start
