@@ -82,7 +82,7 @@ def main():
     out = {
         "meta": {
             "generated": dt.datetime.now().isoformat(timespec="seconds"), "mode": mode,
-            "level": "TR53 tourism region (Statistik Austria scope)" if mode == "open" else "partner municipalities",
+            "level": "TR53 tourism region (Statistik Austria scope)" if mode == "open" else "Paznaun-Ischgl total (TVB / feratel)",
             "anchor": "avg of last 2 seasons + Easter March/April correction",
             "easter_2027_april_share": round(an.attrs["apr_share"], 3),
             "interval": "split-conformal 80 %, calibrated winter 23/24, tested 24/25 (coverage 0.85)",

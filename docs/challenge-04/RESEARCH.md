@@ -1,8 +1,10 @@
 # Challenge 04: model and approach research
 
-Status: 7 Nov 2026, evening. Based on **open data only**. The partner files
-(TTF Data Space, members only) were not available to this research; every
-claim about them is marked as *to verify*. Reproduce the numbers below with:
+Status: 7 Nov 2026, evening; facts re-checked 8 Nov against the primary
+sources (see [HANDOVER.md](HANDOVER.md)). Based on **open data only**. The TVB
+partner files (TTF Data Space, access for Challenge 04 members) were not
+downloaded; their file schemas are public and listed in HANDOVER.md §4.
+Claims about their content are marked *to verify*. Reproduce the numbers below with:
 
 ```bash
 python3 data/fetch_open_data.py TR53
@@ -54,13 +56,18 @@ Ischgl"`.
 | Daily = monthly total disaggregated by an adaptive LASSO fitted on a **mobile-phone proxy 2022–2025** (weekday, month, calendar-week `kw1..kw52`, holidays, events) | README §Disaggregation | Daily shape is a *typical calendar-week profile*, not this season's lift opening, events or bookings. Daily deviations are often shape errors, not demand errors. |
 | After the linear prediction the code does `f - min(min(f), 0)`, so the **lowest day of the year is set to exactly 0** | code; API shows zeros on **2025-11-10 and 2026-11-09** | Explains "forecast is 0 on a few days" in the partner file → treat as artefact, never as a real forecast of 0. |
 | Per-month proportional scaling capped at a fixed bed maximum (**22,078** for Paznaun-Ischgl) | `adjust_month_simple`, `bettenkapazität.csv` | Re-scaling after the cap can push days back over it: 4 forecast days in winter 26/27 exceed 22,078 (max **24,072 on 2027-01-01**). 24 days ≥ 90 %. Static cap ≠ daily partner beds. |
-| Scope is **hotels and holiday apartments** (Statistik Austria categories) | README intro | Feratel actuals may cover more categories → possible systematic level gap. *To verify.* |
+| Scope is **hotels and holiday apartments** (Statistik Austria categories) | README intro, b2b.austria.info page | Feratel actuals may cover more categories → possible systematic level gap. *To verify.* |
+| Weather and current sentiment are **not** inputs; the method is called "experimental statistics" | b2b.austria.info page | Snow and market holidays are legitimate explanations the official forecast cannot contain |
 
-Open question from HANDOVER §7 (is the partner forecast the TR53 forecast?):
-test by correlating the partner `forecast` column with `/v1/forecast/day/`
-(sum per month, zero days on 2025-11-10 / 2026-11-09 are a fingerprint). The
-partner file covers four municipalities (Ischgl, Galtür, Kappl, See); TR53 is
-the whole tourism region, so expect a scale factor, not identity.
+Open question (is the partner forecast the TR53 forecast?): test by
+correlating the partner `forecast` column with `/v1/forecast/day/` (sum per
+month; zero days on 2025-11-10 / 2026-11-09 are a fingerprint, and the
+partner product itself says "the forecast is 0 on a few days"). The partner
+file is **one daily total** for Ischgl, Galtür, Kappl and See (columns
+`date, actual, forecast, previous_year`, no per-municipality columns). TR53
+consists of Galtür, Ischgl, Kappl, **Pians** and See (official region list)
+and counts hotels and holiday flats only, so expect a scale factor close to,
+but not exactly, 1.
 
 ## 2. Findings from open data
 
@@ -134,7 +141,7 @@ held). Mark that as an assumption on every capacity statement.
 
 ### Q1a. Forecasting: what to build
 
-Target: daily stays per municipality and total, Nov 2026 – Apr 2027.
+Target: daily total stays for Paznaun-Ischgl (the partner file has no municipality split), Nov 2026 – Apr 2027.
 
 1. **Baselines (mandatory comparators)**
    - `PY_aligned`: previous-year value from the same weekday in the same
@@ -166,8 +173,7 @@ Target: daily stays per municipality and total, Nov 2026 – Apr 2027.
    horizons, no explanations. Use as an ensemble member for h ≤ 3 months.
 
 Not recommended for this data size: Prophet (too smooth around holiday
-edges, adds little over the GLM), deep sequence models, per-municipality
-models without pooling.
+edges, adds little over the GLM), deep sequence models.
 
 ### Q1b. Deviation explanation
 
@@ -182,7 +188,7 @@ FC 10,000 ──► +calendar shift (Easter/weekday) ──► +source-market ho
 Method, in order of priority:
 
 1. **Rule-based data-quality layer first**: forecast = 0 (known artefact),
-   actual missing / 0, bed file gaps, municipality sums ≠ total. Tag those
+   actual missing / 0, bed file gaps. Tag those
    days and remove them from model fitting. This alone explains part of the
    "unexplained" deviations.
 2. **Calendar shift**: compare PY date-aligned vs PY holiday-aligned. The
@@ -204,7 +210,9 @@ stability by refitting with one month left out.
 
 ### Q2. Early recognition
 
-- **Booking lead-time classes** (partner, weekly, 2023-10 → 2026-10): build a
+- **Booking lead-time classes** (partner, weekly from Monday `week_start`,
+  2023-10-30 → 2026-10-26, columns `bookings_{0,8,31,61,90,180}_days_ahead`,
+  empty = no bookings): build a
   YoY *intake index* per lead-time class (bookings this week ÷ same ISO week
   last year). The 61–90 and 90–180-day classes lead arrivals by 2–6 months.
   Fit a simple regression of later monthly ACT/PY on the earlier intake index
@@ -265,8 +273,8 @@ Superseded by [PLAN.md](PLAN.md).
 1. Is the partner `forecast` = TR53 daily forecast scaled? (zero days, monthly sums)
 2. Where do actuals stop? Any zero/blank actuals inside the observed period?
 3. Does the previous-year column align by date or by weekday?
-4. Do municipality columns sum to a total, and is the level comparable to TR53
-   (hotels + apartments only vs all categories)?
+4. Is the level comparable to TR53 (TR53 adds Pians and counts hotels +
+   holiday flats only)?
 5. Bed file: daily variation (openings/closings), last date, relation to
    22,078.
 6. Lead-time file: does a row count bookings *made* in that week or
@@ -316,7 +324,7 @@ Chronos-2 better univariately).
 | Need | Method | Why it fits | Priority |
 |---|---|---|---|
 | "Is the forecast systematically wrong?" | **Theil decomposition** of forecast MSE into bias / variance / covariance shares + tracking signal (cumulative error ÷ MAD) per month and weekday | Turns "systematic error" into a number with a standard test | P1 |
-| Municipality and time consistency | **Hierarchical reconciliation (MinT)**: Ischgl + Galtür + Kappl + See = total; days add up to month | Coherent numbers across UI views, usually more accurate (Hyndman et al., tourism data) | P2 |
+| Time consistency | **Temporal reconciliation**: days add up to the month anchor | Coherent numbers across daily / monthly UI views (Hyndman et al.). No municipality hierarchy: the partner file is a single total | P2 |
 | Weekly signals → monthly target | **MIDAS / distributed lag** | Lead-time intake and Google Trends are weekly; MIDAS with weekly search data beat monthly-only models in published tourism studies | P2 |
 | Short-term nowcast | **Pickup models** (additive is the usual benchmark, often best in studies) | Only with on-the-books by stay date (ASK) | P1 if data arrives |
 | Event effects with uncertainty | **Synthetic control / Bayesian structural time series** (CausalImpact style): donors = other regions' daily index 2022–2025 | "The opening concert adds X ± Y stays" for past events | P2 |
@@ -347,6 +355,7 @@ as a leading indicator (tested, coincident only, see DATA-SOURCES.md).
 
 - Nächtigungsprognose API and code: Österreich Werbung with JOANNEUM
   RESEARCH, TU Wien, University of Klagenfurt, CC BY 4.0.
-- Partner data: TVB Paznaun-Ischgl / Feratel, TTF 2026 data licence,
-  attribution to TVB Paznaun-Ischgl. Not committed (members only).
+- Partner data: TVB Paznaun-Ischgl with feratel, "TVB Paznaun-Ischgl TTF 2026
+  data licence" (use, derive, share allowed; attribute TVB Paznaun-Ischgl).
+  Access through the TTF Data Space; raw files are not committed.
 - OpenHolidays API (ODbL), Open-Meteo (CC BY 4.0), GeoSphere Austria (CC BY 4.0).

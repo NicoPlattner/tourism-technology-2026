@@ -113,9 +113,10 @@ Commit after every block (the technical jury checks the history).
 2. Do you have **on-the-books per stay date** (snapshot today vs same day
    last year)?
 3. **Website / booking-engine sessions by country** (weekly)?
-4. Which forecast vintage is in the file, and is it the Austria Tourism
-   (TR53) forecast scaled to the four municipalities?
-5. Lead-time file: bookings *made* per week, or *arrivals* per week?
+4. Where does the `forecast` column come from (the Austria Tourism TR53
+   forecast? which vintage?), and why is it 0 on some days?
+5. Lead-time file: is `week_start` the week the bookings were *made* or the
+   week of *arrival*? Are the classes 0–7, 8–30, 31–60, 61–89, 90–179, 180+ days?
 6. Season dates 26/27: first ski day 26 Nov (confirmed in press), full
    operation 4 Dec (austria.info)? Closing date?
 

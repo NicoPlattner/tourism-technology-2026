@@ -28,8 +28,9 @@ RAW, STATIC, OUT = ROOT / "raw" / "open", ROOT / "static", ROOT / "processed"
 REGION = "Paznaun - Ischgl"
 START, END = "2022-01-01", "2027-08-31"
 
-# Assumed market mix (share of winter stays). 2023 regional figures: DE 50 %, NL 13 %, BE 7 %.
-# The rest is a placeholder until nationality data from the TVB / STATcube arrives.
+# ASSUMED market mix (share of winter stays), not verified: DE/NL/BE values come from a web-search
+# snippet of an MCI poster (Paznaun-Ischgl DE 50 %, NL 13 %, BE 7 %), the rest are placeholders.
+# Replace with nationality data from the TVB or Statistik Austria STATcube.
 MARKET_SHARE = {"DE": .50, "NL": .13, "BE": .07, "CH": .05, "AT": .05, "DK": .04, "GB": .04,
                 "PL": .03, "CZ": .02, "SE": .02, "FR": .02, "LU": .01, "IT": .01}
 # German Länder population (millions, 2023) to weight Land-level holidays.

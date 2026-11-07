@@ -23,7 +23,7 @@ REPO = "https://raw.githubusercontent.com/kan-jr/Naechtigungsprognose/main/data/
 REPO_FILES = ["proxy_data_daily.csv", "matrix_daily_forecast.csv", "Events_Konzerte_daily_G.csv",
               "Events_Konzerte_daily_M.csv", "Events_Konzerte_daily_K.csv", "bettenkapazität.csv",
               "region_scale_13032026.csv", "region_method_rmse.csv", "Ferien_und_Feiertage.csv"]
-# Source markets for Paznaun (DE ~50 %, NL ~13 %, BE ~7 % per 2023 regional figures; rest to verify)
+# Candidate source markets for Paznaun (mix not verified, see build_features.MARKET_SHARE)
 MARKETS = ["DE", "NL", "BE", "CH", "AT", "CZ", "PL", "SE", "FR", "LU", "IT"]
 WINDOWS = [("2022-01-01", "2024-12-31"), ("2025-01-01", "2027-08-31")]  # API max range 1095 days
 SNOW_POINTS = {"ski_area_idalpe": (46.985, 10.315), "village_ischgl": (47.012, 10.293)}
