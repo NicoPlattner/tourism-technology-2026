@@ -38,7 +38,7 @@ CAPTION_MODEL=gpt-4.1-mini
 CAPTION_BASE_URL=https://api.openai.com/v1
 ```
 
-`CAPTION_API_KEY` can be used instead of `OPENAI_API_KEY`. For an explicitly configured compatible endpoint, set `CAPTION_PROVIDER=openai-compatible` and `CAPTION_BASE_URL` to its HTTPS API base (without `/chat/completions`). Choose a compatible model and `CAPTION_JSON_MODE=json_schema` or `json_object`. The endpoint must support the Chat Completions request and `max_completion_tokens` used by this adapter. There is one request per generation, no automatic retry and no external research.
+`CAPTION_API_KEY` can be used instead of `OPENAI_API_KEY`. For an explicitly configured compatible endpoint, set `CAPTION_PROVIDER=openai-compatible` and `OPENAI_BASE_URL` (or the overriding `CAPTION_BASE_URL`) to its HTTPS API base (without `/chat/completions`). Choose a compatible model and `CAPTION_JSON_MODE=json_schema` or `json_object`. The endpoint must support the Chat Completions request and `max_completion_tokens` used by this adapter. There is one request per generation, no automatic retry and no external research.
 
 ## Local setup
 
@@ -64,6 +64,7 @@ One command starts Vite and the private caption API on port 8787. Vite proxies `
 | `OPENAI_API_KEY` | Direct OpenAI key fallback; never forwarded to n8n |
 | `N8N_WEBHOOK_KEY` | n8n-only alternative to `CAPTION_API_KEY` |
 | `CAPTION_MODEL` | `gpt-4.1-mini`; forwarded to the supplied n8n workflow |
+| `OPENAI_BASE_URL` | Compatible API base; overridden by `CAPTION_BASE_URL` |
 | `CAPTION_BASE_URL` | `https://api.openai.com/v1`; compatible API base |
 | `CAPTION_N8N_WEBHOOK_URL` | Required HTTPS production webhook URL for n8n |
 | `CAPTION_N8N_AUTH_HEADER` | `X-Caption-Key` |

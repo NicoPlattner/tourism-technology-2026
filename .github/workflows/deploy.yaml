@@ -184,7 +184,7 @@ jobs:
         env:
           CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || 'openai' }}
           CAPTION_MODEL: ${{ vars.CAPTION_MODEL || 'gpt-4.1-mini' }}
-          CAPTION_BASE_URL: ${{ vars.CAPTION_BASE_URL || 'https://api.openai.com/v1' }}
+          CAPTION_BASE_URL: ${{ vars.CAPTION_BASE_URL || vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
           CAPTION_N8N_WEBHOOK_URL: ${{ vars.CAPTION_N8N_WEBHOOK_URL }}
           CAPTION_N8N_AUTH_HEADER: ${{ vars.CAPTION_N8N_AUTH_HEADER || 'X-Caption-Key' }}
           CAPTION_N8N_AUTH_PREFIX: ${{ vars.CAPTION_N8N_AUTH_PREFIX }}

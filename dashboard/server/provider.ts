@@ -48,7 +48,7 @@ export function readProviderConfig(
   const baseUrl = (
     provider === "n8n"
       ? env.CAPTION_N8N_WEBHOOK_URL!
-      : env.CAPTION_BASE_URL || "https://api.openai.com/v1"
+      : env.CAPTION_BASE_URL || env.OPENAI_BASE_URL || "https://api.openai.com/v1"
   ).replace(/\/+$/, "");
   let endpoint: URL;
   try {

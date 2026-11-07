@@ -360,3 +360,15 @@ test("n8n malformed output retains server-side validation and timeout behavior",
       error instanceof CaptionError && error.code === "PROVIDER_TIMEOUT",
   );
 });
+
+test("OpenAI base URL alias and model are configurable with explicit caption URL precedence", () => {
+  const env = {
+    CAPTION_PROVIDER: "openai-compatible",
+    OPENAI_API_KEY: "test-key-not-a-real-credential",
+    OPENAI_BASE_URL: "https://example.test/api/",
+    CAPTION_MODEL: "configured-medium-model",
+  };
+  assert.equal(readProviderConfig(env).baseUrl, "https://example.test/api");
+  assert.equal(readProviderConfig(env).model, "configured-medium-model");
+  assert.equal(readProviderConfig({...env, CAPTION_BASE_URL: "https://override.test/v1"}).baseUrl, "https://override.test/v1");
+});
