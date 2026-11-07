@@ -1,0 +1,139 @@
+# The API microservice: keeps the Google Analytics connection (refresh tokens,
+# encrypted) under /data and answers under <ingress.path>/api.
+# With api.persistence.enabled the data is on a PersistentVolumeClaim and
+# survives restarts and redeploys; otherwise it is an emptyDir that lasts as
+# long as the pod.
+{{- $api := .Values.api }}
+{{- $persist := $api.persistence.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-api
+data:
+  server.mjs: |
+{{ .Files.Get "api/server.mjs" | required "api/server.mjs is missing: run npm run build in dashboard/" | indent 4 }}
+---
+{{- if $persist }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-api-data
+  annotations:
+    # Keep the stored Google connection if the release is ever uninstalled.
+    helm.sh/resource-policy: keep
+spec:
+  accessModes: [ReadWriteOnce]
+  {{- with $api.persistence.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $api.persistence.size }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api
+spec:
+  replicas: 1
+  # One writer for the stored connection: stop the old pod before the new one.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-api
+      annotations:
+        checksum/server: {{ .Files.Get "api/server.mjs" | sha256sum }}
+        checksum/google: {{ .Values.googleSecretChecksum | quote }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: {{ $api.image }}
+          command: ["node", "/app/server.mjs"]
+          env:
+            - name: PORT
+              value: "8787"
+            - name: DATA_DIR
+              value: /data
+            - name: STORE_PERSISTENT
+              value: {{ $persist | quote }}
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-google
+                  key: GOOGLE_CLIENT_ID
+                  optional: true
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-google
+                  key: GOOGLE_CLIENT_SECRET
+                  optional: true
+          ports:
+            - name: http
+              containerPort: 8787
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 10m
+              memory: 48Mi
+            limits:
+              cpu: 300m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: code
+              mountPath: /app
+              readOnly: true
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: code
+          configMap:
+            name: {{ .Release.Name }}-api
+        - name: data
+          {{- if $persist }}
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-api-data
+          {{- else }}
+          emptyDir:
+            sizeLimit: 16Mi
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

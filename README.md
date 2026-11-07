@@ -16,7 +16,7 @@ and turns them into next steps, in plain language and in the Paznaun-Ischgl look
 | Deviations | Stretches >10% off the forecast with the most likely reason (weather, NL/BE holidays, events, data gaps) and confidence |
 | Beds | Month calendar of expected bed occupancy, paged by month |
 | Actions | Ranked next steps (what, when, where, why), CSV / print |
-| Data | Connect Google Analytics properties (read-only Google login), live website data, sources |
+| Integrations | Google Analytics connection kept by the server (24/7, all devices), live website data, sources |
 
 Partner markets: **Netherlands and Belgium** (holidays, explanations and actions focus on them).
 
@@ -29,21 +29,31 @@ official monthly totals, until the TTF Data Space export is connected. `npm run 
 `npm run data:sample` rebuilds the sample. The app also refreshes the forecast
 and weather live when it loads.
 
-**Google Analytics.** The Data tab has a *Connect Google Analytics* button. It
-opens a Google login (Google Identity Services, browser-only token flow) asking
-for the read-only scope `https://www.googleapis.com/auth/analytics.readonly`
-and then asks you to pick properties — always explicitly. One login is reused to add
-more; properties from another Google account can be added too, and each can be
-removed again. The
-*Website data* panel shows the selected property's Realtime report: active
-users, countries and pages in the last 30 minutes (Google's realtime limit),
-refreshed every minute. Connections live in memory: the access
-token lasts about an hour and a reload clears them. Set the public OAuth
-client ID as the Actions variable `GOOGLE_CLIENT_ID` (deploy) or
-`VITE_GOOGLE_CLIENT_ID` in `dashboard/.env` (committed default, used for local dev). The OAuth client
-needs `https://hackathon.daria-and-nico.com` (and `http://localhost:5173` for
-dev) as authorised JavaScript origins, and the project needs the Google
-Analytics Admin API and Google Analytics Data API enabled.
+**Google Analytics.** Two services per deployment: the static frontend (nginx)
+and a small Node API (`dashboard/server/server.mjs`, no dependencies) that the
+ingress routes `<path>/api` to. *Connect Google Analytics* opens Google's
+sign-in popup (authorization code flow) for `openid email analytics.readonly`;
+the API exchanges the code for a refresh token, stores it AES-GCM encrypted under
+`/data` and refreshes access hourly, so the connection stays up 24/7 and is the
+same on every device until someone disconnects it. **Storage:** `/data` is a PersistentVolumeClaim of the
+`microk8s-retain-hostpath` class (the cluster has no default class), so the
+connection survives restarts and redeploys. With
+`api.persistence.enabled: false` it is an emptyDir instead and the dashboard
+says the connection is temporary; it also warns if the store is not writable. Several
+Google accounts and properties can be added; properties are always picked
+explicitly. *Website data* shows the Realtime report (last 30 minutes —
+Google's realtime limit), refreshed every minute.
+
+Setup: OAuth web client with `https://hackathon.daria-and-nico.com` (and
+`http://localhost:5173`) as authorised JavaScript origins — no redirect URIs
+needed; Analytics Admin and Data APIs enabled; the consent screen **published
+("In production")**, because in "Testing" Google expires refresh tokens after
+7 days. Repository settings: Actions variable `GOOGLE_CLIENT_ID` and Actions
+secret `GOOGLE_CLIENT_SECRET`; the deploy workflow turns them into a
+Kubernetes secret for the API. Local dev: `npm run server` (with
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in the environment) next to
+`npm run dev`, which proxies `/api` (data in `dashboard/data/`).
+`npm run test:server` tests the API against a fake Google.
 
 **Adding a source.** Sources are adapters in `dashboard/src/data/sources.ts`
 that fill one day-by-day model (`Day`); analyses in `src/analysis/insights.ts`
@@ -63,8 +73,10 @@ The [deployment workflow](.github/workflows/deploy.yaml) deploys to the existing
 GitHub → Authentik OIDC credential helper embedded in the supplied kubeconfig.
 No permanent Kubernetes token is required.
 
-The [Helm chart](helm/tourism-technology) serves the built dashboard with
-unprivileged nginx (files from a ConfigMap); the workflow builds it first. Each branch gets an isolated Helm release and URL under
+The [Helm chart](helm/tourism-technology) runs two services: the built
+dashboard on unprivileged nginx (files from a ConfigMap) and the Node API
+(code from a ConfigMap; data on a PersistentVolumeClaim when
+`api.persistence.enabled`, else an emptyDir); the workflow builds both first. Each branch gets an isolated Helm release and URL under
 `https://hackathon.daria-and-nico.com/<branch-name>`.
 
 ## Repository setup
@@ -77,11 +89,13 @@ Set these repository secrets under **Settings → Secrets and variables → Acti
 | `PANGOLIN_ID` | Pangolin machine client ID with access to the private Kubernetes API |
 | `PANGOLIN_SECRET` | That machine client's secret |
 | `PANGOLIN_ENDPOINT` | Pangolin dashboard URL |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret, used by the API service |
 
 The workflow selects its `microk8s` context, and `id-token: write` lets the helper
 request short-lived credentials. The namespace and its RBAC must already exist;
 CI does not create them. Helm also needs permission to manage release secrets in
-that namespace.
+that namespace, and the API needs secrets (and PersistentVolumeClaims with
+persistence on) there.
 
 Optional Actions variables:
 

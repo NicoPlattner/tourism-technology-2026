@@ -1,32 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
-import { realtime, type GaConnection, type GaRealtime } from '../data/googleAnalytics';
+import { gaApi, type GaConnection, type GaRealtime } from '../data/googleAnalytics';
 
 const fmt = (n: number) => n.toLocaleString('en-GB');
 const REFRESH_MS = 60_000;
 
-interface Data { realtime?: GaRealtime; error?: string; updated?: Date; loading?: boolean }
+interface Data { realtime?: GaRealtime; error?: string; loading?: boolean }
 
-// Live numbers for one connected GA4 property from the Realtime report, which
-// works right away on a new property. Google keeps realtime data for the last
-// 30 minutes only.
+// Live numbers for one connected GA4 property from the Realtime report, read
+// through the server. Google keeps realtime data for the last 30 minutes only.
 export default function GoogleAnalyticsData({ connections }: { connections: GaConnection[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [data, setData] = useState<Data>({});
   const conn = connections.find((c) => c.property.id === selectedId) ?? connections[0];
+  const id = conn?.property.id;
 
-  const load = useCallback(async (c: GaConnection) => {
+  const load = useCallback(async (propertyId: string) => {
     setData((d) => ({ ...d, loading: true }));
-    try { setData({ realtime: await realtime(c.token, c.property.id), updated: new Date() }); }
-    catch (e) { setData({ error: (e as Error).message, updated: new Date() }); }
+    try { setData({ realtime: await gaApi.realtime(propertyId) }); }
+    catch (e) { setData({ error: (e as Error).message }); }
   }, []);
 
   useEffect(() => {
-    if (!conn) return;
+    if (!id) return;
     setData({});
-    load(conn);
-    const t = setInterval(() => { if (document.visibilityState === 'visible') load(conn); }, REFRESH_MS);
+    load(id);
+    const t = setInterval(() => { if (document.visibilityState === 'visible') load(id); }, REFRESH_MS);
     return () => clearInterval(t);
-  }, [conn, load]);
+  }, [id, load]);
 
   if (!conn) {
     return (
@@ -38,12 +38,11 @@ export default function GoogleAnalyticsData({ connections }: { connections: GaCo
   }
 
   const rt = data.realtime;
-
   return (
     <div className="card ga-data" aria-busy={data.loading}>
       <div className="ga-data-head">
         <h2>Website data</h2>
-        <button className="ga-link" onClick={() => load(conn)} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
+        <button className="ga-link" onClick={() => load(conn.property.id)} disabled={data.loading}>{data.loading ? 'Loading…' : 'Refresh'}</button>
       </div>
       {connections.length > 1 && (
         <div className="ga-tabs" role="tablist" aria-label="Property">
@@ -65,10 +64,9 @@ export default function GoogleAnalyticsData({ connections }: { connections: GaCo
               <Top title="Pages" rows={rt.pages} />
             </div>
           )}
+          <p className="muted small ga-updated">Updated {new Date(rt.updated).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · refreshes every minute</p>
         </>
       ) : data.error ? <p className="warn small">{data.error}</p> : <p className="muted small">Loading…</p>}
-
-      {data.updated && <p className="muted small ga-updated">Updated {data.updated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} · refreshes every minute</p>}
     </div>
   );
 }

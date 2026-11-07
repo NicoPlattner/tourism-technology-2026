@@ -1,3 +1,14 @@
 image: nginxinc/nginx-unprivileged:1.27-alpine
 ingress:
   path: /
+api:
+  image: node:22-alpine
+  persistence:
+    # false keeps the Google connection only until the API pod restarts.
+    enabled: true
+    size: 64Mi
+    # The cluster has no default class; "retain" keeps the data on the node
+    # even if the claim is deleted.
+    storageClass: microk8s-retain-hostpath
+# Set by the deploy workflow so the API restarts when the Google secret changes.
+googleSecretChecksum: ""
