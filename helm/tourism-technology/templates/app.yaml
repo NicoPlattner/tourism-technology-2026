@@ -1,3 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-site
+data:
+{{ (.Files.Glob "site/*").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nginx
+data:
+  nginx.conf: |
+{{ .Files.Get "nginx.conf" | indent 4 }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,30 +26,31 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        checksum/site: {{ (.Files.Glob "site/*").AsConfig | sha256sum }}
+        checksum/nginx: {{ .Files.Get "nginx.conf" | sha256sum }}
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsUser: 101
+        runAsGroup: 101
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: {{ .Release.Name }}
-          image: hashicorp/http-echo:1.0.0
-          args:
-            - -listen=:5678
-            - -text=Hello, World!
+        - name: web
+          image: {{ .Values.image }}
+          command: ["nginx", "-g", "daemon off;"]
           ports:
             - name: http
-              containerPort: 5678
+              containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
             initialDelaySeconds: 5
           resources:
@@ -42,13 +58,33 @@ spec:
               cpu: 10m
               memory: 16Mi
             limits:
-              cpu: 100m
+              cpu: 200m
               memory: 64Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+          volumeMounts:
+            - name: site
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: nginx
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: site
+          configMap:
+            name: {{ .Release.Name }}-site
+        - name: nginx
+          configMap:
+            name: {{ .Release.Name }}-nginx
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
 ---
 apiVersion: v1
 kind: Service
@@ -73,7 +109,7 @@ spec:
     - host: hackathon.daria-and-nico.com
       http:
         paths:
-          # http-echo answers on every path, so no rewrite is needed.
+          # nginx in the pod resolves assets by file name, so no rewrite is needed.
           - path: {{ .Values.ingress.path | quote }}
             pathType: Prefix
             backend:

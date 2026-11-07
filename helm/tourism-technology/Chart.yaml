@@ -1,5 +1,5 @@
 apiVersion: v2
 name: tourism-technology
-version: 0.1.0
-description: Hello world sample application
+version: 0.4.0
+description: Demand Radar for TVB Paznaun-Ischgl (static React dashboard served by nginx)
 type: application
