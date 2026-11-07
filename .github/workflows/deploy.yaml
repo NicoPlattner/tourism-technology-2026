@@ -147,7 +147,10 @@ jobs:
           set -euo pipefail
           kubectl auth can-i create deployments -n tourism-technology-2026
           kubectl auth can-i create secrets -n tourism-technology-2026
-          kubectl auth can-i create persistentvolumeclaims -n tourism-technology-2026
+          # The API service gets its own service account and a Role on secrets.
+          for resource in serviceaccounts roles rolebindings; do
+            kubectl auth can-i create "$resource" -n tourism-technology-2026
+          done
           for namespace in default test kube-system; do
             result=$(kubectl auth can-i create deployments -n "$namespace" || true)
             [[ "$result" == "no" ]] || { echo "::error::Unexpected authorization result in $namespace"; exit 1; }
@@ -173,6 +176,8 @@ jobs:
 
       - name: Deploy Helm release
         run: |
+          # An earlier chart version used a volume claim that never bound; drop it.
+          kubectl -n tourism-technology-2026 delete pvc "$RELEASE_NAME-api-data" --ignore-not-found --wait=false || true
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \
@@ -226,8 +231,7 @@ jobs:
       - name: Deployment diagnostics
         if: failure() && steps.pangolin.outcome == 'success'
         run: |
-          kubectl --request-timeout=10s -n tourism-technology-2026 get deployments,services,ingresses,pods,pvc || true
-          kubectl --request-timeout=10s get storageclass || true
+          kubectl --request-timeout=10s -n tourism-technology-2026 get deployments,services,ingresses,pods || true
           kubectl --request-timeout=10s -n tourism-technology-2026 logs "deployment/$RELEASE_NAME-api" --tail=50 || true
           kubectl --request-timeout=10s -n tourism-technology-2026 get events --sort-by=.lastTimestamp || true
 

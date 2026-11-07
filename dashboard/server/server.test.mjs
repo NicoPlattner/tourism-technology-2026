@@ -1,54 +1,16 @@
 // End-to-end test of the API against a fake Google (node --test).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
+import { startFakeGoogle } from './fake-google.mjs';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const calls = { grants: [], revoked: [], reports: [] };
-let refreshValid = true;
-const jwt = (o) => ['e30', Buffer.from(JSON.stringify(o)).toString('base64url'), 'sig'].join('.');
-
-const fakeGoogle = createServer(async (req, res) => {
-  let body = '';
-  for await (const c of req) body += c;
-  const json = (status, o) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(o)); };
-  const url = new URL(req.url, 'http://x');
-  if (url.pathname === '/token') {
-    const f = new URLSearchParams(body);
-    calls.grants.push(f.get('grant_type'));
-    if (f.get('client_secret') !== 'test-secret') return json(401, { error: 'invalid_client' });
-    if (f.get('grant_type') === 'authorization_code') {
-      if (f.get('redirect_uri') !== 'postmessage') return json(400, { error: 'redirect_uri_mismatch' });
-      if (f.get('code') !== 'good-code') return json(400, { error: 'invalid_grant' });
-      // expires_in 30 s is inside the 60 s safety margin, so the next call refreshes.
-      return json(200, { access_token: 'access-1', expires_in: 30, refresh_token: 'refresh-secret', scope: 'openid email https://www.googleapis.com/auth/analytics.readonly', id_token: jwt({ sub: 'user-1', email: 'nico@example.com' }) });
-    }
-    if (f.get('refresh_token') !== 'refresh-secret' || !refreshValid) return json(400, { error: 'invalid_grant' });
-    return json(200, { access_token: 'access-2', expires_in: 3600 });
-  }
-  if (url.pathname === '/revoke') { calls.revoked.push(new URLSearchParams(body).get('token')); return json(200, {}); }
-  if (!/^Bearer access-/.test(req.headers.authorization ?? '')) return json(401, { error: { message: 'bad token' } });
-  if (url.pathname === '/v1beta/accountSummaries') {
-    return json(200, { accountSummaries: [
-      { displayName: 'TVB Paznaun-Ischgl', propertySummaries: [{ property: 'properties/111', displayName: 'Ischgl Web' }, { property: 'properties/333', displayName: 'Galtür Web' }] },
-    ] });
-  }
-  const m = url.pathname.match(/^\/v1beta\/properties\/(\d+):runRealtimeReport$/);
-  if (m) {
-    calls.reports.push(m[1]);
-    const dim = JSON.parse(body).dimensions?.[0]?.name;
-    if (!dim) return json(200, { rows: [{ metricValues: [{ value: '4' }] }] });
-    return json(200, { rows: [{ dimensionValues: [{ value: dim === 'country' ? 'Netherlands' : 'Home' }], metricValues: [{ value: '4' }] }] });
-  }
-  json(404, {});
-});
-
-let api, base, dataDir;
+let api, base, dataDir, google, calls;
 before(async () => {
-  await new Promise((r) => fakeGoogle.listen(0, r));
-  const g = `http://127.0.0.1:${fakeGoogle.address().port}`;
+  google = await startFakeGoogle();
+  calls = google.calls;
+  const g = google.url;
   dataDir = await mkdtemp(join(tmpdir(), 'ga-api-'));
   Object.assign(process.env, { GOOGLE_CLIENT_ID: 'test-client', GOOGLE_CLIENT_SECRET: 'test-secret', DATA_DIR: dataDir, GOOGLE_OAUTH_URL: g, GA_ADMIN_URL: g, GA_DATA_URL: g });
   const { start } = await import('./server.mjs');
@@ -56,7 +18,7 @@ before(async () => {
   // Requests arrive with the deployment path in front, as from the ingress.
   base = `http://127.0.0.1:${api.address().port}/some/branch/api`;
 });
-after(() => { api?.close(); fakeGoogle.close(); });
+after(() => { api?.close(); google.close(); });
 
 const call = async (method, path, body) => {
   const res = await fetch(base + path, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body && JSON.stringify(body) });
@@ -95,7 +57,7 @@ test('connect, pick, read realtime data, survive refresh, revoke', async () => {
   assert.equal(r.status, 404, 'only connected properties can be read');
 
   // Revoked at Google: the account is flagged instead of silently failing.
-  refreshValid = false;
+  google.control.refreshValid = false;
   const { start } = await import('./server.mjs');
   api.close();
   api = await start(0); // a restart reloads from disk and forgets cached access tokens
@@ -108,7 +70,7 @@ test('connect, pick, read realtime data, survive refresh, revoke', async () => {
   assert.match(r.body.accounts[0].error, /reconnect/);
 
   // Reconnecting the same account clears the error.
-  refreshValid = true;
+  google.control.refreshValid = true;
   r = await call('POST', '/ga/accounts', { code: 'good-code' });
   r = await call('GET', '/ga');
   assert.equal(r.body.accounts[0].error, undefined);
