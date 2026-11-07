@@ -131,13 +131,19 @@ explain.
 ## 5. Repository conventions
 
 - Read `AGENTS.md`. Work on a feature branch. **This branch is
-  `challenge-04`.** It deploys to `https://hackathon.daria-and-nico.com/challenge-04`
+  `c04-data-models`** (renamed from `challenge-04` on 7 Nov 2026). It is
+  **reserved for one owner and their agent sessions**, and only for data
+  acquisition, data engineering, model research, training and prediction
+  testing. Other team members and their agents must not commit to it; they
+  work on their own branches (e.g. `paznaun-demand-radar` for the dashboard).
+  Results go to `main` or new dedicated branches later via pull request.
+- If deployed, the branch lands at `https://hackathon.daria-and-nico.com/c04-data-models`
   through the manually dispatched "Deploy to Kubernetes" workflow. Never deploy
   to the root unless explicitly asked.
 - The Helm chart on `main` is still a hello-world placeholder. Other agents
   work on other challenges in other branches (`claude/youthful-clarke-*`,
-  `claude/hopeful-dijkstra-*`, `tourism-innovation-lab`). Don't change their
-  branches.
+  `claude/hopeful-dijkstra-*`, `tourism-innovation-lab`, `paznaun-demand-radar`).
+  Don't change their branches.
 - Suggested layout: `docs/challenge-04/` for research notes and decisions,
   `data/` for scripts that fetch data, `data/raw/` **git-ignored** (partner
   data is members-only, don't commit it), `models/` or `notebooks/` for
