@@ -1,40 +1,56 @@
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ViewProps } from '../App';
-import { toCsv } from '../data/sources';
+import { connectGoogleAnalytics, disconnectGoogleAnalytics, GA_CLIENT_ID, listProperties, loadGis, type GaState } from '../data/googleAnalytics';
 import type { SourceStatus } from '../data/types';
 
 const STATUS: Record<SourceStatus, string> = { connected: 'Connected', live: 'Live', snapshot: 'Open data', sample: 'Sample', planned: 'Next' };
 
-export default function Sources({ ds, model, onUpload, uploaded }: ViewProps & { onUpload: (f: File) => Promise<void>; uploaded?: string }) {
-  const input = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [drag, setDrag] = useState(false);
-  const handle = async (f?: File | null) => {
-    if (!f) return;
-    setError(null);
-    try { await onUpload(f); } catch (e) { setError((e as Error).message); }
+export default function Sources({ model, ds, ga, setGa }: ViewProps & { ga: GaState; setGa: (s: GaState) => void }) {
+  const [gisError, setGisError] = useState<string | null>(null);
+  // Load Google sign-in up front so the popup opens straight from the click.
+  useEffect(() => { if (GA_CLIENT_ID) loadGis().catch((e: Error) => setGisError(e.message)); }, []);
+
+  const connect = async () => {
+    setGa({ status: 'connecting' });
+    try {
+      const token = await connectGoogleAnalytics(await loadGis());
+      setGa({ status: 'connected', token });
+      try { setGa({ status: 'connected', token, properties: await listProperties(token) }); }
+      catch (e) { setGa({ status: 'connected', token, error: (e as Error).message }); }
+    } catch (e) { setGa({ status: 'idle', error: (e as Error).message }); }
   };
-  const template = () => {
-    const url = URL.createObjectURL(new Blob([toCsv(ds)], { type: 'text/csv;charset=utf-8' }));
-    Object.assign(document.createElement('a'), { href: url, download: 'template.csv' }).click();
-    URL.revokeObjectURL(url);
+  const disconnect = () => {
+    if (ga.status === 'connected') disconnectGoogleAnalytics(ga.token);
+    setGa({ status: 'idle' });
   };
+  const error = gisError ?? ('error' in ga ? ga.error : undefined);
   const active = ds.sources.filter((s) => s.status !== 'planned');
   const next = ds.sources.filter((s) => s.status === 'planned');
 
   return (
     <div className="view">
       <section className="grid2">
-        <div className={`card drop ${drag ? 'drag' : ''}`} onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
-          onDrop={(e) => { e.preventDefault(); setDrag(false); handle(e.dataTransfer.files?.[0]); }}>
-          <h2>Upload export</h2>
-          <p className="muted small">CSV · date, actual, forecast, previous_year, beds</p>
-          <div className="row">
-            <button className="btn" onClick={() => input.current?.click()}>Choose file</button>
-            <button className="btn ghost" onClick={template}>Template</button>
-          </div>
-          <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => handle(e.target.files?.[0])} />
-          {uploaded && <p className="ok-msg">✓ {uploaded}</p>}
+        <div className="card ga">
+          <h2>Google Analytics</h2>
+          <p className="muted small">Read-only access to your GA4 properties · web demand signals next to stays</p>
+          {ga.status === 'connected' ? (
+            <>
+              <p className="ok-msg">✓ Connected</p>
+              {ga.properties && (ga.properties.length ? (
+                <ul className="ga-props">
+                  {ga.properties.map((p) => <li key={p.id}><b>{p.name}</b> <span className="muted small">{p.account} · {p.id}</span></li>)}
+                </ul>
+              ) : <p className="muted small">No GA4 properties on this Google account.</p>)}
+              <div className="row"><button className="btn ghost" onClick={disconnect}>Disconnect</button></div>
+            </>
+          ) : (
+            <div className="row">
+              <button className="btn" onClick={connect} disabled={!GA_CLIENT_ID || ga.status === 'connecting'}>
+                {ga.status === 'connecting' ? 'Connecting…' : 'Connect Google Analytics'}
+              </button>
+            </div>
+          )}
+          {!GA_CLIENT_ID && <p className="warn">Google sign-in is not configured (VITE_GOOGLE_CLIENT_ID).</p>}
           {error && <p className="warn">{error}</p>}
         </div>
         <div className="card">

@@ -244,8 +244,9 @@ footer { padding: 24px clamp(16px, 3vw, 36px) 40px; color: var(--muted); font-si
 .checks li > span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
 .checks li.ok > span { background: #e6f4ea; color: var(--green); }
 .checks li.bad > span { background: #fff3d6; color: var(--amber); }
-.drop { border: 2px dashed var(--line); box-shadow: none; }
-.drop.drag { border-color: var(--red); background: var(--red-wash); }
+.ga-props { list-style: none; margin: 8px 0 12px; padding: 0; }
+.ga-props li { padding: 7px 0; border-top: 1px solid var(--line-soft); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .ok-msg { color: var(--green); }
 .sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
 .source { display: flex; flex-direction: column; gap: 6px; }

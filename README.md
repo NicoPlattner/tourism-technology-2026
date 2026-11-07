@@ -16,7 +16,7 @@ and turns them into next steps, in plain language and in the Paznaun-Ischgl look
 | Deviations | Stretches >10% off the forecast with the most likely reason (weather, NL/BE holidays, events, data gaps) and confidence |
 | Beds | Month calendar of expected bed occupancy, paged by month |
 | Actions | Ranked next steps (what, when, where, why), CSV / print |
-| Data | CSV upload of the real export, data health, sources |
+| Data | Connect Google Analytics (read-only Google login), data health, sources |
 
 Partner markets: **Netherlands and Belgium** (holidays, explanations and actions focus on them).
 
@@ -25,10 +25,19 @@ overnight-stay forecast for region TR53 Paznaun-Ischgl (JOANNEUM RESEARCH /
 TU Wien / Uni Klagenfurt / Austria Tourism), Open-Meteo for Ischgl, the
 OpenHolidays API for the partner markets NL and BE. The partner data (stays,
 beds) is a **sample in the shape of the challenge data**, calibrated to the
-official monthly totals, until the TTF Data Space export is loaded (drop the CSV
-on the Data page). `npm run data:open` refreshes the open-data snapshots;
+official monthly totals, until the TTF Data Space export is connected. `npm run data:open` refreshes the open-data snapshots;
 `npm run data:sample` rebuilds the sample. The app also refreshes the forecast
 and weather live when it loads.
+
+**Google Analytics.** The Data tab has a *Connect Google Analytics* button. It
+opens a Google login (Google Identity Services, browser-only token flow) asking
+for the read-only scope `https://www.googleapis.com/auth/analytics.readonly`
+and then lists the GA4 properties the account can read. Set the public OAuth
+client ID as the Actions variable `GOOGLE_CLIENT_ID` (deploy) or
+`VITE_GOOGLE_CLIENT_ID` in `dashboard/.env.local` (local dev). The OAuth client
+needs `https://hackathon.daria-and-nico.com` (and `http://localhost:5173` for
+dev) as authorised JavaScript origins, and the project needs the Google
+Analytics Admin API (and Data API for reports) enabled.
 
 **Adding a source.** Sources are adapters in `dashboard/src/data/sources.ts`
 that fill one day-by-day model (`Day`); analyses in `src/analysis/insights.ts`
