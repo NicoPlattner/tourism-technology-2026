@@ -34,8 +34,8 @@ and a small Node API (`dashboard/server/server.mjs`, no dependencies) that the
 ingress routes `<path>/api` to. *Connect Google Analytics* opens Google's
 sign-in popup (authorization code flow) for `openid email analytics.readonly`;
 the API exchanges the code for a refresh token, stores it AES-GCM encrypted in
-a Kubernetes Secret it manages itself (`<release>-api-data`; outside the Helm
-release, so it survives redeploys) and refreshes access hourly. The connection therefore stays
+a folder on the node (`/var/lib/demand-radar/<release>`, a hostPath volume, so
+it survives restarts and redeploys) and refreshes access hourly. The connection therefore stays
 up 24/7 and is the same on every device until someone disconnects it. Several
 Google accounts and properties can be added; properties are always picked
 explicitly. *Website data* shows the Realtime report (last 30 minutes —
@@ -50,7 +50,7 @@ secret `GOOGLE_CLIENT_SECRET`; the deploy workflow turns them into a
 Kubernetes secret for the API. Local dev: `npm run server` (with
 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in the environment) next to
 `npm run dev`, which proxies `/api` (data in `dashboard/data/`).
-`npm run test:server` tests the API against a fake Google and Kubernetes.
+`npm run test:server` tests the API against a fake Google.
 
 **Adding a source.** Sources are adapters in `dashboard/src/data/sources.ts`
 that fill one day-by-day model (`Day`); analyses in `src/analysis/insights.ts`
@@ -72,9 +72,9 @@ No permanent Kubernetes token is required.
 
 The [Helm chart](helm/tourism-technology) runs two services: the built
 dashboard on unprivileged nginx (files from a ConfigMap) and the Node API
-(code from a ConfigMap, data in a Secret it may create, read and update via its
-own service account and Role — the cluster has no default storage class); the
-workflow builds both first. Each branch gets an isolated Helm release and URL under
+(code from a ConfigMap, data in a hostPath folder on the node — the cluster has
+no storage class and CI may not create RBAC roles); the workflow builds both
+first. Each branch gets an isolated Helm release and URL under
 `https://hackathon.daria-and-nico.com/<branch-name>`.
 
 ## Repository setup
@@ -92,8 +92,8 @@ Set these repository secrets under **Settings → Secrets and variables → Acti
 The workflow selects its `microk8s` context, and `id-token: write` lets the helper
 request short-lived credentials. The namespace and its RBAC must already exist;
 CI does not create them. Helm also needs permission to manage release secrets in
-that namespace, and the API needs secrets, service accounts, roles and role
-bindings there.
+that namespace, and the API needs secrets there. Pod security must allow
+hostPath volumes and a root init container with only `CHOWN`.
 
 Optional Actions variables:
 

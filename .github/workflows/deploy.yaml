@@ -147,10 +147,6 @@ jobs:
           set -euo pipefail
           kubectl auth can-i create deployments -n tourism-technology-2026
           kubectl auth can-i create secrets -n tourism-technology-2026
-          # The API service gets its own service account and a Role on secrets.
-          for resource in serviceaccounts roles rolebindings; do
-            kubectl auth can-i create "$resource" -n tourism-technology-2026
-          done
           for namespace in default test kube-system; do
             result=$(kubectl auth can-i create deployments -n "$namespace" || true)
             [[ "$result" == "no" ]] || { echo "::error::Unexpected authorization result in $namespace"; exit 1; }

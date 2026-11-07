@@ -3,5 +3,7 @@ ingress:
   path: /
 api:
   image: node:22-alpine
+  # Folder on the node for the API's data; each release uses a subfolder.
+  dataPath: /var/lib/demand-radar
 # Set by the deploy workflow so the API restarts when the Google secret changes.
 googleSecretChecksum: ""

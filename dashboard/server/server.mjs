@@ -9,14 +9,11 @@
 //
 // Node 22, no dependencies. Configuration (environment):
 //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET  OAuth web client (required)
-//   K8S_SECRET_NAME  store in this Kubernetes Secret (in-cluster, via the
-//                    pod's service account); otherwise a file is used:
 //   DATA_DIR      where ga.json is stored (default ./data)
 //   PORT          default 8787
 //   GOOGLE_OAUTH_URL, GA_ADMIN_URL, GA_DATA_URL  overridable for tests
 
-import { createServer, request as httpRequest } from 'node:http';
-import { request as httpsRequest } from 'node:https';
+import { createServer } from 'node:http';
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -54,7 +51,7 @@ const open = (sealed) => {
 let store = { accounts: [], connections: [] };
 const access = new Map(); // accountId -> { token, expiresAt } (memory only)
 
-// File backend (local dev, tests).
+// File store; in the cluster DATA_DIR is a folder on the node (hostPath).
 const FILE = join(DATA_DIR, 'ga.json');
 const fileBackend = {
   async read() {
@@ -68,50 +65,7 @@ const fileBackend = {
   },
 };
 
-// Kubernetes Secret backend: survives restarts and redeploys without a
-// persistent volume. The pod's service account may only manage secrets.
-function kubeBackend(name) {
-  const saDir = env.K8S_SA_DIR ?? '/var/run/secrets/kubernetes.io/serviceaccount';
-  const apiUrl = new URL(env.K8S_API_URL ?? 'https://kubernetes.default.svc');
-  let version = null;
-  const call = async (method, path, body) => {
-    const [token, ca] = await Promise.all([readFile(join(saDir, 'token'), 'utf8'), apiUrl.protocol === 'https:' ? readFile(join(saDir, 'ca.crt')) : null]);
-    const ns = env.K8S_NAMESPACE ?? (await readFile(join(saDir, 'namespace'), 'utf8')).trim();
-    const payload = body ? JSON.stringify(body) : undefined;
-    return new Promise((resolve, reject) => {
-      const req = (apiUrl.protocol === 'https:' ? httpsRequest : httpRequest)(new URL(`/api/v1/namespaces/${ns}/secrets${path}`, apiUrl), {
-        method, ca: ca ?? undefined,
-        headers: { Authorization: `Bearer ${token.trim()}`, Accept: 'application/json', ...(payload && { 'Content-Type': 'application/json' }) },
-      }, (res) => {
-        let raw = '';
-        res.on('data', (c) => (raw += c));
-        res.on('end', () => { try { resolve({ status: res.statusCode, json: raw ? JSON.parse(raw) : {} }); } catch (e) { reject(e); } });
-      });
-      req.on('error', reject);
-      req.end(payload);
-    });
-  };
-  const fail = (what, r) => new Error(`${what} secret ${name}: ${r.status} ${r.json?.message ?? ''}`);
-  return {
-    async read() {
-      const r = await call('GET', `/${name}`);
-      if (r.status === 404) { version = null; return null; }
-      if (r.status !== 200) throw fail('read', r);
-      version = r.json.metadata.resourceVersion;
-      const data = r.json.data?.['ga.json'];
-      return data ? Buffer.from(data, 'base64').toString('utf8') : null;
-    },
-    async write(text) {
-      const body = (v) => ({ apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name, ...(v && { resourceVersion: v }), labels: { 'app.kubernetes.io/part-of': 'demand-radar' } }, data: { 'ga.json': Buffer.from(text).toString('base64') } });
-      let r = version ? await call('PUT', `/${name}`, body(version)) : await call('POST', '', body(null));
-      if (r.status === 409) { await this.read(); r = version ? await call('PUT', `/${name}`, body(version)) : await call('POST', '', body(null)); }
-      if (r.status !== 200 && r.status !== 201) throw fail('write', r);
-      version = r.json.metadata.resourceVersion;
-    },
-  };
-}
-
-const backend = env.K8S_SECRET_NAME ? kubeBackend(env.K8S_SECRET_NAME) : fileBackend;
+const backend = fileBackend;
 
 async function load() {
   access.clear();
