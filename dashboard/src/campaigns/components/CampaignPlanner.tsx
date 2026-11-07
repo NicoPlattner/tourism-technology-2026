@@ -36,7 +36,6 @@ export default function CampaignPlanner({
         <div>
           <dt>Target audience</dt>
           <dd>{campaign.ageGroup} years</dd>
-          <small>{campaign.segment}</small>
         </div>
         <div>
           <dt>Booking lead time</dt>
@@ -47,8 +46,7 @@ export default function CampaignPlanner({
         </div>
         <div>
           <dt>Guests travel</dt>
-          <dd>{campaign.travel.label}</dd>
-          <small>{displayRange(campaign.travel)}</small>
+          <dd>{displayRange(campaign.travel)}</dd>
         </div>
         <div className="cp-campaign-dates">
           <dt>Recommended campaign</dt>

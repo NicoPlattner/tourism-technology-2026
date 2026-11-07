@@ -54,7 +54,7 @@ export default function CampaignReviewDialog({
           <span className="status sample">Fictional demo</span>
           <h3>{campaign.country} campaign</h3>
           <p>
-            {campaign.country} · {campaign.ageGroup} years · {campaign.segment}
+            {campaign.country} · {campaign.ageGroup} years
           </p>
         </div>
         <dl className="cp-review-facts">
