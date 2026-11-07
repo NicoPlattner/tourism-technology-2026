@@ -5,8 +5,8 @@ The [deployment workflow](.github/workflows/deploy.yaml) deploys to the existing
 GitHub → Authentik OIDC credential helper embedded in the supplied kubeconfig.
 No permanent Kubernetes token is required.
 
-The [Helm chart](helm/tourism-technology) deploys a hello world sample using a
-public image. Each branch gets an isolated Helm release and URL under
+The [Helm chart](helm/tourism-technology) deploys PARALLEL LAB using a compressed
+static build and an unprivileged nginx image. Each branch gets an isolated Helm release and URL under
 `https://hackathon.daria-and-nico.com/<branch-name>`.
 
 ## Repository setup
@@ -92,3 +92,21 @@ a Pangolin 502 requires checking its target address and port.
 Protocol references:
 [GitHub OIDC](https://docs.github.com/en/actions/reference/security/oidc) and
 [Pangolin machine clients](https://docs.pangolin.net/manage/clients/machine-clients).
+
+## PARALLEL LAB
+
+Three local tourism innovation demonstrations: Parallel Universes, Data Integrity Lab and Chaos Engine. All data, failures and predictions are simulated. See [the presentation walkthrough and model notes](docs/PARALLEL-LAB.md).
+
+```sh
+npm ci
+npm run dev
+npm test
+npm run build
+```
+
+The default local URL is http://localhost:5173; `/` opens `/parallel`.
+The deployment workflow builds with the selected branch URL prefix, runs tests,
+packages `dist/` into a compressed ConfigMap, and serves the app with SPA fallback.
+All three module links and assets retain the deployment prefix. The default-branch
+workflow must be manually dispatched with the feature branch selected. No root
+deployment is performed unless explicitly requested.

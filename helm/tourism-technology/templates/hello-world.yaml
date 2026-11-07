@@ -1,3 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-site
+binaryData:
+  app.tgz: {{ required "Build and package the app as site/app.tgz before deployment" (.Files.Get "site/app.tgz") | b64enc | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nginx
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      server_name _;
+      root /site;
+      index index.html;
+      gzip on;
+      gzip_types text/css application/javascript application/json image/svg+xml;
+      location / {
+        {{- if ne .Values.ingress.path "/" }}
+        rewrite ^{{ .Values.ingress.path }}(/|$)(.*)$ /$2 break;
+        {{- end }}
+        try_files $uri $uri/ /index.html;
+      }
+    }
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,23 +39,49 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        checksum/site: {{ .Files.Get "site/app.tgz" | sha256sum | quote }}
+        checksum/path: {{ .Values.ingress.path | sha256sum | quote }}
     spec:
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
+        fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: unpack-site
+          image: busybox:1.37.0
+          command: ["tar", "-xzf", "/bundle/app.tgz", "-C", "/site"]
+          volumeMounts:
+            - name: bundle
+              mountPath: /bundle
+              readOnly: true
+            - name: site
+              mountPath: /site
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
       containers:
         - name: {{ .Release.Name }}
-          image: hashicorp/http-echo:1.0.0
-          args:
-            - -listen=:5678
-            - -text=Hello, World!
+          image: nginxinc/nginx-unprivileged:1.28-alpine
           ports:
             - name: http
-              containerPort: 5678
+              containerPort: 8080
+          volumeMounts:
+            - name: site
+              mountPath: /site
+              readOnly: true
+            - name: nginx
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: /
@@ -40,15 +94,26 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 16Mi
+              memory: 32Mi
             limits:
-              cpu: 100m
-              memory: 64Mi
+              cpu: 250m
+              memory: 96Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: [ALL]
+      volumes:
+        - name: bundle
+          configMap:
+            name: {{ .Release.Name }}-site
+        - name: nginx
+          configMap:
+            name: {{ .Release.Name }}-nginx
+        - name: site
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -73,7 +138,6 @@ spec:
     - host: hackathon.daria-and-nico.com
       http:
         paths:
-          # http-echo answers on every path, so no rewrite is needed.
           - path: {{ .Values.ingress.path | quote }}
             pathType: Prefix
             backend:

@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+helm/tourism-technology/site/app.tgz
