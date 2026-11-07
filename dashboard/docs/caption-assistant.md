@@ -90,7 +90,7 @@ For n8n, set these GitHub Actions repository **variables**:
 
 Set the webhook auth secret as an Actions **secret** named `CAPTION_API_KEY` or `N8N_WEBHOOK_KEY`. For direct OpenAI, use `CAPTION_PROVIDER=openai` and the `OPENAI_API_KEY` secret. The workflow copies only the selected provider's credential into a branch-specific Kubernetes Secret; the value is never supplied to Helm or bundled into the site.
 
-Alternatively, use an existing Kubernetes Secret: set Actions variable `CAPTION_EXISTING_SECRET` to its name and `CAPTION_SECRET_KEY` to the entry name (default `api-key`). In this mode, CI does not overwrite that secret. Other provider settings above can be Actions variables. Every deployment refreshes the pod environment. With no configured key, deployment remains healthy and returns an explicit `NOT_CONFIGURED` response; it does not pretend the demo copy came from AI.
+Alternatively, use an existing Kubernetes Secret: set Actions variable `CAPTION_EXISTING_SECRET` to its name and `CAPTION_SECRET_KEY` to the entry name (default `api-key`). In this mode, CI does not overwrite that secret. The workflow also accepts the provider, model, base URL, n8n URL/header/prefix, JSON mode and timeout as Actions variables. Port, output-token and rate-limit settings are server runtime defaults in the supplied deployment. Every deployment refreshes the pod environment. With no configured key, deployment remains healthy and returns an explicit `NOT_CONFIGURED` response; it does not pretend the demo copy came from AI.
 
 The API is a shared hackathon endpoint, not an authenticated publishing system. It limits body size, rejects cross-origin browser mutations, bounds provider time and output tokens, and caps request frequency. No real social account is connected.
 
