@@ -42,7 +42,6 @@ export default function CampaignPlanner({
           <dd>
             {campaign.assumedLeadDays} days <span>assumed</span>
           </dd>
-          <small>Fictional booking behavior</small>
         </div>
         <div>
           <dt>Guests travel</dt>
@@ -51,7 +50,6 @@ export default function CampaignPlanner({
         <div className="cp-campaign-dates">
           <dt>Recommended campaign</dt>
           <dd>{displayRange(campaign.campaign)}</dd>
-          <small>Marketing runs before travel</small>
         </div>
       </dl>
       <CampaignReasoning campaign={campaign} />
