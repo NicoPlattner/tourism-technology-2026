@@ -63,7 +63,7 @@ async function mockServer(page: Page, opts: { configured?: boolean; accounts?: R
 
 test("connect once, pick explicitly, stays connected across reloads, remove and disconnect", async ({ page }) => {
   const { calls } = await mockServer(page);
-  await page.goto("./#data");
+  await page.goto("./#integrations");
   const picker = page.getByRole("group", { name: "Add properties" });
   const connected = page.getByRole("list", { name: "Connected properties" });
 
@@ -101,7 +101,7 @@ test("connect once, pick explicitly, stays connected across reloads, remove and 
 
 test("a single property still has to be picked; another Google account adds its properties", async ({ page }) => {
   const { calls } = await mockServer(page, { accounts: { "user-1": { ...ACCOUNTS["user-1"], props: ACCOUNTS["user-1"].props.slice(0, 1) }, "user-2": ACCOUNTS["user-2"] } });
-  await page.goto("./#data");
+  await page.goto("./#integrations");
   const picker = page.getByRole("group", { name: "Add properties" });
   await page.getByRole("button", { name: "Connect Google Analytics" }).click();
   await expect(picker.getByLabel("Ischgl Web")).not.toBeChecked();
@@ -122,7 +122,7 @@ test("revoked access shows Reconnect for that account", async ({ page }) => {
   const { state, calls } = await mockServer(page);
   state.accounts.push({ id: "user-1", email: "nico@example.com", error: "Google access was revoked or has expired — reconnect this account." });
   state.connections.push({ property: ACCOUNTS["user-1"].props[0], accountId: "user-1" });
-  await page.goto("./#data");
+  await page.goto("./#integrations");
   await expect(page.getByText("Paused")).toBeVisible();
   await expect(page.getByText(/revoked or has expired/)).toBeVisible();
   await page.getByRole("button", { name: "Reconnect" }).click();
@@ -136,13 +136,20 @@ test("a server without permanent storage says the connection is temporary", asyn
   const { state } = await mockServer(page);
   Object.assign(state, { persistent: false });
   state.accounts.push({ id: "user-1", email: "nico@example.com" });
-  await page.goto("./#data");
+  await page.goto("./#integrations");
   await expect(page.getByText(/no permanent storage yet/)).toBeVisible();
+});
+
+test("the old #data address opens the Integrations tab", async ({ page }) => {
+  await mockServer(page);
+  await page.goto("./#data");
+  await expect(page.getByRole("link", { name: "Integrations", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: "Google Analytics", exact: true })).toBeVisible();
 });
 
 test("without a server-side client secret the button is disabled and says why", async ({ page }) => {
   await mockServer(page, { configured: false });
-  await page.goto("./#data");
+  await page.goto("./#integrations");
   await expect(page.getByRole("button", { name: "Connect Google Analytics" })).toBeDisabled();
   await expect(page.getByText(/GOOGLE_CLIENT_SECRET/)).toBeVisible();
 });

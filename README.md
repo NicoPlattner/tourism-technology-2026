@@ -16,7 +16,7 @@ and turns them into next steps, in plain language and in the Paznaun-Ischgl look
 | Deviations | Stretches >10% off the forecast with the most likely reason (weather, NL/BE holidays, events, data gaps) and confidence |
 | Beds | Month calendar of expected bed occupancy, paged by month |
 | Actions | Ranked next steps (what, when, where, why), CSV / print |
-| Data | Google Analytics connection kept by the server (24/7, all devices), live website data, sources |
+| Integrations | Google Analytics connection kept by the server (24/7, all devices), live website data, sources |
 
 Partner markets: **Netherlands and Belgium** (holidays, explanations and actions focus on them).
 

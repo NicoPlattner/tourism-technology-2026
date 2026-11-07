@@ -11,20 +11,21 @@ import Capacity from './views/Capacity';
 import Actions from './views/Actions';
 import Sources from './views/Sources';
 
-export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'data';
+export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'integrations';
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'overview', label: 'Overview', hint: 'Overview' },
   { id: 'season', label: 'Season', hint: 'Day by day' },
   { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
   { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
   { id: 'actions', label: 'Actions', hint: 'Ranked next steps' },
-  { id: 'data', label: 'Data', hint: 'Sources and Google Analytics' },
+  { id: 'integrations', label: 'Integrations', hint: 'Google Analytics and data sources' },
 ];
 
 // Official Ischgl logo, loaded from ischgl.com (the asset stays with its owner).
 const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne_r.png';
 
-const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
+// #data is the tab's old address; keep old links working.
+const readTab = (): Tab => (location.hash === '#data' ? 'integrations' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(readTab);
@@ -61,7 +62,7 @@ export default function App() {
       <div className="metabar">
         <span className="meta-l">Demand Radar · TVB Paznaun-Ischgl</span>
         <span className="meta-r">
-          {ds.sampleData && <button className="sample" onClick={() => go('data')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
+          {ds.sampleData && <button className="sample" onClick={() => go('integrations')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
           <span>{longDate(ds.today)}</span>
         </span>
       </div>
@@ -88,7 +89,7 @@ export default function App() {
         {tab === 'why' && <Why {...props} />}
         {tab === 'capacity' && <Capacity {...props} />}
         {tab === 'actions' && <Actions {...props} />}
-        {tab === 'data' && <Sources {...props} ga={ga} setGa={setGa} gaError={gaError} />}
+        {tab === 'integrations' && <Sources {...props} ga={ga} setGa={setGa} gaError={gaError} />}
       </main>
 
       <footer>
