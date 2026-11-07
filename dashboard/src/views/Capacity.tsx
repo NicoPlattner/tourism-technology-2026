@@ -1,72 +1,76 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ViewProps } from '../App';
-import { CapacityCalendar, OCC_LEGEND, SeasonChart } from '../components/charts';
 import { approx, dayLabel, n, pct } from '../analysis/format';
-import { MARKET_NAMES } from '../data/sources';
 import type { CapacityDay } from '../analysis/insights';
 
+const LEGEND = [
+  { label: '< 50%', c: '#eef0f3' },
+  { label: '50–85%', c: '#f2b3c1' },
+  { label: '85–100%', c: '#bb1c3f' },
+  { label: '> 100%', c: '#4a0816' },
+];
+const color = (o: number) => (o > 1 ? '#4a0816' : o >= 0.85 ? '#bb1c3f' : o >= 0.5 ? '#f2b3c1' : '#eef0f3');
+const monthLabel = (m: string) => new Date(`${m}-01T12:00:00Z`).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
 export default function Capacity({ ds, model }: ViewProps) {
-  const { cap, acc } = model;
-  const [picked, setPicked] = useState<CapacityDay | undefined>(() => cap.reduce((a, b) => (b.occupancy > (a?.occupancy ?? 0) ? b : a), cap[0]));
-  const tight = cap.filter((c) => c.occupancy >= 0.85);
-  const room = cap.filter((c) => c.date >= '2026-12-12' && c.occupancy < 0.65);
-  const day = picked ? ds.days.find((d) => d.date === picked.date) : undefined;
+  const { cap } = model;
+  const months = useMemo(() => [...new Set(cap.map((c) => c.date.slice(0, 7)))], [cap]);
+  const [mi, setMi] = useState(0);
+  const month = months[mi];
+  const byDate = useMemo(() => new Map(cap.map((c) => [c.date, c])), [cap]);
+  const [picked, setPicked] = useState<CapacityDay | undefined>();
+
+  if (!month) return <div className="view"><p className="muted">No bed data ahead.</p></div>;
+  const [y, m] = month.split('-').map(Number);
+  const daysIn = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const offset = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7;
+  const cells = [...Array(offset).fill(null), ...Array.from({ length: daysIn }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`)];
+  const inMonth = cap.filter((c) => c.date.startsWith(month));
+  const sel = picked && picked.date.startsWith(month) ? picked : inMonth.reduce((a, b) => (b.occupancy > (a?.occupancy ?? -1) ? b : a), inMonth[0]);
+  const day = sel ? ds.days.find((d) => d.date === sel.date) : undefined;
 
   return (
-    <div className="view">
-      <header className="view-head">
-        <p className="eyebrow">Beds</p>
-        <h1>Which days run full — and which stay empty</h1>
-        <p className="lead">For the {cap.length} days ahead with bed numbers we compare the expected guests with the beds that are open. The forecast is corrected for the weekday pattern we measured, so Saturdays are not underestimated.</p>
-      </header>
-
-      <section className="grid-cap">
-        <div className="card">
-          <div className="card-head"><h2>Expected share of beds booked</h2></div>
-          <CapacityCalendar cap={cap} onPick={setPicked} picked={picked?.date} />
-          <div className="occ-legend">{OCC_LEGEND.map((l) => <span key={l.label}><i style={{ background: l.c }} />{l.label}</span>)}</div>
-        </div>
-        <div className="card day-card" aria-live="polite">
-          {picked && day ? (
-            <>
-              <p className="eyebrow">{dayLabel(picked.date)}</p>
-              <p className="big">{pct(picked.occupancy)}</p>
-              <p className="muted">{picked.occupancy > 1 ? 'more guests than beds' : 'of the beds that are open'} ({n(picked.beds)} beds)</p>
-              <p>We expect about <b>{approx(picked.expected)}</b> guests (likely between {approx(picked.low * picked.beds)} and {approx(picked.high * picked.beds)}).</p>
-              {day.previousYear != null && <p className="muted">Last year on this weekday: {n(day.previousYear)}</p>}
-              {day.holidays.length > 0 && <p>🎒 On holiday: {day.holidays.filter((h) => h.coverage > 0.15).map((h) => MARKET_NAMES[h.market] ?? h.market).join(', ') || '—'}</p>}
-              {day.events.map((e) => <p key={e}>★ {e}</p>)}
-              {picked.flags.includes('missing-beds') && <p className="warn">Bed numbers missing for this day — the share is estimated from the day before.</p>}
-              <p className={`verdict ${picked.occupancy >= 0.85 ? 'tight' : picked.occupancy < 0.5 ? 'room' : ''}`}>
-                {picked.occupancy > 1 ? 'Over capacity: guests will be turned away. Stop all promotion for this date, offer the days around it and the side valleys.' : picked.occupancy >= 0.95 ? 'Full. Stop pushing these dates; offer the days around them.' : picked.occupancy >= 0.85 ? 'Close to full. Steer new guests to neighbouring days or the side valleys.' : picked.occupancy < 0.5 ? 'Plenty of room. A good date for offers.' : 'Comfortable.'}
-              </p>
-            </>
-          ) : <p className="muted">Pick a day.</p>}
-        </div>
-      </section>
-
-      <section className="grid2">
-        <div className="card">
-          <h2>Close to full <span className="pill">{tight.length}</span></h2>
-          <ul className="daylist">
-            {tight.map((c) => <li key={c.date}><button onClick={() => setPicked(c)}><span>{dayLabel(c.date)}</span><b>{pct(c.occupancy)}</b></button></li>)}
-            {!tight.length && <li className="muted">No day above 85%.</li>}
-          </ul>
-        </div>
-        <div className="card">
-          <h2>Room to fill in the high season <span className="pill">{room.length}</span></h2>
-          <p className="muted">Days after 12 December below 65% of beds.</p>
-          <ul className="daylist">
-            {room.slice(0, 12).map((c) => <li key={c.date}><button onClick={() => setPicked(c)}><span>{dayLabel(c.date)}</span><b>{pct(c.occupancy)}</b></button></li>)}
-          </ul>
-        </div>
-      </section>
-
+    <div className="view grid-cap">
       <section className="card">
-        <h2>Beds opening up — and demand rising</h2>
-        <p className="muted">Hotels open step by step before the season starts. When demand rises faster than beds open, the opening weekend runs full even though the valley has room later.</p>
-        <SeasonChart ds={ds} acc={acc} from="2026-11-01" to="2027-01-27" height={280} strips={false} on={{ actual: true, forecast: true, open: false, previous: true, beds: true }} />
+        <div className="pager">
+          <button className="pg" onClick={() => setMi(Math.max(0, mi - 1))} disabled={mi === 0} aria-label="Previous month">‹</button>
+          <h2>{monthLabel(month)}</h2>
+          <button className="pg" onClick={() => setMi(Math.min(months.length - 1, mi + 1))} disabled={mi === months.length - 1} aria-label="Next month">›</button>
+          <span className="pg-dots">{months.map((x, i) => <i key={x} className={i === mi ? 'on' : ''} onClick={() => setMi(i)} />)}</span>
+        </div>
+        <div className="month" role="grid" aria-label={`Share of beds booked, ${monthLabel(month)}`}>
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => <span key={d} className="mh">{d}</span>)}
+          {cells.map((date, i) => {
+            if (!date) return <span key={`e${i}`} />;
+            const c = byDate.get(date);
+            const dark = c && c.occupancy >= 0.85;
+            return c ? (
+              <button key={date} role="gridcell" className={`mcell ${sel?.date === date ? 'picked' : ''} ${c.flags.length ? 'flag' : ''}`} style={{ background: color(c.occupancy) }} onClick={() => setPicked(c)} title={`${dayLabel(date)}: ${pct(c.occupancy)}`}>
+                <span className={dark ? 'light' : ''}>{Number(date.slice(8))}</span>
+                <b className={dark ? 'light' : ''}>{pct(c.occupancy)}</b>
+              </button>
+            ) : <span key={date} className="mcell none"><span>{Number(date.slice(8))}</span></span>;
+          })}
+        </div>
+        <div className="occ-legend">{LEGEND.map((l) => <span key={l.label}><i style={{ background: l.c }} />{l.label}</span>)}</div>
       </section>
+
+      {sel && day && (
+        <section className="card day-card" aria-live="polite">
+          <p className="eyebrow">{dayLabel(sel.date)}</p>
+          <p className="big">{pct(sel.occupancy)}</p>
+          <dl className="kv">
+            <div><dt>Guests</dt><dd>{approx(sel.expected)}</dd></div>
+            <div><dt>Beds</dt><dd>{n(sel.beds)}{sel.flags.includes('missing-beds') ? ' *' : ''}</dd></div>
+            {day.previousYear != null && <div><dt>Last year</dt><dd>{n(day.previousYear)}</dd></div>}
+          </dl>
+          <p className="chips">
+            {day.holidays.filter((h) => h.coverage > 0.2).map((h) => <span key={h.market}>🎒 {h.market}</span>)}
+            {day.events.map((e) => <span key={e}>★ {e}</span>)}
+          </p>
+          {sel.flags.includes('missing-beds') && <p className="muted small">* estimated, data missing</p>}
+        </section>
+      )}
     </div>
   );
 }

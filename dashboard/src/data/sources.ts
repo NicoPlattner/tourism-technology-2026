@@ -15,39 +15,49 @@ export const MARKET_NAMES: Record<string, string> = {
   DE: 'Germany', NL: 'Netherlands', CH: 'Switzerland', AT: 'Austria', BE: 'Belgium', SE: 'Sweden', PL: 'Poland', CZ: 'Czechia',
 };
 
-// Illustrative guest mix until the Feratel nationality breakdown is connected.
-export const MARKET_MIX: Record<string, number> = { DE: 0.46, NL: 0.12, CH: 0.08, AT: 0.07, BE: 0.05, SE: 0.04, PL: 0.03, CZ: 0.02 };
+// Partner markets of the TVB. Weights are illustrative until the Feratel
+// nationality breakdown is connected.
+export const MARKET_MIX: Record<string, number> = { NL: 0.14, BE: 0.07 };
+export const PARTNER_MARKETS = Object.keys(MARKET_MIX);
 
 export const BASE_SOURCES: SourceInfo[] = [
-  { id: 'stays', name: 'Overnight stays — actual, forecast, previous year', provider: 'TVB Paznaun-Ischgl / Feratel', answers: 'How many guests stayed, and how many do we expect?', status: 'sample', licence: 'Partner data (TTF Data Space)', update: 'daily', coverage: '244 days · 1 Jun 2026 – 30 Jan 2027' },
-  { id: 'beds', name: 'Available bed capacity', provider: 'TVB Paznaun-Ischgl / Feratel', answers: 'How close are we to full?', status: 'sample', licence: 'Partner data (TTF Data Space)', update: 'daily', coverage: '88 days · 1 Nov 2026 – 27 Jan 2027' },
-  { id: 'open-forecast', name: 'Open overnight-stay forecast (region Paznaun-Ischgl)', provider: 'JOANNEUM RESEARCH · TU Wien · Uni Klagenfurt · Austria Tourism', answers: 'Does an independent model expect the same?', status: 'snapshot', licence: 'Open data', update: 'monthly', url: 'https://naechtigungen.pol.joanneum.at/docs' },
-  { id: 'monthly', name: 'Official monthly overnight stays since 2022', provider: 'Austria Tourism open data (via forecast API)', answers: 'Is the daily data consistent with official totals?', status: 'snapshot', licence: 'Open data', update: 'monthly', url: 'https://naechtigungen.pol.joanneum.at/docs' },
-  { id: 'holidays', name: 'School and public holidays in our source markets', provider: 'OpenHolidays API', answers: 'Who is on holiday — and when?', status: 'snapshot', licence: 'ODbL', update: 'yearly', url: 'https://www.openholidaysapi.org/' },
-  { id: 'weather', name: 'Weather in Ischgl — past and 16-day forecast', provider: 'Open-Meteo', answers: 'Did rain or fresh snow change plans?', status: 'snapshot', licence: 'CC BY 4.0', update: 'hourly', url: 'https://open-meteo.com/' },
-  { id: 'events', name: 'Events in the region', provider: 'Open forecast model event list · TVB calendar', answers: 'Was there a reason to come?', status: 'snapshot', licence: 'Open data', update: 'when planned', url: 'https://naechtigungen.pol.joanneum.at/docs' },
-  { id: 'mobile', name: 'Mobile network presence data', provider: 'e.g. Hutchison Drei / A1 (via TTF Data Space)', answers: 'How many day visitors and where do they come from?', status: 'planned', licence: 'Partner data', update: 'daily' },
-  { id: 'guestcard', name: 'Guest card usage & guest nationality', provider: 'Feratel guest registration', answers: 'Which markets are behind a gap?', status: 'planned', licence: 'Partner data', update: 'daily' },
-  { id: 'prices', name: 'Availability and prices of partner hotels', provider: 'e.g. Lux Active / channel manager', answers: 'Are we too expensive on weak days?', status: 'planned', licence: 'Partner data', update: 'daily' },
-  { id: 'lifts', name: 'Lift openings and skier counts', provider: 'Silvrettaseilbahn AG', answers: 'Did the slopes open on time?', status: 'planned', licence: 'Partner data', update: 'daily' },
+  { id: 'stays', name: 'Overnight stays', provider: 'TVB Paznaun-Ischgl / Feratel', answers: 'How many guests stayed, and how many do we expect?', status: 'sample', licence: 'Partner data (TTF Data Space)', update: 'daily', coverage: '244 days · 1 Jun 2026 – 30 Jan 2027' },
+  { id: 'beds', name: 'Beds', provider: 'TVB Paznaun-Ischgl / Feratel', answers: 'How close are we to full?', status: 'sample', licence: 'Partner data (TTF Data Space)', update: 'daily', coverage: '88 days · 1 Nov 2026 – 27 Jan 2027' },
+  { id: 'open-forecast', name: 'Open forecast (TR53)', provider: 'JOANNEUM RESEARCH · TU Wien · Uni Klagenfurt · Austria Tourism', answers: 'Does an independent model expect the same?', status: 'snapshot', licence: 'Open data', update: 'monthly', url: 'https://naechtigungen.pol.joanneum.at/docs' },
+  { id: 'monthly', name: 'Official monthly stays', provider: 'Austria Tourism open data (via forecast API)', answers: 'Is the daily data consistent with official totals?', status: 'snapshot', licence: 'Open data', update: 'monthly', url: 'https://naechtigungen.pol.joanneum.at/docs' },
+  { id: 'holidays', name: 'Holidays NL · BE', provider: 'OpenHolidays API', answers: 'Who is on holiday — and when?', status: 'snapshot', licence: 'ODbL', update: 'yearly', url: 'https://www.openholidaysapi.org/' },
+  { id: 'weather', name: 'Weather Ischgl', provider: 'Open-Meteo', answers: 'Did rain or fresh snow change plans?', status: 'snapshot', licence: 'CC BY 4.0', update: 'hourly', url: 'https://open-meteo.com/' },
+  { id: 'events', name: 'Events', provider: 'Open forecast model event list · TVB calendar', answers: 'Was there a reason to come?', status: 'snapshot', licence: 'Open data', update: 'when planned', url: 'https://naechtigungen.pol.joanneum.at/docs' },
+  { id: 'mobile', name: 'Mobile network', provider: 'e.g. Hutchison Drei / A1 (via TTF Data Space)', answers: 'How many day visitors and where do they come from?', status: 'planned', licence: 'Partner data', update: 'daily' },
+  { id: 'guestcard', name: 'Guest nationality', provider: 'Feratel guest registration', answers: 'Which markets are behind a gap?', status: 'planned', licence: 'Partner data', update: 'daily' },
+  { id: 'prices', name: 'Hotel prices', provider: 'e.g. Lux Active / channel manager', answers: 'Are we too expensive on weak days?', status: 'planned', licence: 'Partner data', update: 'daily' },
+  { id: 'lifts', name: 'Lift counts', provider: 'Silvrettaseilbahn AG', answers: 'Did the slopes open on time?', status: 'planned', licence: 'Partner data', update: 'daily' },
 ];
 
 const addDays = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
 
-function holidayIndex(rows: typeof openHolidays.rows) {
-  // coverage = regions on holiday / regions the market ever lists for school holidays
+function holidayIndex(allRows: typeof openHolidays.rows) {
+  const rows = allRows.filter((h) => h.market in MARKET_MIX);
+  // coverage = regions on holiday / regions the market lists. Markets without
+  // region codes (e.g. BE: Flemish and French community calendars) are split by
+  // the number of parallel calendars for the same holiday.
   const regionsPerMarket: Record<string, Set<string>> = {};
-  for (const h of rows) if (h.type === 'school' && h.regions) for (const r of h.regions) (regionsPerMarket[h.market] ||= new Set()).add(r);
+  for (const h of rows) if (h.type === 'school' && h.regions?.length) for (const r of h.regions) (regionsPerMarket[h.market] ||= new Set()).add(r);
+  const calendars: Record<string, number> = {};
+  for (const h of rows) if (h.type === 'school' && !h.regions?.length) { const k = `${h.market}|${h.name}|${h.start.slice(0, 4)}`; calendars[k] = (calendars[k] ?? 0) + 1; }
   return (date: string): MarketHoliday[] => {
-    const byMarket: Record<string, { name: string; regions: Set<string>; nationwide: boolean }> = {};
+    const byMarket: Record<string, { name: string; regions: Set<string>; share: number }> = {};
     for (const h of rows) {
       if (h.start > date || h.end < date) continue;
-      const m = (byMarket[h.market] ||= { name: h.name ?? '', regions: new Set(), nationwide: false });
-      if (!h.regions) { m.nationwide = true; m.name = h.name ?? m.name; } else { h.regions.forEach((r: string) => m.regions.add(r)); if (!m.name) m.name = h.name ?? ''; }
+      const m = (byMarket[h.market] ||= { name: h.name ?? '', regions: new Set(), share: 0 });
+      if (!m.name) m.name = h.name ?? '';
+      if (h.regions?.length) h.regions.forEach((r: string) => m.regions.add(r));
+      else if (h.type === 'public') m.share = Math.max(m.share, 1);
+      else m.share += 1 / (calendars[`${h.market}|${h.name}|${h.start.slice(0, 4)}`] ?? 1);
     }
     return Object.entries(byMarket).map(([market, m]) => ({
       market, name: m.name,
-      coverage: m.nationwide ? 1 : Math.min(1, m.regions.size / Math.max(1, regionsPerMarket[market]?.size || 1)),
+      coverage: Math.min(1, m.share + m.regions.size / Math.max(1, regionsPerMarket[market]?.size || 1)),
     }));
   };
 }

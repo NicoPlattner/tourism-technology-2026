@@ -22,7 +22,6 @@ const TODAY = '2026-11-07';
 let seed = 20261107;
 const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 const noise = (a) => (rnd() * 2 - 1) * a;
-const dow = (d) => new Date(`${d}T12:00:00Z`).getUTCDay();
 const addDays = (d, n) => new Date(Date.parse(`${d}T12:00:00Z`) + n * 864e5).toISOString().slice(0, 10);
 const inHoliday = (d, market, nameRe) => holidays.some((h) => h.market === market && h.type === 'school' && h.start <= d && h.end >= d && (!nameRe || nameRe.test(h.name)));
 
@@ -35,10 +34,8 @@ for (const r of days) {
   const w = weather[r.date], wPrev = weather[addDays(r.date, -1)];
   const summer = r.date < '2026-10-01';
   if (summer && ((w && w[1] >= 15) || (wPrev && wPrev[1] >= 20))) f -= 0.11; // heavy rain: short-notice guests stay away
-  if (dow(r.date) === 6) f += 0.06; // Saturday changeovers under-forecast
-  if (dow(r.date) === 0) f -= 0.03;
-  if (inHoliday(r.date, 'NL', /autumn/i)) f += 0.16; // Dutch autumn holidays
-  if (inHoliday(r.date, 'DE', /autumn/i) && r.date >= '2026-10-24') f += 0.06;
+  if (inHoliday(r.date, 'NL', /autumn/i)) f += 0.16; // Dutch autumn holidays (partner market)
+  if (inHoliday(r.date, 'BE', /all saints/i)) f += 0.12; // Belgian All Saints holidays (partner market)
   r.actual = r.base * f;
 }
 // calibrate summer months to the official monthly totals

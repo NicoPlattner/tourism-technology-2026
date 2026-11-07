@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { scaleLinear } from 'd3-scale';
-import { area, line, curveMonotoneX, curveStepAfter } from 'd3-shape';
+import { line, curveMonotoneX, curveStepAfter } from 'd3-shape';
 import type { Day, Dataset } from '../data/types';
-import { MARKET_NAMES } from '../data/sources';
 import { corrected, type Accuracy, type CapacityDay } from '../analysis/insights';
-import { approx, dayLabel, n, shortDate, signedPct, weekday, pct } from '../analysis/format';
+import { dayLabel, n, shortDate, signedPct, weekday, pct } from '../analysis/format';
 
 export const COLORS = { actual: '#bb1c3f', forecast: '#2a78d6', open: '#eb6834', previous: '#9aa3ad', beds: '#2d343e' };
 
@@ -25,11 +24,11 @@ const compact = (v: number) => (v >= 10000 ? `${Math.round(v / 1000)}K` : v >= 1
 // --------------------------------------------------------------------- legend
 export type SeriesKey = 'actual' | 'forecast' | 'open' | 'previous' | 'beds';
 export const SERIES: { key: SeriesKey; label: string; dash?: boolean }[] = [
-  { key: 'actual', label: 'Actual stays' },
-  { key: 'forecast', label: 'Our forecast' },
-  { key: 'open', label: 'Open forecast model', dash: true },
+  { key: 'actual', label: 'Actual' },
+  { key: 'forecast', label: 'Forecast' },
   { key: 'previous', label: 'Last year' },
-  { key: 'beds', label: 'Beds available' },
+  { key: 'beds', label: 'Beds' },
+  { key: 'open', label: 'Open model', dash: true },
 ];
 
 export function Legend({ on, toggle }: { on: Record<SeriesKey, boolean>; toggle?: (k: SeriesKey) => void }) {
@@ -68,12 +67,9 @@ export function SeasonChart({ ds, acc, from, to, height = 360, on, highlight = [
   const maxY = Math.max(1000, ...days.map((d) => Math.max(on.actual ? d.actual ?? 0 : 0, on.forecast ? d.forecast ?? 0 : 0, on.open ? d.openForecast ?? 0 : 0, on.previous ? d.previousYear ?? 0 : 0, on.beds ? d.beds ?? 0 : 0))) * 1.08;
   const y = scaleLinear().domain([0, maxY]).nice(5).range([H - m.b, m.t]);
   const todayIdx = days.findIndex((d) => d.date >= ds.today);
-  const unc = Math.max(0.04, acc.mape);
 
   const mk = (f: (d: Day) => number | null, curve = curveMonotoneX) =>
     line<Day>().defined((d) => f(d) != null).x((_, i) => x(i)).y((d) => y(f(d)!)).curve(curve)(days) ?? '';
-  const band = area<Day>().defined((d) => d.date >= ds.today && d.forecast != null).x((_, i) => x(i))
-    .y0((d) => y(corrected(d, acc)! * (1 - unc))).y1((d) => y(corrected(d, acc)! * (1 + unc))).curve(curveMonotoneX)(days) ?? '';
 
   const months = days.map((d, i) => ({ d, i })).filter(({ d }) => d.date.endsWith('-01'));
   const ticks = y.ticks(5);
@@ -107,7 +103,6 @@ export function SeasonChart({ ds, acc, from, to, height = 360, on, highlight = [
           return <rect key={h.start} x={x0} width={Math.max(6, x1 - x0)} y={m.t} height={H - m.b - m.t} className={`hl ${h.tone}`} rx={4} />;
         })}
         {todayIdx > 0 && <rect x={x(todayIdx)} width={W - m.r - x(todayIdx)} y={m.t} height={H - m.b - m.t} className="future" />}
-        {on.forecast && <path d={band} fill={COLORS.forecast} opacity={0.1} />}
         {on.beds && <path d={mk((d) => d.beds, curveStepAfter)} fill="none" stroke={COLORS.beds} strokeWidth={2} />}
         {on.previous && <path d={mk((d) => d.previousYear)} fill="none" stroke={COLORS.previous} strokeWidth={1.5} />}
         {on.open && <path d={mk((d) => d.openForecast)} fill="none" stroke={COLORS.open} strokeWidth={1.5} strokeDasharray="4 3" />}
@@ -138,29 +133,28 @@ export function SeasonChart({ ds, acc, from, to, height = 360, on, highlight = [
 function DayTooltip({ d, acc, left, today }: { d: Day; acc: Accuracy; left: number; today: string }) {
   const future = d.date >= today;
   const exp = corrected(d, acc);
-  const lines: ReactNode[] = [];
-  if (!future && d.actual != null) {
-    if (d.flags.includes('zero-stays')) lines.push(<p key="a" className="warn">No stays reported — probably a data gap.</p>);
-    else lines.push(<p key="a"><b>{n(d.actual)}</b> guests stayed overnight{d.forecast ? <> — {signedPct((d.actual - d.forecast) / d.forecast)} vs forecast</> : null}.</p>);
-  }
-  if (future && exp != null) lines.push(<p key="f">We expect about <b>{approx(exp)}</b> guests{d.beds ? (exp > d.beds ? <> — <b>more than the {n(d.beds)} beds</b> ({pct(exp / d.beds)})</> : <> — <b>{pct(exp / d.beds)}</b> of {n(d.beds)} beds</>) : null}.</p>);
-  if (d.previousYear != null) lines.push(<p key="p" className="muted">Last year: {n(d.previousYear)}{d.openForecast ? ` · open model: ${n(d.openForecast)}` : ''}</p>);
   const wx = d.weather;
+  const row = (k: string, v: ReactNode, c?: string) => <p className="trow"><span>{c && <i style={{ background: c }} />}{k}</span><b>{v}</b></p>;
   return (
     <div className="tooltip" style={{ left }}>
       <p className="tdate">{dayLabel(d.date)}</p>
-      {lines}
-      {wx && <p className="ctx">{wx.isForecast ? 'Forecast: ' : ''}{wx.snow >= 2 ? `❄ ${wx.snow.toFixed(0)} cm fresh snow` : wx.precip >= 5 ? `☂ ${wx.precip.toFixed(0)} mm rain` : wx.sun >= 6 ? '☀ sunny' : '☁ cloudy'}, {Math.round(wx.tmax)}°C</p>}
-      {d.holidays.filter((h) => h.coverage > 0.2).slice(0, 3).map((h) => <p key={h.market} className="ctx">🎒 {MARKET_NAMES[h.market] ?? h.market}: {h.name}{h.coverage < 0.95 ? ` (${Math.round(h.coverage * 100)}% of regions)` : ''}</p>)}
-      {d.events.map((e) => <p key={e} className="ctx">★ {e}</p>)}
+      {!future && d.actual != null && row('Actual', d.flags.includes('zero-stays') ? 'missing' : n(d.actual), COLORS.actual)}
+      {exp != null && row('Forecast', n(exp), COLORS.forecast)}
+      {d.previousYear != null && row('Last year', n(d.previousYear), COLORS.previous)}
+      {d.beds != null && exp != null && future && row('Beds', `${n(d.beds)} · ${pct(exp / d.beds)}`, COLORS.beds)}
+      <p className="tctx">
+        {wx && <span>{wx.snow >= 2 ? `❄ ${wx.snow.toFixed(0)} cm` : wx.precip >= 5 ? `☂ ${wx.precip.toFixed(0)} mm` : wx.sun >= 6 ? '☀' : '☁'} {Math.round(wx.tmax)}°</span>}
+        {d.holidays.filter((h) => h.coverage > 0.2).map((h) => <span key={h.market}>🎒 {h.market}</span>)}
+        {d.events.map((e) => <span key={e}>★ {e}</span>)}
+      </p>
     </div>
   );
 }
 
 function ContextStrips({ days, x, width, hover, ml, mr, ds }: { days: Day[]; x: (i: number) => number; width: number; hover: number | null; ml: number; mr: number; ds: Dataset }) {
-  const markets = Object.entries(ds.marketMix).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([m]) => m);
+  const markets = Object.keys(ds.marketMix);
   const bw = Math.max(1, (width - ml - mr) / days.length);
-  const rowH = 9, gap = 3;
+  const rowH = 12, gap = 4;
   const wxH = 26;
   const H = markets.length * (rowH + gap) + wxH + 26;
   const maxP = Math.max(20, ...days.map((d) => d.weather?.precip ?? 0));
@@ -168,7 +162,7 @@ function ContextStrips({ days, x, width, hover, ml, mr, ds }: { days: Day[]; x: 
     <svg width={width} height={H} className="strips" aria-label="Context: school holidays in source markets, weather and events">
       {markets.map((mk, r) => (
         <g key={mk} transform={`translate(0, ${r * (rowH + gap)})`}>
-          <text x={ml - 8} y={rowH - 1} textAnchor="end" className="axis small">{mk}</text>
+          <text x={ml - 8} y={rowH - 2} textAnchor="end" className="axis small">{mk}</text>
           <rect x={ml} y={0} width={width - ml - mr} height={rowH} className="stripbg" rx={2} />
           {days.map((d, i) => {
             const h = d.holidays.find((x) => x.market === mk);
@@ -177,7 +171,7 @@ function ContextStrips({ days, x, width, hover, ml, mr, ds }: { days: Day[]; x: 
         </g>
       ))}
       <g transform={`translate(0, ${markets.length * (rowH + gap) + 4})`}>
-        <text x={ml - 8} y={wxH - 4} textAnchor="end" className="axis small">Wx</text>
+        <text x={ml - 8} y={wxH - 4} textAnchor="end" className="axis small">☂</text>
         {days.map((d, i) => {
           const w = d.weather; if (!w) return null;
           if (w.snow >= 1) { const h = Math.min(wxH, 4 + w.snow * 0.8); return <rect key={d.date} x={x(i) - bw / 2} y={wxH - h} width={Math.max(1, bw - 0.5)} height={h} fill="#6da7ec" rx={1} />; }

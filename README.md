@@ -9,19 +9,21 @@ side by side and rarely analysed together. The Demand Radar
 (`dashboard/`, React + TypeScript + Vite) puts them together, explains the gaps
 and turns them into next steps, in plain language and in the Paznaun-Ischgl look.
 
-| View | Question it answers |
+| View | Shows |
 | --- | --- |
-| Overview | What is the situation in one minute? (plain-language summary, KPIs, top 3 steps, biggest surprises) |
-| Season | Actual vs our forecast vs the open forecast model vs last year vs beds, day by day — with school holidays in the source markets, weather and events underneath; monthly table checked against official totals |
-| Why? | Every stretch where actual stays were >10% off the forecast, tested against weather, source-market holidays, events, a systematic weekday error and data gaps — with evidence and a confidence level |
-| Beds | Calendar of the expected share of beds booked (forecast corrected for the measured weekday bias, with an uncertainty range), days close to full, days with room |
-| What to do | Ranked actions (what, when, where, why) scored by guest nights at stake, time left, ease and confidence; CSV export and print briefing |
-| Data | Data health checks, CSV upload of the real TTF Data Space export (stays in the browser), source registry incl. the next sources to connect |
+| Overview | 4 KPIs, season chart, top 3 next steps |
+| Season | Actual, forecast, last year, beds (+ open model) per day; NL/BE school holidays, weather and events underneath |
+| Deviations | Stretches >10% off the forecast with the most likely reason (weather, NL/BE holidays, events, data gaps) and confidence |
+| Beds | Month calendar of expected bed occupancy, paged by month |
+| Actions | Ranked next steps (what, when, where, why), CSV / print |
+| Data | CSV upload of the real export, data health, sources |
+
+Partner markets: **Netherlands and Belgium** (holidays, explanations and actions focus on them).
 
 **Data.** Forecast, weather, holidays and events are **real open data**: the open
 overnight-stay forecast for region TR53 Paznaun-Ischgl (JOANNEUM RESEARCH /
 TU Wien / Uni Klagenfurt / Austria Tourism), Open-Meteo for Ischgl, the
-OpenHolidays API for DE, NL, CH, AT, BE, SE, PL and CZ. The partner data (stays,
+OpenHolidays API for the partner markets NL and BE. The partner data (stays,
 beds) is a **sample in the shape of the challenge data**, calibrated to the
 official monthly totals, until the TTF Data Space export is loaded (drop the CSV
 on the Data page). `npm run data:open` refreshes the open-data snapshots;
