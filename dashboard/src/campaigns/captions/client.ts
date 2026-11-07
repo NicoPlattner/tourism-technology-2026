@@ -15,15 +15,15 @@ export class CaptionClient {
     private readonly request: typeof fetch = fetch.bind(globalThis),
     private readonly timeoutMs = 10000,
   ) {}
-  getCached(metadata: CaptionMetadata) {
-    const value = this.cache.get(metadataKey(metadata));
+  getCached(metadata: CaptionMetadata, identity = "") {
+    const value = this.cache.get(identity + metadataKey(metadata));
     return value ? structuredClone(value) : undefined;
   }
-  async generate(input: CaptionMetadata, force = false): Promise<AiCaption> {
+  async generate(input: CaptionMetadata, force = false, identity = ""): Promise<AiCaption> {
     const metadata = normalizeMetadata(input);
-    const key = metadataKey(metadata);
+    const key = identity + metadataKey(metadata);
     if (!force) {
-      const cached = this.getCached(metadata);
+      const cached = this.getCached(metadata, identity);
       if (cached) return cached;
       const pending = this.inFlight.get(key);
       if (pending) return structuredClone(await pending);

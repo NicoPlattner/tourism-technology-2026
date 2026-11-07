@@ -1,3 +1,6 @@
+import savedCaptions from "./captions/preGenerated.json";
+import { metadataKey } from "./captions/contracts";
+import type { CampaignCaption } from "./types";
 import type {
   CampaignAsset,
   CampaignDataProvider,
@@ -220,10 +223,13 @@ export const displayPublishingDate = (date: string) =>
     timeZone: "Europe/Vienna",
   }).format(new Date(date));
 export class MockCampaignDataProvider implements CampaignDataProvider {
-  async getRecommendation(
+  async getRecommendation(market: SourceMarket, period: TravelPeriod): Promise<CampaignRecommendation> {
+    return this.getImmediateRecommendation(market, period);
+  }
+  getImmediateRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
-  ): Promise<CampaignRecommendation> {
+  ): CampaignRecommendation {
     const scenario = SCENARIOS[market];
     if (!scenario || !["q1-2027", "q2-2027", "winter-2026-27"].includes(period))
       throw new Error("Choose a supported source market and travel period.");
@@ -252,7 +258,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       description:
         "Meme-inspired fictional illustration; not a photograph or a representation of verified resort conditions.",
     };
-    return {
+    const recommendation: CampaignRecommendation = {
       id: `campaign-${market}-${period}-v1`,
       market,
       country: scenario.country,
@@ -297,6 +303,12 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
         "Approval and scheduling are simulated locally; nothing is sent to Instagram.",
       ],
       asset,
+      captionContent: {
+        text: spring ? scenario.springCaption : scenario.caption,
+        hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
+        language: scenario.language,
+        source: "demo_fallback",
+      },
       captionMetadata: {
         country: scenario.country,
         language: scenario.language,
@@ -314,6 +326,13 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       fictional: true,
       variation: spring,
     };
+    const stored = (savedCaptions as Record<string, { metadataKey: string; caption: CampaignCaption }>)[recommendation.id];
+    if (stored?.metadataKey === metadataKey(recommendation.captionMetadata)) {
+      recommendation.captionContent = structuredClone(stored.caption);
+      recommendation.caption = stored.caption.text;
+      recommendation.hashtags = [...stored.caption.hashtags];
+    }
+    return recommendation;
   }
 }
 export const campaignDataProvider: CampaignDataProvider =

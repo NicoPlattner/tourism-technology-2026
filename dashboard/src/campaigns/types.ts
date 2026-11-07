@@ -15,6 +15,13 @@ export interface CampaignAsset {
   credit: string;
   description: string;
 }
+export interface CampaignCaption {
+  text: string;
+  hashtags: string[];
+  language: string;
+  source: "pre_generated" | "live_ai" | "demo_fallback";
+  generatedAt?: string;
+}
 export interface CampaignRecommendation {
   id: string;
   market: SourceMarket;
@@ -39,10 +46,12 @@ export interface CampaignRecommendation {
   assumptions: string[];
   asset: CampaignAsset;
   captionMetadata: CaptionMetadata;
+  captionContent: CampaignCaption;
   fictional: boolean;
   variation: boolean;
 }
 export interface CampaignDataProvider {
+  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod): CampaignRecommendation;
   getRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
@@ -54,7 +63,7 @@ export interface CampaignApproval {
   publishingDates: string[];
   caption: string;
   hashtags?: string[];
-  captionSource?: "ai" | "demo";
+  captionSource?: CampaignCaption["source"];
   status: "APPROVED_MOCK";
 }
 export const MARKETS: { code: SourceMarket; name: string; language: string }[] =

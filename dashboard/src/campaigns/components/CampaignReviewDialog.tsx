@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { CampaignApproval, CampaignRecommendation } from "../types";
+import type { CampaignApproval, CampaignRecommendation, CampaignCaption } from "../types";
 import {
   displayDate,
   displayPublishingDate,
@@ -10,13 +10,13 @@ export default function CampaignReviewDialog({
   approval,
   onApprove,
   onClose,
-  captionSource = "demo",
+  captionSource = "demo_fallback",
 }: {
   campaign: CampaignRecommendation;
   approval?: CampaignApproval;
   onApprove: () => void;
   onClose: () => void;
-  captionSource?: "ai" | "demo";
+  captionSource?: CampaignCaption["source"];
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function CampaignReviewDialog({
             <h3>
               Caption to approve{" "}
               <span className="cp-caption-source">
-                {captionSource === "ai" ? "AI caption" : "Demo caption"}
+                {captionSource === "live_ai" ? "Live AI caption" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Demo caption"}
               </span>
             </h3>
             <p lang={campaign.language}>{campaign.caption}</p>

@@ -106,3 +106,13 @@ test("request timeout and invalid service content return errors without caching 
   );
   await assert.rejects(html.generate(metadata), /unavailable/);
 });
+test("campaign identity isolates periods even when caption metadata is identical", async () => {
+  let calls = 0;
+  const client = new CaptionClient("/api", async () => json(result(`Caption ${++calls}.`)));
+  await client.generate(metadata, true, "campaign-DE-q1-2027-v1");
+  assert.equal(client.getCached(metadata, "campaign-DE-winter-2026-27-v1"), undefined);
+  await client.generate(metadata, true, "campaign-DE-winter-2026-27-v1");
+  assert.equal(client.getCached(metadata, "campaign-DE-q1-2027-v1")?.caption, "Caption 1.");
+  assert.equal(client.getCached(metadata, "campaign-DE-winter-2026-27-v1")?.caption, "Caption 2.");
+  assert.equal(calls, 2);
+});

@@ -28,31 +28,10 @@ export default function CaptionAssistant({
   return (
     <>
       <div className="cp-caption-top">
-        <span className={`cp-caption-source ${result ? "ai" : "demo"}`}>
-          {result ? "AI caption" : "Demo caption"}
+        <span className={`cp-caption-source ${assistant.source === "demo_fallback" ? "demo" : "ai"}`}>
+          {assistant.source === "live_ai" ? "Live AI caption" : assistant.source === "pre_generated" ? "Pre-generated AI caption" : "Demo caption"}
         </span>
-        {assistant.pending && (
-          <span className="cp-caption-working" role="status">
-            <svg
-              className="cp-caption-spinner"
-              width="11"
-              height="11"
-              viewBox="0 0 16 16"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="25 13"
-              />
-            </svg>
-            Generating…
-          </span>
-        )}
+
       </div>
       <p className="cp-caption-text" lang={campaign.language}>
         {caption}
@@ -65,8 +44,13 @@ export default function CaptionAssistant({
           className="link"
           onClick={assistant.regenerate}
           disabled={assistant.pending}
+          title="Generate a new caption with AI"
+          aria-label={assistant.pending ? "Regenerating caption" : assistant.error ? "Retry" : "Regenerate"}
         >
-          {assistant.error ? "Retry" : "Regenerate"}
+          <svg className={assistant.pending ? "cp-caption-spinner" : ""} width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M13 6a5 5 0 1 0 0 4M13 2v4H9" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+          {assistant.pending ? "Regenerating…" : assistant.error ? "Retry" : "Regenerate"}
         </button>
         <button className="link" onClick={() => void copy()}>
           Copy caption
@@ -75,7 +59,7 @@ export default function CaptionAssistant({
       {assistant.error && (
         <p className="cp-caption-error" role="status">
           {assistant.error}
-          {result ? " Your previous AI caption is unchanged." : ""}
+          {" Your previous caption is unchanged."}
         </p>
       )}
       {copyStatus && (

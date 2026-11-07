@@ -5,6 +5,8 @@ import {
   MockCampaignDataProvider,
   shiftDate,
 } from "../src/campaigns/mockCampaignData.ts";
+import { metadataKey, validateGenerated } from "../src/campaigns/captions/contracts.ts";
+import savedCaptions from "../src/campaigns/captions/preGenerated.json";
 import { MARKETS, TRAVEL_PERIODS } from "../src/campaigns/types.ts";
 const provider = new MockCampaignDataProvider();
 test("Q1 campaigns use assigned adult audiences, localized copy and distinct creative", async () => {
@@ -89,4 +91,19 @@ test("the offline map contains real, non-rectangular boundaries for all four mar
 test("unsupported requests reject without returning a mismatched campaign", async () => {
   await assert.rejects(provider.getRecommendation("FR" as never, "q1-2027"));
   await assert.rejects(provider.getRecommendation("DE", "unknown" as never));
+});
+
+test("all 12 saved campaign captions have matching metadata, valid localized output and AI provenance", () => {
+  assert.equal(Object.keys(savedCaptions).length, 12);
+  for (const period of TRAVEL_PERIODS) for (const market of MARKETS) {
+    const c = provider.getImmediateRecommendation(market.code, period.id);
+    const saved = savedCaptions[c.id as keyof typeof savedCaptions];
+    assert.equal(saved.metadataKey, metadataKey(c.captionMetadata));
+    assert.equal(c.captionContent.source, "pre_generated");
+    assert.ok(Number.isFinite(Date.parse(c.captionContent.generatedAt!)));
+    validateGenerated({ caption: c.captionContent.text, hashtags: c.captionContent.hashtags, language: c.captionContent.language }, c.language);
+    assert.equal(c.caption, c.captionContent.text);
+    c.captionContent.hashtags.push("#LocalMutation");
+    assert.ok(!provider.getImmediateRecommendation(market.code, period.id).hashtags.includes("#LocalMutation"));
+  }
 });

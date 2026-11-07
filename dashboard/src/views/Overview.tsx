@@ -22,7 +22,7 @@ export default function Overview({
 }: ViewProps & { provider?: CampaignDataProvider }) {
   const [market, setMarket] = useState<SourceMarket>("DE");
   const [period, setPeriod] = useState<TravelPeriod>("q1-2027");
-  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(null);
+  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", "q1-2027") || null);
   const [approvals, setApprovals] = useState<Record<string, CampaignApproval>>(
     {},
   );
@@ -31,6 +31,12 @@ export default function Overview({
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let current = true;
+    if (provider.getImmediateRecommendation) {
+      setCampaign(provider.getImmediateRecommendation(market, period));
+      setError("");
+      setReview(false);
+      return;
+    }
     setCampaign(null);
     setError("");
     setReview(false);
@@ -58,13 +64,19 @@ export default function Overview({
     };
   }, [market, period, provider, retry]);
   const currentCampaign =
-    campaign?.market === market && campaign.period === period ? campaign : null;
-  const assistant = useCaptionAssistant(currentCampaign?.captionMetadata);
+    campaign?.market === market && campaign.period === period ? campaign : provider.getImmediateRecommendation?.(market, period) || null;
+  const assistant = useCaptionAssistant(currentCampaign);
   const visibleCampaign = currentCampaign
     ? {
         ...currentCampaign,
         caption: assistant.result?.caption || currentCampaign.caption,
         hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
+        captionContent: assistant.result ? {
+          text: assistant.result.caption,
+          hashtags: assistant.result.hashtags,
+          language: assistant.result.language,
+          source: "live_ai" as const,
+        } : currentCampaign.captionContent,
       }
     : null;
   const storedApproval = visibleCampaign
@@ -88,7 +100,7 @@ export default function Overview({
         publishingDates: [...visibleCampaign.publishingDates],
         caption: visibleCampaign.caption,
         hashtags: [...visibleCampaign.hashtags],
-        captionSource: assistant.result ? "ai" : "demo",
+        captionSource: assistant.source,
         status: "APPROVED_MOCK",
       },
     }));
@@ -150,7 +162,7 @@ export default function Overview({
         <CampaignReviewDialog
           campaign={visibleCampaign!}
           approval={visibleApproval}
-          captionSource={assistant.result ? "ai" : "demo"}
+          captionSource={assistant.source}
           onApprove={approve}
           onClose={() => setReview(false)}
         />
