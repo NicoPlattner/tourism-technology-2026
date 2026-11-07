@@ -20,6 +20,9 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'data', label: 'Data', hint: 'Sources and upload' },
 ];
 
+// Official Ischgl logo, loaded from ischgl.com (the asset stays with its owner).
+const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne_r.png';
+
 const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
@@ -27,6 +30,7 @@ export default function App() {
   const [partner, setPartner] = useState<PartnerFile>(SAMPLE);
   const [uploaded, setUploaded] = useState<string | undefined>();
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
+  const [logoOk, setLogoOk] = useState(true);
 
   useEffect(() => {
     const onHash = () => setTab(readTab());
@@ -48,28 +52,29 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="metabar">
+        <span className="meta-l">Demand Radar · TVB Paznaun-Ischgl</span>
+        <span className="meta-r">
+          {ds.sampleData && <button className="sample" onClick={() => go('data')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
+          <span>{longDate(ds.today)}</span>
+        </span>
+      </div>
       <header className="top">
-        <div className="brand">
-          <span className="mark" aria-hidden="true">
-            <svg viewBox="0 0 40 40"><path d="M4 32 L16 12 L23 22 L28 16 L36 32 Z" /></svg>
-          </span>
-          <div>
-            <p className="wordmark">Paznaun <span>·</span> Ischgl</p>
-            <p className="product">Demand Radar</p>
-          </div>
-        </div>
+        <a className="brand" href="#overview" onClick={(e) => { e.preventDefault(); go('overview'); }} aria-label="Ischgl — Demand Radar, overview">
+          {logoOk ? (
+            <img src={LOGO} alt="Ischgl" className="logo" onError={() => setLogoOk(false)} />
+          ) : (
+            <span className="wordmark">Ischgl</span>
+          )}
+          <span className="product">Demand<br />Radar</span>
+        </a>
         <nav className="tabs" aria-label="Sections">
           {TABS.map((t) => (
             <a key={t.id} href={`#${t.id}`} className={tab === t.id ? 'active' : ''} aria-current={tab === t.id ? 'page' : undefined} title={t.hint}
               onClick={(e) => { e.preventDefault(); go(t.id); }}>{t.label}{t.id === 'actions' && <b className="count">{model.actions.length}</b>}</a>
           ))}
         </nav>
-        <div className="today">
-          {ds.sampleData && <button className="sample" onClick={() => go('data')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
-          <strong>{longDate(ds.today)}</strong>
-        </div>
       </header>
-
 
       <main>
         {tab === 'overview' && <Overview {...props} />}
@@ -81,7 +86,7 @@ export default function App() {
       </main>
 
       <footer>
-        <p>Prototype · TTF Hackathon 2026 · not an official TVB product · Open data: JOANNEUM RESEARCH / Austria Tourism, Open-Meteo (CC BY 4.0), OpenHolidays (ODbL)</p>
+        <p>Prototype · TTF Hackathon 2026 · not an official TVB product · Logo © TVB Paznaun-Ischgl · Open data: JOANNEUM RESEARCH / Austria Tourism, Open-Meteo (CC BY 4.0), OpenHolidays (ODbL)</p>
       </footer>
     </div>
   );

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { ViewProps } from '../App';
 import { approx, dayLabel, n, pct } from '../analysis/format';
 import type { CapacityDay } from '../analysis/insights';
+import RotatingCircle from '../components/RotatingCircle';
 
 const LEGEND = [
   { label: '< 50%', c: '#eef0f3' },
@@ -58,7 +59,12 @@ export default function Capacity({ ds, model }: ViewProps) {
       {sel && day && (
         <section className="card day-card" aria-live="polite">
           <p className="eyebrow">{dayLabel(sel.date)}</p>
-          <p className="big">{pct(sel.occupancy)}</p>
+          <div className="ring-wrap">
+            <RotatingCircle text="Beds • Paznaun • Ischgl •" size={180}>
+              <span className="rc-num">{pct(sel.occupancy)}</span>
+              <span className="rc-label">booked</span>
+            </RotatingCircle>
+          </div>
           <dl className="kv">
             <div><dt>Guests</dt><dd>{approx(sel.expected)}</dd></div>
             <div><dt>Beds</dt><dd>{n(sel.beds)}{sel.flags.includes('missing-beds') ? ' *' : ''}</dd></div>

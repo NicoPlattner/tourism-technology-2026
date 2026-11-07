@@ -16,7 +16,9 @@
   --radius: 14px;
   --shadow: 0 1px 2px rgba(20, 25, 30, 0.06), 0 6px 24px rgba(20, 25, 30, 0.06);
   --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --head: 'Saira', 'DM Sans', system-ui, sans-serif;
+  /* Ischgl uses Eurostile Heavy (commercial, licensed to ischgl.com). It is used
+     when installed locally; otherwise Saira, the closest free match. */
+  --head: 'Eurostile Heavy', 'Eurostile LT Std', 'Saira', 'DM Sans', system-ui, sans-serif;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -382,3 +384,81 @@ footer { padding: 24px clamp(16px, 3vw, 36px) 40px; color: var(--muted); font-si
   .mcell b { font-size: 12px; }
   .pager h2 { min-width: 0; font-size: 16px; }
 }
+
+/* ============================================================
+   Ischgl brand layer: metabar, white navbar with logo, sharp
+   edges with a cut bottom-right corner, uppercase type, the
+   rotating text ring.
+   ============================================================ */
+:root { --cut: 22px; --cut-lg: 44px; --dark: #161616; }
+body { background: var(--bg); }
+.metabar { background: var(--dark); color: #cfd3d8; display: flex; justify-content: space-between; align-items: center; padding: 6px clamp(16px, 3vw, 36px); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3125rem; }
+.meta-r { display: flex; align-items: center; gap: 14px; letter-spacing: 0.08rem; }
+.metabar .sample { margin: 0; }
+.top { background: #fff; color: var(--ink); box-shadow: none; border-bottom: 1px solid var(--line); padding: 14px clamp(16px, 3vw, 36px); gap: 36px; }
+.brand { text-decoration: none; color: var(--ink); gap: 14px; }
+.logo { height: 44px; width: auto; display: block; }
+.wordmark { font-family: var(--head); font-weight: 800; font-size: 28px; text-transform: uppercase; letter-spacing: 0.02em; }
+.product { font-family: var(--head); font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.18rem; line-height: 1.25; color: var(--muted); border-left: 2px solid var(--red); padding-left: 12px; margin: 0; }
+.tabs { gap: 2px; justify-content: flex-end; }
+.tabs a { color: var(--ink); border-radius: 0; padding: 10px 14px; font-family: var(--head); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06rem; font-size: 14px; position: relative; }
+.tabs a:hover { background: none; color: var(--red); }
+.tabs a.active { background: none; color: var(--red); }
+.tabs a.active::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 3px; background: var(--red); }
+.tabs .count { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%); }
+
+/* sharp cards with the cut corner */
+.card, .kpi, .hero, .ep, .mini-card, .actions-min .card, .source { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%); box-shadow: none; }
+.card, .kpi { border: 0; }
+.kpi:hover { transform: none; box-shadow: none; background: #fff; outline: 2px solid var(--red); outline-offset: -2px; }
+.kpi strong { font-size: 38px; }
+.k-label, .eyebrow, .mh, .a-nights small { letter-spacing: 0.15rem; }
+h2 { font-family: var(--head); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; font-size: 18px; }
+.seg, .seg button, .legend button, .pg, .chips span, .also span, .next-src span, .status, .tag, .dir, .conf .dots i, .mcell, .sb-track, .verdict, .reason-main, .evidence span { border-radius: 0; }
+.seg button.on { box-shadow: none; background: var(--slate); color: #fff; }
+.legend button { text-transform: uppercase; font-size: 11.5px; letter-spacing: 0.06rem; font-weight: 600; }
+.btn { border-radius: 0; text-transform: uppercase; letter-spacing: 0.08rem; font-family: var(--head); font-weight: 800; padding: 12px 34px 12px 18px; background: linear-gradient(315deg, transparent 14px, var(--red) 0); }
+.btn:hover { background: linear-gradient(315deg, transparent 14px, var(--red-dark) 0); }
+.btn.ghost { background: linear-gradient(315deg, transparent 14px, #fff 0); border: 0; color: var(--slate); box-shadow: inset 0 0 0 1px var(--line); }
+.link { text-transform: uppercase; letter-spacing: 0.08rem; font-size: 13px; font-family: var(--head); font-weight: 800; }
+.mcell { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.mcell.picked { outline: none; box-shadow: inset 0 0 0 3px var(--slate); }
+.ep.on { border-color: transparent; background: var(--slate); color: #fff; }
+.ep.on .dir { background: #fff; }
+.steps-min .n, .actions-min .a-rank { border-radius: 0; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%); }
+
+/* dark hero */
+.hero-dark { position: relative; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: clamp(24px, 4vw, 48px) clamp(20px, 4vw, 56px); overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut-lg)), calc(100% - var(--cut-lg)) 100%, 0 100%); }
+.hero-dark::before { content: ''; position: absolute; inset: 0; background:
+  radial-gradient(60% 120% at 85% 50%, rgba(187, 28, 63, 0.35), transparent 60%),
+  repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 14px); pointer-events: none; }
+.hero-copy { position: relative; }
+.eyebrow.light { color: #ff8aa3; }
+.mega { color: #fff; font-size: clamp(42px, 6.5vw, 92px); line-height: 0.92; margin: 6px 0 12px; letter-spacing: 0; }
+.hero-sub { text-transform: uppercase; letter-spacing: 0.3125rem; font-size: 12px; color: #cfd3d8; }
+
+/* rotating ring */
+.rotcircle { position: relative; flex: none; display: grid; place-items: center; }
+.rotcircle svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.rotcircle text { font-family: var(--sans); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3125rem; fill: var(--slate); }
+.rotcircle.dark text { fill: #fff; }
+.rotcircle-spin { transform-origin: 100px 100px; animation: spin 26s linear infinite; }
+.rotcircle-inner { position: relative; width: 64%; height: 64%; border-radius: 50%; display: grid; place-content: center; text-align: center; background: var(--red); color: #fff; box-shadow: 0 0 4rem 0 rgba(187, 28, 63, 0.55); }
+.rotcircle.light .rotcircle-inner { box-shadow: 0 0 2.5rem 0 rgba(187, 28, 63, 0.35); }
+.rc-num { font-family: var(--head); font-weight: 800; font-size: 40px; line-height: 1; }
+.rc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.18rem; margin-top: 4px; }
+.ring-wrap { display: grid; place-items: center; padding: 8px 0 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rotcircle-spin { animation: none; } }
+@media (max-width: 860px) {
+  .metabar .meta-l { display: none; }
+  .top { padding: 10px 16px; gap: 10px; }
+  .logo { height: 34px; }
+  .tabs { justify-content: flex-start; margin: 0 -16px; padding: 0 6px; }
+  .tabs a { padding: 10px 10px; font-size: 13px; }
+  .tabs a.active::after { left: 10px; right: 10px; }
+  .hero-dark { flex-direction: column; align-items: flex-start; }
+  .hero-dark .rotcircle { align-self: center; }
+}
+@media print { .metabar, .hero-dark::before { display: none !important; } }
