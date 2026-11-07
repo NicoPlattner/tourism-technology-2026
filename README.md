@@ -34,7 +34,7 @@ opens a Google login (Google Identity Services, browser-only token flow) asking
 for the read-only scope `https://www.googleapis.com/auth/analytics.readonly`
 and then lists the GA4 properties the account can read. Set the public OAuth
 client ID as the Actions variable `GOOGLE_CLIENT_ID` (deploy) or
-`VITE_GOOGLE_CLIENT_ID` in `dashboard/.env.local` (local dev). The OAuth client
+`VITE_GOOGLE_CLIENT_ID` in `dashboard/.env` (committed default, used for local dev). The OAuth client
 needs `https://hackathon.daria-and-nico.com` (and `http://localhost:5173` for
 dev) as authorised JavaScript origins, and the project needs the Google
 Analytics Admin API (and Data API for reports) enabled.
