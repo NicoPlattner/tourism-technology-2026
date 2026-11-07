@@ -40,7 +40,7 @@ export default function CampaignPlanner({
         <div>
           <dt>Booking lead time</dt>
           <dd>
-            {campaign.assumedLeadDays} days <span>assumed</span>
+            {campaign.assumedLeadDays} days
           </dd>
         </div>
         <div>
