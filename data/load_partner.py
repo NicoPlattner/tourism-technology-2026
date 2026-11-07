@@ -165,7 +165,7 @@ def load_events(path: pathlib.Path | None = None, verbose: bool = True) -> pd.Da
     dcol = find_date_col(df)
     if verbose:
         print(f"[events] {path.name}: date column '{dcol}', columns {list(df.columns)}")
-    df.insert(0, "date", to_dates(df[dcol]))
+    df = df.assign(date=to_dates(df[dcol]))
     return df
 
 
