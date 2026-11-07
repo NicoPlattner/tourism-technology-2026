@@ -167,10 +167,28 @@ def partner(f: pd.DataFrame) -> pd.DataFrame:
     kinds = {"ev_any": name.str.len() > 0,
              "ev_concert": name.str.contains("concert|konzert|t.o.m|tom ", regex=True),
              "ev_sport": name.str.contains("freeride|trophy|contest|cup|race|rennen|world", regex=True),
-             "ev_season_edge": name.str.contains("erster skitag|saisonab|opening|closing", regex=True)}
+             "ev_season_edge": name.str.contains("erster skitag|saisonab|opening|closing", regex=True),
+             "ev_tom": name.str.contains(r"\btom\b|t\.o\.m", regex=True)}  # Top of the Mountain concerts
     for k, m in kinds.items():
         out[k] = idx.isin(ev.loc[m, "date"]).astype(int)
     out["ev_calendar_covered"] = ((idx >= "2026-01-01") & (idx <= "2027-12-31")).astype(int)
+    return out
+
+
+def recurring_events(f: pd.DataFrame) -> pd.DataFrame:
+    """Big recurring concerts for ALL seasons (the TVB calendar starts in 2026): opening concert
+    (season_dates.csv), Easter concert on Easter Sunday (2026 and 2027 calendars confirm the rule) if in
+    season, closing / spring concert (season_dates.csv). Merged with TVB calendar concerts where available."""
+    idx = f.index
+    sd = pd.read_csv(STATIC / "season_dates.csv", comment="#", parse_dates=["opening_concert", "closing_concert"])
+    days = set(sd.opening_concert.dropna()) | set(sd.closing_concert.dropna())
+    easter_sun = idx[(f.easter_offset == 0) & (f.in_season == 1)]
+    days |= set(easter_sun)
+    out = pd.DataFrame(index=idx)
+    out["ev_big_concert"] = idx.isin(list(days)).astype(int)
+    if "ev_tom" in f:
+        out["ev_big_concert"] = np.maximum(out.ev_big_concert, f.ev_tom.fillna(0)).astype(int)
+    out["ev_big_concert_weekend"] = out.ev_big_concert.rolling(3, center=True, min_periods=1).max().astype(int)
     return out
 
 
@@ -187,6 +205,10 @@ def build() -> pd.DataFrame:
     idx = pd.date_range(START, END, freq="D", name="date")
     f = pd.concat([calendar(idx), holiday_intensity(idx), season(idx), events(idx), snow(idx), targets(idx)], axis=1)
     f = pd.concat([f, partner(f)], axis=1)
+    f = pd.concat([f, recurring_events(f)], axis=1)
+    # data reliability weight for training: real TVB actuals 1.0, open-index stand-in 0.5
+    f["sample_weight"] = np.where(f.get("real_actual", pd.Series(np.nan, index=f.index)).notna(), 1.0,
+                                  np.where(f.pseudo_actual.notna(), 0.5, 0.0))
     return dq_flags(f)
 
 

@@ -99,6 +99,9 @@ models/
   real_backtest.py     ex-ante backtest on real TVB actuals + conformal calibration
   explain.py           graded deviation drivers, Theil, tracking signal, waterfall
   early_warning.py     occupancy from free beds, booking lead-time mix
+  push_pull.py         push (source-market free time) x pull (destination) model
+  market_split.py      daily stays split by market (raked to season totals)
+  backtest_v2.py       comparison: push-pull, compact LightGBM, sample weights, ensembles
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
 ```

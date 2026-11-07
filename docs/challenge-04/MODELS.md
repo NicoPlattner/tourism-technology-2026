@@ -87,6 +87,51 @@ By horizon:
 | 2–12 weeks | combination L1–L4 | stacked S1–S4 | each member wins somewhere |
 | 3–12 months | L1, L2 (+L3 early) with Easter | S1, S2 | TVB forecast is least reliable far out; long history is the asset |
 
+## 3b. Push and pull: how data sources are combined and weighted
+
+Two kinds of drivers (the push–pull framework of tourism research):
+
+```
+PUSH: why people travel at time t, per source market m     PULL: why they choose Paznaun (same for all markets)
+  school holidays, long weekends, bridge days of m           season open / phase, Christmas, Easter
+  weight 1: m's share of Paznaun nights in that month        snow depth, fresh snow
+  weight 2: how strongly m follows its own holidays          big concerts (TOM), weekday
+           (gamma_m; prior from mobile data, NL x10 ...)      capacity (cap on full days)
+  -> ADD across markets                                      -> MULTIPLY on top
+```
+
+How each data source enters (`data/`, `models/`):
+
+| Data | Kind | How it is combined / weighted |
+|---|---|---|
+| School holidays, public holidays, long weekends, bridge days per market | push | per market; inside a country population-weighted by state / canton / community / voivodeship; German states by the origin of German guests in Tirol |
+| Market shares | push weight | Paznaun season mix (Landesstatistik Tirol, 4 municipalities) × Tirol's month-by-month pattern (Statistik Austria); next season = last + ½ trend |
+| Holiday response per market | push weight | prior from Salzburg mobile data (NL ×10, GB ×7, BE ×5 …), refitted on Paznaun data with shrinkage |
+| Season phase, Christmas, Easter, weekday, snow, recurring concerts | pull | one multiplicative factor per day |
+| Real TVB actuals vs open-index stand-in | sample weight | 1.0 vs 0.5 in training (LightGBM: winter 11.5 → 11.2 %, summer ensemble 18.9 → 18.4 %) |
+
+What we tested (real winter 25/26, all scaled to the same monthly level):
+
+| Model | Daily error 24/25 | 25/26 |
+|---|---|---|
+| ensemble (holiday-aligned previous year + LightGBM with per-market holiday features) | **14.0 %** | **9.1 %** |
+| LightGBM, sample-weighted | 15.6 % | 10.3 % |
+| push–pull model alone (structured, fitted) | 24.5 % | 16.5 % |
+| LightGBM with pull features + one push index | 19.8 % | 11.6 % |
+| 3-model ensemble incl. push–pull | 16.2 % | 9.1 % |
+
+Decision: **forecast** with the ensemble (per-market holiday features stay
+separate; collapsing them into one push index loses information).
+**Structure and explanation** with push–pull:
+1. explanations are reported as push (source-market free time) vs pull
+   (destination) vs level; winter 25/26 deviations of the TVB forecast: level
+   −101k, pull +30k, push +11k stays;
+2. `models/market_split.py` splits each day's stays into markets (push–pull
+   parts raked to the daily actuals and to the Landesstatistik season totals),
+   the only daily nationality view we can get (grade C). Winter 25/26 weekly
+   peaks: NL 28 % in its spring-break week (22–28 Feb), DK 9 % in week 7,
+   BE 21 % around Easter, DE dominant at Christmas and Easter.
+
 ## 4. Extra data: decision
 
 | Data | Decision |

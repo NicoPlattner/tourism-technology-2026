@@ -75,11 +75,34 @@ def paznaun_season_shares() -> pd.DataFrame:
     return g
 
 
+def extend_trend(ps: pd.DataFrame, damp: float = .5) -> pd.DataFrame:
+    """Add the next season per kind (winter, summer): last share + damped linear trend over the observed
+    seasons (3 points), so 2026/27 does not simply repeat 2025/26."""
+    rows = {}
+    for kind in ("winter", "summer"):
+        k = ps[[s.startswith(kind) for s in ps.index]].sort_index()
+        if len(k) < 2:
+            continue
+        slope = (k.iloc[-1] - k.iloc[0]) / (len(k) - 1)
+        nxt = (k.iloc[-1] + damp * slope).clip(lower=0)
+        last = k.index[-1]
+        y = int(last.split()[1][:4]) + 1
+        lab = f"winter {y}/{str(y + 1)[2:]}" if kind == "winter" else f"summer {y}"
+        rows[lab] = nxt
+    return pd.concat([ps, pd.DataFrame(rows).T])
+
+
 def paznaun_monthly(tirol: pd.DataFrame, cover: float = .92) -> pd.DataFrame:
     """Monthly Paznaun market weights = Tirol's monthly shares x (Paznaun / Tirol) season ratio per market.
     Seasons without Paznaun data use the nearest season of the same kind."""
     ps = paznaun_season_shares()
     ps = ps.div(ps.sum(axis=1), axis=0) * cover
+    ps = extend_trend(ps)
+    # extend Tirol's monthly pattern 15 months ahead (same calendar month of the latest year)
+    fut = pd.date_range(tirol.index.max() + pd.offsets.MonthBegin(1), periods=15, freq="MS")
+    ext = pd.DataFrame([tirol[tirol.index.month == m.month].iloc[-1].values for m in fut], index=fut,
+                       columns=tirol.columns)
+    tirol = pd.concat([tirol, ext])
     out = tirol.copy()
     for m in out.index:
         kind = "winter" if m.month in (11, 12, 1, 2, 3, 4) else "summer"
