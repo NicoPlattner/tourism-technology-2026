@@ -100,3 +100,12 @@ Reference material: `otherRepo/` and `someMoreInfo/`. The active workflow does n
 execute their administrative setup scripts. Protocol references:
 [GitHub OIDC](https://docs.github.com/en/actions/reference/security/oidc) and
 [Pangolin machine clients](https://docs.pangolin.net/manage/clients/machine-clients).
+
+## Hello world sample
+
+[k8s/hello-world.yaml](k8s/hello-world.yaml) deploys a separate `hello-world`
+Deployment, Service and Ingress that answers `Hello, World!` at
+`https://hackathon.daria-and-nico.com/hello-world`. The Ingress is independent of
+`APP_HOST` and uses the `nginx` class. For public access, Pangolin needs an HTTP
+resource for `hackathon.daria-and-nico.com` targeting the ingress controller with
+the Custom Host Header set to `hackathon.daria-and-nico.com`, as described above.
