@@ -60,6 +60,9 @@ jobs:
 
       - name: Build dashboard
         working-directory: dashboard
+        env:
+          # Public OAuth client ID for "Connect Google Analytics" (Actions variable, not a secret).
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
         run: |
           npm ci --no-audit --no-fund
           npm run build

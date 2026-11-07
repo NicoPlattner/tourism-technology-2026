@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildDataset, parsePartnerCsv, refreshOpenData, SAMPLE, type PartnerFile } from './data/sources';
+import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
+import { GA_INITIAL, type GaState } from './data/googleAnalytics';
 import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
 import { longDate } from './analysis/format';
@@ -17,7 +18,7 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
   { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
   { id: 'actions', label: 'Actions', hint: 'Ranked next steps' },
-  { id: 'data', label: 'Data', hint: 'Sources and upload' },
+  { id: 'data', label: 'Data', hint: 'Sources and Google Analytics' },
 ];
 
 // Official Ischgl logo, loaded from ischgl.com (the asset stays with its owner).
@@ -27,8 +28,7 @@ const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(readTab);
-  const [partner, setPartner] = useState<PartnerFile>(SAMPLE);
-  const [uploaded, setUploaded] = useState<string | undefined>();
+  const [ga, setGa] = useState<GaState>(GA_INITIAL);
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
   const [logoOk, setLogoOk] = useState(true);
 
@@ -39,15 +39,10 @@ export default function App() {
     return () => removeEventListener('hashchange', onHash);
   }, []);
 
-  const ds = useMemo(() => buildDataset(partner, { openForecast: live?.openForecast, weather: live?.weather, retrieved: live?.retrieved, uploaded }), [partner, live, uploaded]);
+  const ds = useMemo(() => buildDataset(SAMPLE, { openForecast: live?.openForecast, weather: live?.weather, retrieved: live?.retrieved }), [live]);
   const model = useMemo(() => computeModel(ds), [ds]);
 
   const go = (t: Tab) => { location.hash = t; setTab(t); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  const onUpload = async (file: File) => {
-    const text = await file.text();
-    setPartner(parsePartnerCsv(text, SAMPLE));
-    setUploaded(file.name);
-  };
   const props = { ds, model, go };
 
   return (
@@ -82,7 +77,7 @@ export default function App() {
         {tab === 'why' && <Why {...props} />}
         {tab === 'capacity' && <Capacity {...props} />}
         {tab === 'actions' && <Actions {...props} />}
-        {tab === 'data' && <Sources {...props} onUpload={onUpload} uploaded={uploaded} />}
+        {tab === 'data' && <Sources {...props} ga={ga} setGa={setGa} />}
       </main>
 
       <footer>
