@@ -1,8 +1,140 @@
-# Challenge 04: results so far (open data only)
+# Challenge 04: results
 
-Status: 7 Nov 2026, night. Partner data not yet loaded; everything below runs
-on open data and is reproducible. When the partner files are in
-`data/raw/partner/`, the same scripts switch to them (see "Partner mode").
+Status: 8 Nov 2026, after loading the TVB data. **Section A uses the real TVB
+Paznaun-Ischgl data** (feratel, TTF Data Space; raw files git-ignored, only
+aggregates here; attribution: TVB Paznaun-Ischgl). Section B keeps the earlier
+open-data work, which the real data confirmed.
+
+# A. Results on the real TVB data
+
+Reproduce (needs the TTF Space key in the environment):
+
+```bash
+python3 data/fetch_partner.py && python3 data/build_features.py
+```
+
+```bash
+cd models && python3 real_backtest.py && python3 explain.py && python3 early_warning.py && python3 forecast_winter.py
+```
+
+## A1. What the data is (verified, see DATA-PROFILE.md)
+
+- Daily actual stays 4 Nov 2025 – 31 Oct 2026; `previous_year` is exactly the
+  actual 365 days earlier, so **real daily history runs from 4 Nov 2024**.
+- The TVB `forecast` is **not** the official TR53 forecast (zeros on other
+  days, monthly ratio 0.72–1.31). Origin and vintage unknown.
+- `available_beds` are **free (still bookable) beds**, not capacity: about
+  1,100 in February while stays peak, correlation with stays −0.45.
+  Capacity ≈ stays + free beds (median about 20,000 in winter).
+- Booking lead-time rows are **arrival weeks**: all classes peak Dec–Apr.
+- Open data check: the open daily index (scaled) matches the real daily
+  actuals with correlation 0.993 and 5.7 % daily error in winter 24/25, so the
+  open-data results in section B hold.
+
+## A2. Is the TVB forecast systematically wrong? Yes, mostly too high
+
+| Month | Actual | TVB forecast | Error |
+|---|---|---|---|
+| Nov 2025 | 47,561 | 56,688 | **+19 %** |
+| Dec 2025 | 436,595 | 421,235 | −4 % |
+| Jan 2026 | 551,235 | 564,683 | +2 % |
+| Feb 2026 | 573,238 | 589,907 | +3 % |
+| Mar 2026 | 486,421 | 519,917 | **+7 %** |
+| Apr 2026 | 232,368 | 237,401 | +2 % |
+| May–Sep 2026 | 416,174 | 461,331 | **+8 to +23 %** |
+| Oct 2026 | 11,460 | 17,147 | **+50 %** |
+
+- Theil decomposition: bias share 14 % in winter, 29 % in summer. The monthly
+  tracking signal is beyond ±17 in December–March and in every summer month
+  (April −7; |TS| > 4 is the usual alarm level): **a systematic bias, not
+  noise**. Every month except December was over-forecast.
+- Data gaps: the forecast is 0 on 11 days (Nov 2025, May 2026) that had 754
+  actual stays.
+- Within the winter, daily accuracy is high (5.5 % daily error, 3.8 % on the
+  daily pattern), better than any model with information only up to
+  31 Oct 2025. The TVB forecast likely uses booking information or was made
+  late. **Ask the TVB how and when it is produced.**
+
+## A3. Why: graded drivers of actual − TVB forecast (`explain.py`)
+
+Winter season (in-season days, R² 0.27), grade A = 80 % CI excludes 0 and
+LightGBM SHAP agrees:
+
+| Driver | Effect (stays, season) | Grade | Reading |
+|---|---|---|---|
+| snow depth < 30 cm (ski area) | +51.7k | A* | actual **above** forecast on low-snow days, i.e. low snow did not hurt. *Confounded with December (the only under-forecast month, 17 cm mean snow); one season cannot separate them |
+| Fri/Sat nights | −23.1k | A | forecast too high on weekends |
+| German school holidays | +12.9k | A | forecast too low in German holiday weeks |
+| other TVB event days | −6.9k | A | forecast too high on smaller event days |
+| early season (first 3 weeks) | +11.2k | B | |
+| Polish/Czech holidays | −20.8k | B | |
+
+Summer (R² 0.07): the over-forecast is mainly a **level shift** (about −10k
+stays per peak-summer week). Polish/Czech holidays +61k (grade A) coincide with
+the summer peak and are confounded with it. Explanations are weak in summer:
+we say so instead of inventing reasons.
+
+## A4. Our forecast vs TVB forecast and baselines (`real_backtest.py`)
+
+Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
+
+| Model | Winter 25/26 daily error | Monthly error | Bias | May–Oct 2026 daily | Bias |
+|---|---|---|---|---|---|
+| TVB forecast (vintage unknown) | **5.5 %** | 6.1 % | +2.7 % | 15.4 % | **+11.9 %** |
+| TVB previous-year column | 14.3 % | 6.3 % | −1.2 % | 20.6 % | +6.6 % |
+| previous year, holiday-aligned | 10.8 % | 5.9 % | −3.5 % | **15.4 %** | +4.0 % |
+| official TR53 × level (in-sample) | 10.4 % | 0.8 % | +0.8 % | 24.5 % | +2.3 % |
+| **ours (ensemble)** | 10.5 % | **3.7 %** | −1.2 % | 17.7 % | **+2.6 %** |
+
+- Ours has the lowest monthly error and bias of all ex-ante methods. It beats
+  the TVB previous-year column clearly (10.5 % vs 14.3 % daily). In summer
+  its bias is +2.6 % vs +11.9 % for the TVB forecast.
+- Use: TVB forecast for daily patterns inside the winter; **our model as an
+  independent check of the level**, especially Nov, Mar and summer.
+- Conformal 80 % band, calibrated on real winter 24/25: coverage **0.77** on
+  25/26; half-width ×/÷1.69 normal days, ×/÷1.22 peak days.
+
+## A5. Capacity and booking behaviour (`early_warning.py`)
+
+- Winter 25/26 occupancy (stays / (stays + free beds)): median 0.81; **23
+  days ≥ 95 %** (Feb 14, Dec 5, Jan 4); **March had 14 in-season days below
+  80 %**, the clearest spare capacity in peak season. Weekend nights are the
+  fullest (Sat 0.93 vs Tue 0.87).
+- Lead time (TVB booking data, by arrival period):
+
+  | Period | Last-minute (classes 0 and 8 d) | 31 and 61 d | Early (90 and 180 d) |
+  |---|---|---|---|
+  | winter 23/24 | 38 % | 30 % | 32 % |
+  | winter 24/25 | 36 % | 30 % | 35 % |
+  | winter 25/26 | 35 % | 28 % | 36 % |
+  | summer 24 | 45 % | 22 % | 33 % |
+  | summer 25 | 62 % | 15 % | 23 % |
+  | summer 26 | 64 % | 15 % | 21 % |
+
+  Winter guests book earlier every year; **summer has become a last-minute
+  market**. For summer, bookings on hand weeks ahead say little, which fits
+  the TVB forecast's summer over-forecast.
+
+## A6. Winter 26/27 (`forecast_winter.py` → `out/c04_forecast.json`)
+
+| Month | Ours | TVB forecast | TVB vs ours | Note |
+|---|---|---|---|---|
+| Nov 2026 | 44.0k | 54.3k | **+24 %** | TVB was +19 % too high in Nov 2025 |
+| Dec 2026 | 419.9k | 409.7k | −2 % | |
+| Jan 2027 | 548.1k | 567.0k | +3 % | |
+| Feb 2027 | 565.1k | 581.2k | +3 % | |
+| Mar 2027 | 518.0k | 571.8k | **+10 %** | TVB was +7 % too high in Mar 2026; Easter 28 Mar is inside March |
+| 1–4 Apr 2027 | 54.0k | 49.2k | −9 % | TVB file ends 4 Apr |
+
+- 23 predicted tight days (≥ 95 % of last year's capacity): Christmas–3 Jan,
+  February weekends and half-terms, early March, Good Friday.
+- 43 in-season days with spare capacity (< 80 %), 17 days where the TVB
+  forecast lies outside our 80 % band, 6 TVB forecast zeros.
+- Watch list for marketing: **November 2026 and March 2027** (TVB forecast
+  much higher than ours and historically too high), spare in-season days in
+  January and March.
+
+# B. Open-data results (7 Nov, confirmed by A)
 
 ## How to reproduce
 

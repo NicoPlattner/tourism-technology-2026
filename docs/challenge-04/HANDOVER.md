@@ -95,9 +95,11 @@ access (see 4d). Catalogue: https://portal.ttf.nexyo.io/participants?id=did%3Awe
 | Event calendar 2026–2027, CSV 5 KB | 2026-01 – 2027-12, one row per event day | `date, event, weekday`; concerts, sports and freeride events, markets, season openings and closings, public holidays | [146a8548…](https://portal.ttf.nexyo.io/products?id=146a8548-31df-4c25-88f5-0a4a59a3b7a3) |
 | Contwise tourism content API (external API) | live | POIs, events, tours of the Paznaun valley; docs general-solutions.eu/php/api_dokumentation,22992.html | [c1c2740f…](https://portal.ttf.nexyo.io/products?id=c1c2740f-89f9-47d1-87af-9ac2098543cb) |
 
-Not stated anywhere: where the `forecast` column comes from, and whether a
-lead-time row counts bookings made in that week or arrivals in that week.
-Ask the TVB (§7).
+Found after loading the data (8 Nov, [DATA-PROFILE.md](DATA-PROFILE.md),
+[RESULTS.md](RESULTS.md) §A1): `previous_year` = actual 365 days earlier;
+the TVB `forecast` is not the official TR53 forecast; `available_beds` are
+free (still bookable) beds, not capacity; lead-time rows behave like arrival
+weeks. Still to confirm with the TVB (§7).
 
 ### 4b. Austria Tourism data named for all challenges
 

@@ -6,13 +6,12 @@ training and testing. Written Sat 7 Nov 2026 evening. Submission **Sun 8 Nov
 [RESEARCH.md](RESEARCH.md); the data catalogue is in
 [DATA-SOURCES.md](DATA-SOURCES.md).
 
-## Status (7 Nov, night)
+## Status (8 Nov, morning)
 
-Done on open data: fetchers, feature table, daily-shape backtest, conformal
-intervals, deviation explainer, Easter-corrected anchor, winter 26/27 JSON
-export, partner loader/profiler. Results: [RESULTS.md](RESULTS.md). Blocked
-on partner files: real-actual backtest, lead-time early warning, bed
-utilisation, action scoring.
+TVB data loaded via TTF Space (`data/fetch_partner.py`). Everything re-run on
+real daily actuals: backtest, deviation explainer, occupancy, booking
+lead-time mix, winter 26/27 forecast. Results: [RESULTS.md](RESULTS.md)
+section A. Remaining: action scoring (`out/c04_actions.json`), pitch numbers.
 
 ## 1. What we deliver (the story the numbers must support)
 

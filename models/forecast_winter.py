@@ -27,82 +27,80 @@ START, END = "2026-11-01", "2027-04-30"
 CONF = {"normal": 1.35, "peak": 1.29}
 
 
-def partner_actuals():
-    try:
-        from load_partner import load_overnights
-        t = load_overnights(verbose=False)
-        tot = t[t.muni == "total"] if (t.muni == "total").any() else t.groupby("date", as_index=False)[["py", "fc", "act"]].sum(min_count=1)
-        return tot.set_index("date").sort_index()
-    except FileNotFoundError:
-        return None
-
-
 def main():
     f = load()
-    X = design(f)
-    partner = partner_actuals()
-    mode = "partner" if partner is not None else "open"
-    hist = f.pseudo_actual.copy()
-    if partner is not None:  # partner actuals extend / replace history (scaled to region level by monthly ratio)
-        hist = hist.combine_first(partner.act.reindex(f.index))
-    w = f.index[(f.in_season == 1) & hist.notna()]
-    gbm = lgb.LGBMRegressor(objective="poisson", n_estimators=400, learning_rate=.03, num_leaves=15,
-                            min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8,
-                            random_state=0, verbose=-1).fit(X.loc[w], hist[w])
+    real_mode = bool("real_actual" in f and f.real_actual.notna().sum() > 300)
     idx = f.loc[START:END].index
-    shape = pd.Series(gbm.predict(X.loc[idx]), index=idx).where(f.loc[idx, "in_season"] == 1, 0.0)
-    if partner is not None:
-        py = pd.Series([hist.get(d - pd.Timedelta(days=364), np.nan) for d in idx], index=idx)
-        if py.notna().mean() > .9:
-            shape = (shape / shape.sum() + py.fillna(0) / py.sum()) / 2
-    an = anchor()
-    totals = idx.to_period("M").to_timestamp().map(an.anchor)
-    pred = rescale_to_month(shape, pd.Series(totals, index=idx))
+    if real_mode:  # TVB actuals as history, partner level, real conformal widths, capacity from last year
+        from real_backtest import ours
+        pred = ours("2026-10-31", idx)["ours_ens"]
+        conf = json.load(open(ROOT / "models" / "results_real_conformal.json"))["conformal_real"]
+        CONF.update(normal=conf["normal"], peak=conf["peak"])
+        cap = pd.Series(f.capacity_est.reindex(idx - pd.Timedelta(days=364)).values, index=idx)
+        an = None
+    else:
+        X = design(f)
+        w = f.index[(f.in_season == 1) & f.pseudo_actual.notna()]
+        gbm = lgb.LGBMRegressor(objective="poisson", n_estimators=400, learning_rate=.03, num_leaves=15,
+                                min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8,
+                                random_state=0, verbose=-1).fit(X.loc[w], f.pseudo_actual[w])
+        shape = pd.Series(gbm.predict(X.loc[idx]), index=idx).where(f.loc[idx, "in_season"] == 1, 0.0)
+        an = anchor()
+        pred = rescale_to_month(shape, pd.Series(idx.to_period("M").to_timestamp().map(an.anchor), index=idx))
+        cap = f.loc[idx, "beds_static"].astype(float)
     pk = peak_mask(idx, f.loc[idx])
     k = np.where(pk, CONF["peak"], CONF["normal"])
-    beds = f.loc[idx, "beds_static"]
     daily = []
-    for d in idx:
+    for i, d in enumerate(idx):
         p = float(pred[d])
         flags = []
-        off = f.at[d, "official_daily"]
-        if off < 1:
-            flags.append("official_zero_artifact")
-        if off > beds[d]:
-            flags.append("official_over_bed_cap")
-        util = p / beds[d]
-        if util >= .9:
+        tvb = f.at[d, "partner_fc"] if "partner_fc" in f else np.nan
+        if pd.notna(tvb) and tvb == 0:
+            flags.append("tvb_forecast_zero")
+        c = cap[d]
+        util = p / c if pd.notna(c) and c > 0 else None
+        if util is not None and util >= .95:
             flags.append("tight")
-        elif f.at[d, "in_season"] == 1 and util <= .5 and d.month in (1, 2, 3):
-            flags.append("idle_in_season")
-        i = idx.get_loc(d)
+        elif util is not None and f.at[d, "in_season"] == 1 and util < .8 and d.month in (1, 2, 3, 4):
+            flags.append("spare_capacity")
+        if pd.notna(tvb) and tvb > 0 and not (p / k[i] <= tvb <= p * k[i]):
+            flags.append("tvb_forecast_outside_our_80pct_band")
         daily.append({"date": str(d.date()), "forecast_ours": round(p), "p10": round(p / k[i]),
-                      "p90": round(p * k[i]), "forecast_official": round(float(off)),
-                      "beds": int(beds[d]), "utilisation": round(util, 3), "flags": flags})
+                      "p90": round(p * k[i]), "forecast_tvb": None if pd.isna(tvb) else int(tvb),
+                      "forecast_official_tr53": round(float(f.at[d, "official_daily"])),
+                      "capacity_est": None if pd.isna(c) else int(c),
+                      "utilisation": None if util is None else round(util, 3),
+                      "events": [] if "ev_any" not in f or not f.at[d, "ev_any"] else ["event"], "flags": flags})
+    df = pd.DataFrame(daily).set_index("date")
+    df.index = pd.to_datetime(df.index)
+    cmp_ = df[["forecast_ours", "forecast_tvb", "forecast_official_tr53"]]
+    cmp_ = cmp_[cmp_.forecast_tvb.notna()] if real_mode else cmp_  # TVB file ends 4 Apr 2027
+    monthly = cmp_.resample("MS").sum()
     out = {
         "meta": {
-            "generated": dt.datetime.now().isoformat(timespec="seconds"), "mode": mode,
-            "level": "TR53 tourism region (Statistik Austria scope)" if mode == "open" else "Paznaun-Ischgl total (TVB / feratel)",
-            "anchor": "avg of last 2 seasons + Easter March/April correction",
-            "easter_2027_april_share": round(an.attrs["apr_share"], 3),
-            "interval": "split-conformal 80 %, calibrated winter 23/24, tested 24/25 (coverage 0.85)",
-            "beds": "static regional cap 22,078 from the official model; NOT a hard limit (open daily data exceeds it "
-                    "at New Year every winter, max 24,891), so forecasts are not clipped and 'tight' is indicative "
-                    "until partner daily beds are loaded",
-            "sources": ["Österreich Werbung / JOANNEUM RESEARCH / TU Wien / AAU (CC BY 4.0)",
-                        "GeoSphere Austria (CC BY 4.0)", "OpenHolidays (ODbL)"] +
-                       (["TVB Paznaun-Ischgl (TTF 2026 data licence)"] if mode == "partner" else []),
+            "generated": dt.datetime.now().isoformat(timespec="seconds"),
+            "mode": "real (TVB data)" if real_mode else "open",
+            "level": "Paznaun-Ischgl total, TVB / feratel" if real_mode else "TR53 tourism region",
+            "model": "monthly anchor (2-season avg, Easter-corrected, TVB level) x daily shape "
+                     "(mean of holiday-aligned previous year and LightGBM)",
+            "interval": f"split-conformal 80 % ({'calibrated on real winter 24/25, coverage 0.77 on 25/26' if real_mode else 'open data'})",
+            "capacity": "stays + free beds on the same weekday last year (TVB free beds end 7 Nov 2026)"
+                        if real_mode else "static regional cap 22,078 (not a hard limit)",
+            "sources": ["TVB Paznaun-Ischgl with feratel (TTF 2026 data licence)"] * real_mode +
+                       ["Österreich Werbung / JOANNEUM RESEARCH / TU Wien / AAU (CC BY 4.0)",
+                        "GeoSphere Austria (CC BY 4.0)", "OpenHolidays (ODbL)"],
         },
-        "monthly": [{"month": str(m.date())[:7], "anchor": round(r.anchor), "official": round(r.official),
-                     "avg_2y": round(r.avg_2y)} for m, r in an.iterrows()],
+        "monthly": [{"month": str(m.date())[:7], **{c: int(v) for c, v in r.items()}} for m, r in monthly.iterrows()],
         "daily": daily,
     }
     OUT.mkdir(exist_ok=True)
     (OUT / "c04_forecast.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
-    df = pd.DataFrame(daily).set_index("date")
-    print(f"mode={mode}; days={len(df)}; tight days (ours) {df['flags'].map(lambda x: 'tight' in x).sum()}, "
-          f"official over cap {df['flags'].map(lambda x: 'official_over_bed_cap' in x).sum()}")
-    print(df.loc["2026-12-24":"2027-01-03", ["forecast_ours", "p10", "p90", "forecast_official", "utilisation"]].to_string())
+    cnt = pd.Series([fl for x in daily for fl in x["flags"]]).value_counts().to_dict()
+    print(f"mode={out['meta']['mode']}; flags {cnt}")
+    m = monthly.copy()
+    m["tvb vs ours %"] = (m.forecast_tvb / m.forecast_ours - 1) * 100
+    print(m.round(1).to_string())
+    print("tight days:", [str(d.date()) for d, fl in df["flags"].items() if "tight" in fl])
     print("->", OUT / "c04_forecast.json")
 
 

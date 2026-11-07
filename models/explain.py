@@ -39,6 +39,8 @@ DRIVERS = {  # feature -> plain-language label. Markets grouped: single-market h
     "early_season": "first 3 weeks of season", "late_season": "last 2 weeks of season",
     "weekend_night": "Fri/Sat night", "low_snow": "snow depth < 30 cm (ski area)",
     "fresh_snow": "> 20 cm new snow in 3 days",
+    "ev_concert": "concert day (TVB calendar)", "ev_sport": "sports / freeride event (TVB calendar)",
+    "ev_other": "other event day (TVB calendar)", "forecast_zero": "forecast is 0 (data gap)",
 }
 GROUPS = {"hol_BENELUX": ["hol_NL", "hol_BE"], "hol_NORTH_UK": ["hol_DK", "hol_GB"],
           "hol_NEIGHBOURS": ["hol_CH", "hol_AT"], "hol_EAST": ["hol_PL", "hol_CZ"]}
@@ -56,6 +58,10 @@ def driver_matrix(f: pd.DataFrame) -> pd.DataFrame:
     sd = f.snow_cm_ski_area_idalpe.fillna(f.snow_cm_ski_area_idalpe.median())
     X["low_snow"] = (sd < 30).astype(float)
     X["fresh_snow"] = (f.new_snow_3d_cm.fillna(0) > 20).astype(float)
+    if "ev_any" in f:
+        X["ev_concert"] = f.ev_concert.astype(float)
+        X["ev_sport"] = f.ev_sport.astype(float)
+        X["ev_other"] = ((f.ev_any == 1) & (f.ev_concert == 0) & (f.ev_sport == 0)).astype(float)
     return X[[k for k in DRIVERS if k in X.columns]]
 
 
@@ -77,9 +83,10 @@ def tracking_signal(actual: pd.Series, fc: pd.Series) -> pd.DataFrame:
     return out
 
 
-def explain(actual: pd.Series, fc: pd.Series, f: pd.DataFrame, n_boot: int = 200, seed: int = 0):
+def explain(actual: pd.Series, fc: pd.Series, f: pd.DataFrame, n_boot: int = 200, seed: int = 0,
+            season_only: bool = True):
     dq = pd.DataFrame({"forecast_zero_or_missing": (fc.fillna(0) < 1), "actual_missing": actual.isna(),
-                       "out_of_season": f.in_season.reindex(actual.index) == 0})
+                       "out_of_season": (f.in_season.reindex(actual.index) == 0) & season_only})
     ok = ~dq.any(axis=1) & (actual > 0)
     idx = actual.index[ok]
     X = driver_matrix(f.loc[idx])
@@ -135,18 +142,32 @@ def waterfall(res: dict, actual: pd.Series, fc: pd.Series, start: str, end: str,
 
 if __name__ == "__main__":
     f = load()
-    period = slice("2023-11-01", "2025-04-30")
-    A, F = f.pseudo_actual.loc[period], f.official_daily.loc[period]
-    res = explain(A, F, f)
-    print("DEMO: open pseudo-actual vs official TR53 daily forecast, winters 23/24 + 24/25")
-    print("(official is in-sample here; with partner data use ACT vs the partner forecast column)\n")
-    print(f"R² of drivers on log(actual/forecast): {res['r2']:.2f}")
-    print("Theil decomposition:", {k: round(v, 3) for k, v in res["theil"].items()})
-    print("\nDriver totals (stays over both winters), 80 % week-bootstrap CI, grade:")
-    print(res["summary"].round(0).to_string())
-    worst = res["daily"].sum(axis=1).abs().groupby(res["daily"].index.to_period("W")).sum().idxmax()
-    print(f"\nWaterfall for the week with the largest deviation ({worst}):")
-    print(waterfall(res, A, F, str(worst.start_time.date()), str(worst.end_time.date())).round(0).to_string(index=False))
-    print("\nMonthly tracking signal (forecast bias):")
-    print(res["tracking"].round(2).to_string())
-    res["summary"].to_csv(ROOT / "models" / "results_explain_demo.csv")
+    if "real_actual" in f and f.partner_fc.notna().any():
+        print("REAL: TVB actual vs TVB forecast, 4 Nov 2025 - 31 Oct 2026 (source: TVB Paznaun-Ischgl / feratel)\n")
+        period = slice("2025-11-04", "2026-10-31")
+        A, F = f.real_actual.loc[period], f.partner_fc.loc[period]
+        dq = (F.fillna(0) < 1)
+        print(f"Data quality: forecast = 0 on {int(dq.sum())} days ({', '.join(str(d.date()) for d in F.index[dq])}); "
+              f"actual on those days: {int(A[dq].sum()):,} stays not covered by the forecast")
+        mon = pd.DataFrame({"actual": A.resample("MS").sum(), "forecast": F.resample("MS").sum()})
+        mon["error %"] = (mon.forecast / mon.actual - 1) * 100
+        print("\nMonthly forecast error (forecast vs actual):")
+        print(mon.round(1).to_string())
+        for lab, sl, so in (("winter season (in-season days)", slice("2025-11-04", "2026-05-03"), True),
+                            ("summer May-Oct 2026 (all days)", slice("2026-05-04", "2026-10-31"), False)):
+            res = explain(A.loc[sl], F.loc[sl], f, season_only=so)
+            print(f"\n=== {lab}: R² {res['r2']:.2f}; Theil", {k: round(v, 3) for k, v in res["theil"].items()})
+            print(res["summary"].round(0).to_string())
+            res["summary"].to_csv(ROOT / "models" / f"results_explain_real_{'winter' if so else 'summer'}.csv")
+            worst = res["daily"].drop(columns=["level (all days)"]).sum(axis=1).abs()
+            wk = res["daily"]["unexplained"].abs().groupby(res["daily"].index.to_period("W")).sum().idxmax()
+            print(f"\nWaterfall, week with the largest unexplained deviation ({wk}):")
+            print(waterfall(res, A, F, str(wk.start_time.date()), str(wk.end_time.date())).round(0).to_string(index=False))
+            print("\nMonthly tracking signal:")
+            print(res["tracking"].round(2).to_string())
+    else:
+        period = slice("2023-11-01", "2025-04-30")
+        A, F = f.pseudo_actual.loc[period], f.official_daily.loc[period]
+        res = explain(A, F, f)
+        print("DEMO (open data): pseudo-actual vs official TR53 daily, in-sample")
+        print(res["summary"].round(0).to_string())
