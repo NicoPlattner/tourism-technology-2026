@@ -5,14 +5,19 @@
   "type": "module",
   "description": "Demand Radar for TVB Paznaun-Ischgl \u2014 overnight stays, forecast and bed capacity explained (TTF Hackathon 2026, challenge 04)",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev": "node scripts/dev-caption.mjs",
+    "build": "tsc --noEmit && vite build && npm run build:api",
     "preview": "vite preview",
     "data:open": "node scripts/fetch-open-data.mjs",
     "data:sample": "node scripts/make-sample-data.mjs",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test tests/campaign-data.test.ts",
-    "test": "playwright test"
+    "test:unit": "tsx --test tests/campaign-data.test.ts tests/caption-*.test.ts",
+    "test": "playwright test",
+    "dev:web": "vite",
+    "dev:api": "node --env-file-if-exists=.env --use-env-proxy --import tsx --watch server/index.ts",
+    "build:api": "esbuild server/index.ts --bundle --platform=node --format=cjs --target=node24 --outfile=../helm/tourism-technology/caption-server.cjs",
+    "start:api": "node --env-file-if-exists=.env --use-env-proxy ../helm/tourism-technology/caption-server.cjs",
+    "captions:pregenerate": "node --env-file-if-exists=.env --use-env-proxy --import tsx scripts/pregenerate-captions.ts"
   },
   "dependencies": {
     "d3-array": "3.2.4",
@@ -26,9 +31,11 @@
     "@types/d3-array": "3.2.1",
     "@types/d3-scale": "4.0.8",
     "@types/d3-shape": "3.1.6",
+    "@types/node": "^22.20.5",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",
+    "esbuild": "^0.24.2",
     "tsx": "^4.23.15",
     "typescript": "5.6.3",
     "vite": "5.4.11"

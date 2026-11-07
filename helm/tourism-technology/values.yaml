@@ -1,3 +1,16 @@
 image: nginxinc/nginx-unprivileged:1.27-alpine
 ingress:
   path: /
+
+caption:
+  provider: openai
+  model: gpt-4.1-mini
+  baseUrl: https://api.openai.com/v1
+  n8nWebhookUrl: ""
+  n8nAuthHeader: X-Caption-Key
+  n8nAuthPrefix: ""
+  jsonMode: json_schema
+  timeoutMs: 8000
+  existingSecret: ""
+  secretKey: api-key
+  configRevision: unconfigured

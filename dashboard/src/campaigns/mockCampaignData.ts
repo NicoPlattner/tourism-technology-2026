@@ -1,3 +1,6 @@
+import savedCaptions from "./captions/preGenerated.json";
+import { metadataKey } from "./captions/contracts";
+import type { CampaignCaption } from "./types";
 import type {
   CampaignAsset,
   CampaignDataProvider,
@@ -220,10 +223,13 @@ export const displayPublishingDate = (date: string) =>
     timeZone: "Europe/Vienna",
   }).format(new Date(date));
 export class MockCampaignDataProvider implements CampaignDataProvider {
-  async getRecommendation(
+  async getRecommendation(market: SourceMarket, period: TravelPeriod): Promise<CampaignRecommendation> {
+    return this.getImmediateRecommendation(market, period);
+  }
+  getImmediateRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
-  ): Promise<CampaignRecommendation> {
+  ): CampaignRecommendation {
     const scenario = SCENARIOS[market];
     if (!scenario || !["q1-2027", "q2-2027", "winter-2026-27"].includes(period))
       throw new Error("Choose a supported source market and travel period.");
@@ -252,7 +258,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       description:
         "Meme-inspired fictional illustration; not a photograph or a representation of verified resort conditions.",
     };
-    return {
+    const recommendation: CampaignRecommendation = {
       id: `campaign-${market}-${period}-v1`,
       market,
       country: scenario.country,
@@ -279,7 +285,9 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       detailedReasoning: [
         `Audience: ${scenario.ageGroup}-year-old ${scenario.segment.toLowerCase()} are an assigned fictional marketing segment, not inferred guest demographics.`,
         `Timing: target arrival ${displayDate(travel.start)} minus ${scenario.lead} assumed booking days gives ${displayDate(start)}. This 8-day promotion window ends before the target travel period.`,
-        spring ? "Spring calendar overlap is unverified. This is a fictional travel window, not a confirmed holiday or event opportunity." : scenario.holidayAssumption,
+        spring
+          ? "Spring calendar overlap is unverified. This is a fictional travel window, not a confirmed holiday or event opportunity."
+          : scenario.holidayAssumption,
         "The supplied historical-booking narrative is an assumption, not an analysis of the dashboard’s live or uploaded overnight-stay data.",
       ],
       assumptions: [
@@ -295,9 +303,36 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
         "Approval and scheduling are simulated locally; nothing is sent to Instagram.",
       ],
       asset,
+      captionContent: {
+        text: spring ? scenario.springCaption : scenario.caption,
+        hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
+        language: scenario.language,
+        source: "demo_fallback",
+      },
+      captionMetadata: {
+        country: scenario.country,
+        language: scenario.language,
+        ageMin: Number(scenario.ageGroup.split("–")[0]),
+        ageMax: Number(scenario.ageGroup.split("–")[1]),
+        season: spring ? "spring" : "winter",
+        activity: spring
+          ? "Alpine mountain getaway"
+          : "skiing and winter sports",
+        destination: "Paznaun-Ischgl",
+        creativeTheme: spring ? "Meme-inspired spring escape" : scenario.theme,
+        objective: "inspire_travel",
+        visualDescription: asset.alt,
+      },
       fictional: true,
       variation: spring,
     };
+    const stored = (savedCaptions as Record<string, { metadataKey: string; caption: CampaignCaption }>)[recommendation.id];
+    if (stored?.metadataKey === metadataKey(recommendation.captionMetadata)) {
+      recommendation.captionContent = structuredClone(stored.caption);
+      recommendation.caption = stored.caption.text;
+      recommendation.hashtags = [...stored.caption.hashtags];
+    }
+    return recommendation;
   }
 }
 export const campaignDataProvider: CampaignDataProvider =

@@ -137,7 +137,7 @@ test("all periods update all market contexts without stale recommendations", asy
       await expect(page.locator(".cp-plan-title h3")).toHaveText(market);
       if (period === "q2-2027") {
         await expect(page.locator(".cp-summary")).toContainText(
-          `${month} 2027`,
+          `${month === "April" ? "Apr" : month} 2027`,
         );
         await expect(page.locator(".cp-social-image")).toHaveAttribute(
           "alt",

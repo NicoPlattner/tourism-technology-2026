@@ -1,3 +1,5 @@
+import CaptionAssistant from "./CaptionAssistant";
+import type { CaptionAssistantState } from "../captions/useCaptionAssistant";
 import type { CampaignRecommendation } from "../types";
 export function InstagramIcon() {
   return (
@@ -18,8 +20,10 @@ export function InstagramIcon() {
 }
 export default function SocialPostPreview({
   campaign,
+  assistant,
 }: {
   campaign: CampaignRecommendation;
+  assistant: CaptionAssistantState;
 }) {
   return (
     <section
@@ -49,10 +53,7 @@ export default function SocialPostPreview({
           <span>♡ &nbsp; ◯ &nbsp; ↗</span>
           <span>♧</span>
         </div>
-        <p lang={campaign.language}>{campaign.caption}</p>
-        <p className="cp-hashtags" lang={campaign.language}>
-          {campaign.hashtags.join(" ")}
-        </p>
+        <CaptionAssistant campaign={campaign} assistant={assistant} />
         <small>
           {campaign.asset.source === "ORIGINAL_ILLUSTRATION"
             ? "Original meme-inspired illustration"

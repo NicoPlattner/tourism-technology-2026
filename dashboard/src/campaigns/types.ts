@@ -1,3 +1,4 @@
+import type { CaptionMetadata } from "./captions/contracts";
 export type SourceMarket = "DE" | "NL" | "BE" | "AT";
 export type TravelPeriod = "q1-2027" | "q2-2027" | "winter-2026-27";
 export type CampaignLanguage = "de" | "nl" | "fr";
@@ -13,6 +14,13 @@ export interface CampaignAsset {
   source: "ORIGINAL_ILLUSTRATION" | "AI_GENERATED" | "APPROVED_UPLOAD";
   credit: string;
   description: string;
+}
+export interface CampaignCaption {
+  text: string;
+  hashtags: string[];
+  language: string;
+  source: "pre_generated" | "live_ai" | "demo_fallback";
+  generatedAt?: string;
 }
 export interface CampaignRecommendation {
   id: string;
@@ -37,10 +45,13 @@ export interface CampaignRecommendation {
   detailedReasoning: string[];
   assumptions: string[];
   asset: CampaignAsset;
+  captionMetadata: CaptionMetadata;
+  captionContent: CampaignCaption;
   fictional: boolean;
   variation: boolean;
 }
 export interface CampaignDataProvider {
+  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod): CampaignRecommendation;
   getRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
@@ -51,6 +62,8 @@ export interface CampaignApproval {
   approvedAt: string;
   publishingDates: string[];
   caption: string;
+  hashtags?: string[];
+  captionSource?: CampaignCaption["source"];
   status: "APPROVED_MOCK";
 }
 export const MARKETS: { code: SourceMarket; name: string; language: string }[] =

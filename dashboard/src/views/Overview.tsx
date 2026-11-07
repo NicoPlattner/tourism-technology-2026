@@ -1,3 +1,4 @@
+import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
 import { useEffect, useState } from "react";
 import type { ViewProps } from "../App";
 import type {
@@ -21,7 +22,7 @@ export default function Overview({
 }: ViewProps & { provider?: CampaignDataProvider }) {
   const [market, setMarket] = useState<SourceMarket>("DE");
   const [period, setPeriod] = useState<TravelPeriod>("q1-2027");
-  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(null);
+  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", "q1-2027") || null);
   const [approvals, setApprovals] = useState<Record<string, CampaignApproval>>(
     {},
   );
@@ -30,6 +31,12 @@ export default function Overview({
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let current = true;
+    if (provider.getImmediateRecommendation) {
+      setCampaign(provider.getImmediateRecommendation(market, period));
+      setError("");
+      setReview(false);
+      return;
+    }
     setCampaign(null);
     setError("");
     setReview(false);
@@ -57,16 +64,43 @@ export default function Overview({
     };
   }, [market, period, provider, retry]);
   const currentCampaign =
-    campaign?.market === market && campaign.period === period ? campaign : null;
+    campaign?.market === market && campaign.period === period ? campaign : provider.getImmediateRecommendation?.(market, period) || null;
+  const assistant = useCaptionAssistant(currentCampaign);
+  const visibleCampaign = currentCampaign
+    ? {
+        ...currentCampaign,
+        caption: assistant.result?.caption || currentCampaign.caption,
+        hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
+        captionContent: assistant.result ? {
+          text: assistant.result.caption,
+          hashtags: assistant.result.hashtags,
+          language: assistant.result.language,
+          source: "live_ai" as const,
+        } : currentCampaign.captionContent,
+      }
+    : null;
+  const storedApproval = visibleCampaign
+    ? approvals[visibleCampaign.id]
+    : undefined;
+  const visibleApproval =
+    storedApproval &&
+    visibleCampaign &&
+    storedApproval.caption === visibleCampaign.caption &&
+    JSON.stringify(storedApproval.hashtags) ===
+      JSON.stringify(visibleCampaign.hashtags)
+      ? storedApproval
+      : undefined;
   const approve = () => {
-    if (!currentCampaign) return;
+    if (!visibleCampaign) return;
     setApprovals((previous) => ({
       ...previous,
-      [currentCampaign.id]: {
-        campaignId: currentCampaign.id,
+      [visibleCampaign.id]: {
+        campaignId: visibleCampaign.id,
         approvedAt: new Date().toISOString(),
-        publishingDates: [...currentCampaign.publishingDates],
-        caption: currentCampaign.caption,
+        publishingDates: [...visibleCampaign.publishingDates],
+        caption: visibleCampaign.caption,
+        hashtags: [...visibleCampaign.hashtags],
+        captionSource: assistant.source,
         status: "APPROVED_MOCK",
       },
     }));
@@ -94,8 +128,9 @@ export default function Overview({
         <SourceMarketMap selected={market} onSelect={setMarket} />
         {currentCampaign ? (
           <CampaignPlanner
-            campaign={currentCampaign}
-            approval={approvals[currentCampaign.id]}
+            campaign={visibleCampaign!}
+            approval={visibleApproval}
+            assistant={assistant}
             onReview={() => setReview(true)}
           />
         ) : (
@@ -125,8 +160,9 @@ export default function Overview({
       </div>
       {review && currentCampaign && (
         <CampaignReviewDialog
-          campaign={currentCampaign}
-          approval={approvals[currentCampaign.id]}
+          campaign={visibleCampaign!}
+          approval={visibleApproval}
+          captionSource={assistant.source}
           onApprove={approve}
           onClose={() => setReview(false)}
         />
