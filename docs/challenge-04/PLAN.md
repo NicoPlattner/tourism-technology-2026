@@ -26,6 +26,10 @@ Proven so far (real data):
 
 ## 2. Work packages
 
+The full list of tests, data sources and blind spots with priorities is in
+[RESEARCH-PLAN.md](RESEARCH-PLAN.md) (§4 gives the order). The packages below
+are the submission-critical subset.
+
 | # | Package | Output | Done when | Priority |
 |---|---|---|---|---|
 | 1 | **Level combination** L1–L4 (MODELS §3), weights by horizon from rolling backtests (TR53 monthly 2010–2026 and real 24/25→25/26), shrunk TVB bias correction per month type | `models/level.py`, backtest table | combination beats every member's monthly error | P1 |

@@ -9,6 +9,7 @@ sources listed at the end.
 | [PLAN.md](PLAN.md) | What we build until submission, model architecture, tasks |
 | [DATA.md](DATA.md) | Every data source: verified meaning, access, licence, tested value |
 | [MODELS.md](MODELS.md) | Model research: what we tested, what works, why |
+| [RESEARCH-PLAN.md](RESEARCH-PLAN.md) | Deeper plan: models and approaches to test, data sources and access, blind spots |
 | [RESULTS.md](RESULTS.md) | Numbers: real-data backtests, explanations, winter 26/27 forecast |
 | [DATA-PROFILE.md](DATA-PROFILE.md) | Generated structure check of the TVB files (no row values) |
 
