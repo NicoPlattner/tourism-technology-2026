@@ -172,6 +172,11 @@ jobs:
 
       - name: Deploy Helm release
         run: |
+          # After a failed deploy, Helm merges into the live API Deployment and
+          # keeps fields later chart versions removed; start it fresh instead.
+          if helm -n tourism-technology-2026 status "$RELEASE_NAME" 2>/dev/null | grep -q '^STATUS: failed'; then
+            kubectl -n tourism-technology-2026 delete deployment "$RELEASE_NAME-api" --ignore-not-found
+          fi
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \
@@ -202,7 +207,10 @@ jobs:
           forward_pid=$!
           trap 'kill "$forward_pid" 2>/dev/null || true' EXIT
           for attempt in {1..15}; do
-            if curl -fsS --max-time 5 "http://127.0.0.1:18082${DEPLOY_PATH%/}/api/ga" | jq -e 'has("configured")' >/dev/null; then
+            if state=$(curl -fsS --max-time 5 "http://127.0.0.1:18082${DEPLOY_PATH%/}/api/ga") && jq -e 'has("configured")' <<< "$state" >/dev/null; then
+              if ! jq -e '.persistent == true' <<< "$state" >/dev/null; then
+                echo "::warning::API storage is not persistent: $(jq -r '.storageError // "persistence disabled"' <<< "$state")"
+              fi
               exit 0
             fi
             sleep 2

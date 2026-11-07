@@ -4,10 +4,11 @@ ingress:
 api:
   image: node:22-alpine
   persistence:
-    # true needs a storage class (e.g. microk8s enable hostpath-storage);
     # false keeps the Google connection only until the API pod restarts.
-    enabled: false
+    enabled: true
     size: 64Mi
-    storageClass: ""  # empty: the cluster's default storage class
+    # The cluster has no default class; "retain" keeps the data on the node
+    # even if the claim is deleted.
+    storageClass: microk8s-retain-hostpath
 # Set by the deploy workflow so the API restarts when the Google secret changes.
 googleSecretChecksum: ""

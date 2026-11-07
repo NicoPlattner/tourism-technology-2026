@@ -35,14 +35,11 @@ ingress routes `<path>/api` to. *Connect Google Analytics* opens Google's
 sign-in popup (authorization code flow) for `openid email analytics.readonly`;
 the API exchanges the code for a refresh token, stores it AES-GCM encrypted under
 `/data` and refreshes access hourly, so the connection stays up 24/7 and is the
-same on every device until someone disconnects it. **Storage:** with
-`api.persistence.enabled=true` `/data` is a PersistentVolumeClaim and the
-connection survives restarts and redeploys. The cluster currently has no
-storage class (and enforces Pod Security "baseline", so no hostPath), so this
-is off: `/data` is an emptyDir and the connection must be made again after the
-API pod restarts or is redeployed; the dashboard says so. To turn it on run
-`microk8s enable hostpath-storage` on the node and set
-`api.persistence.enabled: true` in `helm/tourism-technology/values.yaml`. Several
+same on every device until someone disconnects it. **Storage:** `/data` is a PersistentVolumeClaim of the
+`microk8s-retain-hostpath` class (the cluster has no default class), so the
+connection survives restarts and redeploys. With
+`api.persistence.enabled: false` it is an emptyDir instead and the dashboard
+says the connection is temporary; it also warns if the store is not writable. Several
 Google accounts and properties can be added; properties are always picked
 explicitly. *Website data* shows the Realtime report (last 30 minutes —
 Google's realtime limit), refreshed every minute.

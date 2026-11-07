@@ -2,7 +2,7 @@
 # encrypted) under /data and answers under <ingress.path>/api.
 # With api.persistence.enabled the data is on a PersistentVolumeClaim and
 # survives restarts and redeploys; otherwise it is an emptyDir that lasts as
-# long as the pod (the cluster currently has no storage class).
+# long as the pod.
 {{- $api := .Values.api }}
 {{- $persist := $api.persistence.enabled }}
 apiVersion: v1

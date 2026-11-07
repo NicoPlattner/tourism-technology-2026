@@ -16,7 +16,9 @@
 
 import { createServer } from 'node:http';
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from 'node:crypto';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 
 const env = process.env;
@@ -29,7 +31,8 @@ const DATA = env.GA_DATA_URL ?? 'https://analyticsdata.googleapis.com';
 const CHECK_MS = Number(env.CHECK_INTERVAL_MS ?? 3_600_000);
 const configured = !!(CLIENT_ID && CLIENT_SECRET);
 // false when DATA_DIR does not survive a restart (e.g. an emptyDir).
-const persistent = env.STORE_PERSISTENT !== 'false';
+let persistent = env.STORE_PERSISTENT !== 'false';
+let storageError = null;
 
 // ---------- storage: one JSON document, refresh tokens encrypted (AES-256-GCM)
 
@@ -173,6 +176,7 @@ async function revoke(account) {
 const publicState = () => ({
   configured,
   persistent,
+  ...(storageError && { storageError }),
   accounts: store.accounts.map(({ id, email, error }) => ({ id, email, ...(error && { error }) })),
   connections: store.connections,
 });
@@ -295,6 +299,16 @@ async function check() {
 
 export async function start(port = Number(env.PORT ?? 8787)) {
   await load();
+  // Fail visibly, not silently, if the store cannot be written.
+  try {
+    await mkdir(DATA_DIR, { recursive: true });
+    await writeFile(join(DATA_DIR, '.write-test'), 'ok');
+    await rm(join(DATA_DIR, '.write-test'));
+  } catch (e) {
+    storageError = `The server cannot write its storage (${e.code ?? e.message}); connections are lost when it restarts.`;
+    persistent = false;
+    console.error(storageError);
+  }
   const server = createApp();
   await new Promise((r) => server.listen(port, r));
   const timer = setInterval(check, CHECK_MS);
@@ -304,7 +318,10 @@ export async function start(port = Number(env.PORT ?? 8787)) {
   return server;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run when executed directly. Compare real paths: Kubernetes mounts
+// ConfigMap files as symlinks, so argv[1] differs from the module URL.
+const isMain = (() => { try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+if (isMain) {
   const server = await start();
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => server.close(() => writing.then(() => process.exit(0))));
 }
