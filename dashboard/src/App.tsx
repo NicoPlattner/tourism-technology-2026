@@ -12,12 +12,12 @@ import Sources from './views/Sources';
 
 export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'data';
 const TABS: { id: Tab; label: string; hint: string }[] = [
-  { id: 'overview', label: 'Overview', hint: 'The situation in one minute' },
-  { id: 'season', label: 'Season', hint: 'Actual, forecast and last year, day by day' },
-  { id: 'why', label: 'Why?', hint: 'What explains the gaps to the forecast' },
-  { id: 'capacity', label: 'Beds', hint: 'Which days run full, which stay empty' },
-  { id: 'actions', label: 'What to do', hint: 'Ranked next steps' },
-  { id: 'data', label: 'Data', hint: 'Sources, quality and upload' },
+  { id: 'overview', label: 'Overview', hint: 'Overview' },
+  { id: 'season', label: 'Season', hint: 'Day by day' },
+  { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
+  { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
+  { id: 'actions', label: 'Actions', hint: 'Ranked next steps' },
+  { id: 'data', label: 'Data', hint: 'Sources and upload' },
 ];
 
 const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
@@ -65,17 +65,11 @@ export default function App() {
           ))}
         </nav>
         <div className="today">
-          <span className="label">Today</span>
+          {ds.sampleData && <button className="sample" onClick={() => go('data')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
           <strong>{longDate(ds.today)}</strong>
         </div>
       </header>
 
-      {ds.sampleData && (
-        <div className="banner" role="note">
-          <strong>Sample partner data.</strong> Overnight stays and beds are shaped like the TVB/Feratel export and calibrated to official monthly totals; forecast, weather, holidays and events are real open data.
-          <button className="link" onClick={() => go('data')}>Load the real export →</button>
-        </div>
-      )}
 
       <main>
         {tab === 'overview' && <Overview {...props} />}
@@ -87,8 +81,7 @@ export default function App() {
       </main>
 
       <footer>
-        <p>Prototype for TVB Paznaun-Ischgl · TTF Hackathon 2026, challenge 04 “Overnight data without explanation”. Not an official TVB product.</p>
-        <p>Open data: overnight-stay forecast © JOANNEUM RESEARCH / TU Wien / Uni Klagenfurt / Austria Tourism · weather © Open-Meteo (CC BY 4.0) · holidays © OpenHolidays (ODbL).</p>
+        <p>Prototype · TTF Hackathon 2026 · not an official TVB product · Open data: JOANNEUM RESEARCH / Austria Tourism, Open-Meteo (CC BY 4.0), OpenHolidays (ODbL)</p>
       </footer>
     </div>
   );

@@ -31,12 +31,9 @@ export function accuracy(ds: Dataset): Accuracy {
   return { daysCompared: days.length, mape: mean(err.map(Math.abs)), bias: mean(err), byWeekday, saturdayBias: byWeekday.find((w) => w.dow === 6)?.bias ?? 0 };
 }
 
-/** The partner forecast, corrected for the systematic weekday pattern we measured. */
-export function corrected(d: Day, acc: Accuracy) {
-  if (d.forecast == null) return null;
-  const w = acc.byWeekday.find((x) => x.dow === weekday(d.date));
-  const adj = w && w.n >= 8 && Math.abs(w.bias) > 0.025 ? w.bias : 0;
-  return d.forecast * (1 + adj);
+/** Expected stays for a day (the partner forecast). */
+export function corrected(d: Day, _acc?: Accuracy) {
+  return d.forecast;
 }
 
 // ------------------------------------------------------------------ deviations
@@ -64,7 +61,7 @@ function weightedHolidays(days: Day[], mix: Record<string, number>) {
   return Object.entries(per).sort((a, b) => b[1].weight - a[1].weight);
 }
 
-function explain(ep: Omit<Episode, 'reasons' | 'confidence' | 'headline' | 'id'>, ds: Dataset, acc: Accuracy, allDays: Day[]): Reason[] {
+function explain(ep: Omit<Episode, 'reasons' | 'confidence' | 'headline' | 'id'>, ds: Dataset, _acc: Accuracy, allDays: Day[]): Reason[] {
   const reasons: Reason[] = [];
   const days = ep.days;
   if (ep.direction === 'gap') {
@@ -94,11 +91,6 @@ function explain(ep: Omit<Episode, 'reasons' | 'confidence' | 'headline' | 'id'>
   // events
   const evDays = allDays.filter((d) => d.events.length && daysBetween(d.date, ep.start) <= 2 && daysBetween(ep.end, d.date) <= 2);
   if (evDays.length) reasons.push({ kind: 'event', title: evDays[0].events[0], detail: `Event on ${shortDate(evDays[0].date)}.`, score: ep.direction === 'above' ? 0.6 : 0.2, evidence: [{ source: 'Event list', text: `${shortDate(evDays[0].date)}: ${evDays[0].events.join(', ')}` }] });
-  // systematic weekday pattern
-  const sat = days.filter((d) => weekday(d.date) === 6).length;
-  if (sat && sat / days.length >= 0.5 && Math.abs(acc.saturdayBias) > 0.03 && Math.sign(acc.saturdayBias) === (ep.direction === 'above' ? 1 : -1)) {
-    reasons.push({ kind: 'weekday', title: 'The forecast is always off on Saturdays', detail: `Across ${acc.byWeekday.find((w) => w.dow === 6)?.n} Saturdays the actual stays were ${signedPct(acc.saturdayBias)} versus the forecast — a pattern, not a surprise.`, score: 0.55, evidence: [{ source: 'Forecast check', text: `Saturday bias ${signedPct(acc.saturdayBias)}` }] });
-  }
   // the open model disagreed with the partner forecast
   const fcSum = days.reduce((a, d) => a + (d.forecast ?? 0), 0);
   const openSum = days.reduce((a, d) => a + (d.openForecast ?? 0), 0);
@@ -223,18 +215,18 @@ export function actions(ds: Dataset, acc: Accuracy, cap: CapacityDay[], weeks: W
     const lead = daysBetween(ds.today, w.start);
     const hol = weightedHolidays(w.days, ds.marketMix).filter(([, h]) => h.weight > 0.004).slice(0, 2);
     const markets = hol.map(([m]) => MARKET_NAMES[m] ?? m);
-    const target = hol.length ? hol.map(([m, h]) => `${MARKET_NAMES[m] ?? m} (${h.name}, ${h.days} day${h.days > 1 ? 's' : ''})`).join(' and ') : 'Germany and the Netherlands (largest markets, no holidays then — short breaks)';
+    const target = hol.length ? hol.map(([m, h]) => `${MARKET_NAMES[m] ?? m} · ${h.name}`).join(' · ') : 'Netherlands · Belgium';
     const agree = w.days.every((d) => !d.openForecast || Math.abs((d.forecast! - d.openForecast) / d.openForecast) < 0.12);
     const c: Confidence = agree ? 'medium' : 'low';
     out.push({
       id: `fill-${w.start}`, type: 'fill',
       title: `Win back guests for ${range(w.start, w.end)}`,
-      what: markets.length ? `Campaign around the holiday dates in ${markets.join(' and ')}: “early-season ski days” packages` : 'Short-break and ski-opening packages, early-booking price for 3+ nights',
+      what: markets.length ? `Holiday ski packages for ${markets.join(' & ')}` : 'Short-break ski packages for NL & BE',
       when: lead > 21 ? `Start now — ${lead} days lead time` : `Urgent — only ${lead} days left`,
       where: target,
       why: `We expect about ${approx(w.forecast)} stays, ${approx(Math.abs(w.gap))} fewer than last year (${signedPct(w.rel)}).`,
       effect: Math.abs(w.gap) * 0.3, leadDays: lead, feasibility: lead > 21 ? 0.85 : lead > 10 ? 0.55 : 0.25, confidence: c, score: 0,
-      basedOn: ['TVB forecast vs previous year', 'OpenHolidays', ...(agree ? ['Open forecast agrees'] : ['Open forecast disagrees'])],
+      basedOn: ['Forecast vs last year', 'NL/BE holidays', agree ? 'Open model agrees' : 'Open model disagrees'],
     });
   }
   // 2. Steer demand away from (nearly) full days
@@ -254,25 +246,14 @@ export function actions(ds: Dataset, acc: Accuracy, cap: CapacityDay[], weeks: W
       why: peak.occupancy > 1 ? `More guests want to come than there are beds: about ${approx(peak.expected)} for ${approx(peak.beds)} beds on ${shortDate(peak.date)} (${Math.round(peak.occupancy * 100)}%, range ${Math.round(peak.low * 100)}–${Math.round(peak.high * 100)}%). Guests will be turned away.` : `Expected ${Math.round(peak.occupancy * 100)}% of the ${approx(peak.beds)} beds open on ${shortDate(peak.date)} (range ${Math.round(peak.low * 100)}–${Math.round(peak.high * 100)}%).`,
       effect: g.reduce((a, c) => a + Math.max(0, c.expected * (1 + acc.mape) - c.beds * 0.95), 0) + g.length * 150,
       leadDays: lead, feasibility: ramp ? 0.6 : 0.8, confidence: peak.low >= 0.8 ? 'high' : 'medium', score: 0,
-      basedOn: ['Bed capacity', 'TVB forecast (weekday-corrected)', 'Forecast accuracy so far'],
-    });
-  }
-  // 3. Fix the systematic weekday error
-  if (Math.abs(acc.saturdayBias) > 0.03) {
-    out.push({
-      id: 'forecast-saturday', type: 'forecast',
-      title: 'Correct the forecast for Saturdays',
-      what: `Add ${signedPct(acc.saturdayBias)} to Saturday forecasts until the model is retrained`,
-      when: 'Before the next planning meeting', where: 'Forecast with Feratel',
-      why: `On ${acc.byWeekday.find((w) => w.dow === 6)?.n} Saturdays this season, the actual stays were ${signedPct(acc.saturdayBias)} versus the forecast. Changeover days are under-forecast; capacity warnings on Saturdays come too late.`,
-      effect: 400, leadDays: 30, feasibility: 0.95, confidence: 'high', score: 0, basedOn: ['Actual vs forecast, by weekday'],
+      basedOn: ['Beds', 'Forecast'],
     });
   }
   // 4. Data fixes
   const gap = eps.find((e) => e.direction === 'gap');
-  if (gap) out.push({ id: 'data-gap', type: 'data', title: `Fill the reporting gap ${range(gap.start, gap.end)}`, what: 'Ask the reporting partner to re-send the guest registrations for these days', when: 'This week', where: 'Feratel / partner hotels', why: `${gap.days.length} days show zero stays. Until fixed, September looks ${approx(Math.abs(gap.diff))} stays weaker than it was — and next year's forecast learns from it.`, effect: Math.abs(gap.diff) * 0.2, leadDays: 30, feasibility: 0.9, confidence: 'high', score: 0, basedOn: ['Data quality check'] });
+  if (gap) out.push({ id: 'data-gap', type: 'data', title: `Fill the reporting gap ${range(gap.start, gap.end)}`, what: 'Ask the reporting partner to re-send the guest registrations for these days', when: 'This week', where: 'Feratel / partner hotels', why: `${gap.days.length} days show zero stays. Until fixed, September looks ${approx(Math.abs(gap.diff))} stays weaker than it was — and next year's forecast learns from it.`, effect: Math.abs(gap.diff) * 0.2, leadDays: 30, feasibility: 0.9, confidence: 'high', score: 0, basedOn: ['Data check'] });
   const missingBeds = ds.days.filter((d) => d.flags.includes('missing-beds'));
-  if (missingBeds.length) out.push({ id: 'data-beds', type: 'data', title: `Complete bed capacity for ${missingBeds.map((d) => shortDate(d.date)).join(', ')}`, what: 'Re-export the capacity report for the missing days', when: 'Before Christmas planning', where: 'Feratel', why: 'Without beds we cannot warn whether these days run full.', effect: 150, leadDays: 30, feasibility: 0.95, confidence: 'high', score: 0, basedOn: ['Data quality check'] });
+  if (missingBeds.length) out.push({ id: 'data-beds', type: 'data', title: `Complete bed capacity for ${missingBeds.map((d) => shortDate(d.date)).join(', ')}`, what: 'Re-export the capacity report for the missing days', when: 'Before Christmas planning', where: 'Feratel', why: 'Without beds we cannot warn whether these days run full.', effect: 150, leadDays: 30, feasibility: 0.95, confidence: 'high', score: 0, basedOn: ['Data check'] });
 
   // rank: effect, lead time, feasibility, confidence
   const maxEffect = Math.max(...out.map((a) => a.effect), 1);
