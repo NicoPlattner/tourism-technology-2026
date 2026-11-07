@@ -33,6 +33,31 @@ What the official model does not contain: weather, snow, sentiment, the real
 season-opening date. Its daily series sets the lowest day of the year to 0
 and can exceed its own bed cap (22,078), which itself is not a real limit.
 
+## 2a. Landesstatistik Tirol (free HTML tables, the Paznaun market mix)
+
+`data/fetch_tirol_stats.py` parses "Der Tourismus im Winter/Sommer …" tables
+(statistik.tirol.gv.at; credit: Amt der Tiroler Landesregierung, Landesstatistik
+Tirol). Available: winters 2023/24–2025/26, summers 2023–2025.
+
+| Table | Content |
+|---|---|
+| nights by country of origin per municipality | Galtür, Ischgl, Kappl, See, Pians × DE, NL, AT, BE, CH, GB, PL, CZ, DK (summer also IT, FR) |
+| origin shares per tourism association | "Paznaun - Ischgl", top 10 markets |
+| beds by category per municipality | 5/4-star, 3-star, 2/1-star, private rooms, private holiday flats |
+| key figures per municipality | arrivals, nights, length of stay, occupancy |
+
+Paznaun-Ischgl winter shares of nights (tourism association): DE 49.5 → 48.2 →
+47.4 % (falling), NL 13.5 → 15.1 → 14.7 %, BE 6.8 → 6.8 → 6.4 %, CH 5.8 → 5.4 →
+5.0 % (falling), AT 3.7 %, DK 3.4 → 3.6 %, GB 3.2 → 3.0 %, PL 2.0 → 2.5 %
+(rising), FR 1.2–1.5 %, CZ 0.9 % (winters 23/24 → 24/25 → 25/26). Summer:
+DE 53 %, NL 9 %, CH 8 %, BE 7–8 %, AT 6 %. Paznaun differs strongly from Tirol
+overall (Denmark ×3, Belgium ×1.8, Austria ×0.4). Beds winter 23/24: Ischgl
+12,076, Kappl 5,357, Galtür 4,046, See 2,039 (total 23,518; TVB table 23,373).
+
+**Market weights now = Paznaun season mix × Tirol's monthly pattern**
+(`data/market_mix.py`). Monthly or weekly Paznaun data by origin still needs
+the TVB (STATcube municipality tables need a paid subscription).
+
 ## 2b. Statistik Austria (open data, CC BY 4.0, no login)
 
 | Dataset | Content | Use |
@@ -40,7 +65,7 @@ and can exceed its own bed cap (22,078), which itself is not a real limit.
 | `OGD_touextsai_Tour_HKL_1` (data.statistik.gv.at) | arrivals and nights by **federal state × country of origin × month since Nov 1973**, updated monthly; Germany split into 6 origin regions (Bavaria, Baden-Württemberg, NRW, Central, North, East) + Berlin since 05/2003; Austria by state | **market weights now come from here** (`data/market_mix.py`): Tirol's monthly mix replaces the assumed mix; German holidays weighted by where German guests come from (Bavaria 26 %, NRW 17 %, Central 15 %, BW 15 %, East 13 %, North 10 %, Berlin 4 % in recent winters) |
 | `OGD_touextsai_Tour_UA_1` | same by accommodation type | not used yet |
 | statistik.at monthly releases (ODS per month by origin / accommodation type) | Austria and states | context |
-| STATcube `detouextregiosai` (guest access, no login) | **municipality × country of origin**: only in STATcube, no open-data file found | requested from the data owner (spec in PLAN.md §4) |
+| STATcube (guest access) | Tirol × origin × month (same as the open file); municipality tables need a paid subscription | not needed: Landesstatistik Tirol (2a) gives the municipality mix per season |
 
 Tirol winter 24/25 (average of monthly shares): DE 51 %, NL 12 %, AT 9 %,
 CH 4 %, BE 4 %, GB 3.5 %, PL 2.4 %, CZ 2.2 %, DK 1.2 %. Paznaun's own mix
@@ -115,9 +140,9 @@ nationality data.
 
 ## 7. Still missing (ask the TVB or Statistik Austria)
 
-1. **Guest nationality for Paznaun** (monthly top markets): Statistik Austria
-   STATcube table for the four municipalities (guest access, being exported);
-   TVB data asked by mail. Until then Tirol's mix is used.
+1. **Guest nationality for Paznaun by month or week**: seasonal shares per
+   municipality are in (Landesstatistik Tirol); monthly or weekly data only from
+   the TVB (asked by mail).
 2. **How and when the TVB forecast is made** (booking-based? vintage?).
 3. **On-the-books snapshots by stay date** (bookings already held for future
    nights): would enable a real pickup nowcast.

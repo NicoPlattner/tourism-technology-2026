@@ -2,8 +2,8 @@
 "Datenquelle: Statistik Austria - data.statistik.gv.at"), dataset OGD_touextsai_Tour_HKL_1:
 arrivals and nights by federal state x country of origin x month since Nov 1973.
 
-Used as the market weights for holiday features until municipality-level data for Paznaun-Ischgl
-(STATcube) or TVB nationality data is available. Region: Tirol (W96-7).
+Market weights for the holiday features: Tirol's monthly pattern (W96-7), rescaled per market to the
+Paznaun-Ischgl season mix from Landesstatistik Tirol (data/fetch_tirol_stats.py) where available.
 German guests are split into the six origin regions Statistik Austria reports since 05/2003.
 
     python3 data/market_mix.py        -> data/processed/market_mix_monthly.parquet
@@ -56,12 +56,63 @@ def build(state="W96-7") -> pd.DataFrame:
     return out
 
 
+PAZ_ORIGIN = ROOT / "processed" / "tirol_paznaun_origin.csv"  # from data/fetch_tirol_stats.py
+DE_NAMES = {"Deutschland": "DE", "Niederlande": "NL", "Österreich": "AT", "Belgien": "BE", "Schweiz": "CH",
+            "Vereinigtes Königreich": "GB", "Polen": "PL", "Tschechien": "CZ", "Dänemark": "DK",
+            "Italien": "IT", "Frankreich": "FR"}
+PAZ_MUNIS = ["Galtür", "Ischgl", "Kappl", "See"]  # TVB area (Pians excluded)
+
+
+def paznaun_season_shares() -> pd.DataFrame:
+    """Share of nights per market and season for the four TVB municipalities (Landesstatistik Tirol).
+    Shares are of total nights is not published here, so they are shares among the listed markets
+    rescaled to the TVB's known coverage (listed markets = ~92 % of winter nights)."""
+    o = pd.read_csv(PAZ_ORIGIN)
+    o = o[o.unit.isin(PAZ_MUNIS)]
+    cols = [c for c in o if c.startswith("Übernachtungen ")]
+    g = o.groupby("season")[cols].sum(min_count=1)
+    g.columns = [DE_NAMES.get(c.replace("Übernachtungen ", ""), c) for c in g.columns]
+    return g
+
+
+def paznaun_monthly(tirol: pd.DataFrame, cover: float = .92) -> pd.DataFrame:
+    """Monthly Paznaun market weights = Tirol's monthly shares x (Paznaun / Tirol) season ratio per market.
+    Seasons without Paznaun data use the nearest season of the same kind."""
+    ps = paznaun_season_shares()
+    ps = ps.div(ps.sum(axis=1), axis=0) * cover
+    out = tirol.copy()
+    for m in out.index:
+        kind = "winter" if m.month in (11, 12, 1, 2, 3, 4) else "summer"
+        y = m.year + (m.month >= 11) if kind == "winter" else m.year
+        lab = f"winter {y - 1}/{str(y)[2:]}" if kind == "winter" else f"summer {y}"
+        cand = [s for s in ps.index if s.startswith(kind)]
+        if not cand:
+            continue
+        if lab not in ps.index:  # nearest season of the same kind
+            yrs = {s: int(s.split()[1][:4]) for s in cand}
+            ty = y - 1 if kind == "winter" else y
+            lab = min(cand, key=lambda s: abs(yrs[s] - ty))
+        months = [mm for mm in tirol.index if (mm.month in (11, 12, 1, 2, 3, 4)) == (kind == "winter")
+                  and ((mm.year + (mm.month >= 11)) if kind == "winter" else mm.year) == y]
+        tir_season = tirol.loc[months].mean() if months else tirol.loc[m]
+        for c in ps.columns:
+            if c in out and pd.notna(ps.loc[lab, c]) and tir_season.get(c, 0) > 0:
+                out.loc[m, c] = tirol.loc[m, c] * ps.loc[lab, c] / tir_season[c]
+        mk = [c for c in out.columns if not c.startswith("de_region")]
+        out.loc[m, mk] = out.loc[m, mk] / out.loc[m, mk].sum()
+    return out
+
+
 if __name__ == "__main__":
     fetch()
     m = build()
+    if PAZ_ORIGIN.exists():
+        m = paznaun_monthly(m)
+        m.attrs["source"] = "Paznaun-Ischgl (Landesstatistik Tirol seasons x Statistik Austria Tirol months)"
+        print("using Paznaun season mix from Landesstatistik Tirol")
     OUT.parent.mkdir(exist_ok=True)
     m.to_parquet(OUT)
     w = m.loc["2024-11":"2025-04"].mean()
     print(f"{m.index.min().date()} .. {m.index.max().date()} -> {OUT}")
-    print("Tirol winter 24/25 mix:", w[[c for c in m if not c.startswith("de_region")]].sort_values(ascending=False).round(3).to_dict())
+    print("Winter 24/25 mix used:", w[[c for c in m if not c.startswith("de_region")]].sort_values(ascending=False).round(3).to_dict())
     print("German guests by origin region:", w[[c for c in m if c.startswith("de_region")]].round(3).to_dict())
