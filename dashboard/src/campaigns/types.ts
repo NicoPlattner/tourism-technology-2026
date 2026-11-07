@@ -15,6 +15,19 @@ export interface CampaignAsset {
   credit: string;
   description: string;
 }
+export interface TargetAudience { ageMin: number; ageMax: number; }
+export interface MarketingPreferences {
+  country: string;
+  travelPeriod: TravelPeriod;
+  targetAudience: TargetAudience;
+}
+export const TARGET_AGES = [
+  { ageMin: 18, ageMax: 24 },
+  { ageMin: 25, ageMax: 34 },
+  { ageMin: 35, ageMax: 44 },
+  { ageMin: 45, ageMax: 60 },
+] as const;
+export const DEFAULT_TARGET_AUDIENCE: TargetAudience = TARGET_AGES[0];
 export interface CampaignCaption {
   text: string;
   hashtags: string[];
@@ -29,7 +42,7 @@ export interface CampaignRecommendation {
   period: TravelPeriod;
   title: string;
   ageGroup: string;
-  segment: string;
+  marketingPreferences: MarketingPreferences;
   assumedLeadDays: number;
   travel: DateRange;
   campaign: DateRange;
@@ -51,10 +64,11 @@ export interface CampaignRecommendation {
   variation: boolean;
 }
 export interface CampaignDataProvider {
-  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod): CampaignRecommendation;
+  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod, targetAudience?: TargetAudience): CampaignRecommendation;
   getRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
+    targetAudience?: TargetAudience,
   ): Promise<CampaignRecommendation>;
 }
 export interface CampaignApproval {

@@ -1,8 +1,8 @@
 {
-  "campaign-DE-q1-2027-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":26,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
+  "campaign-DE-q1-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
     "caption": {
-      "text": "Wenn die Katze Skifahren kann, warum du nicht? 🐱⛷️",
+      "text": "Der Pisten-Cat hat’s drauf. Und du? 🐱⛷️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiSpaß",
@@ -10,83 +10,83 @@
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:41.023Z"
+      "generatedAt": "2026-11-07T23:34:11.967Z"
     }
   },
-  "campaign-NL-q1-2027-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":40,\"ageMin\":29,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
+  "campaign-NL-q1-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
     "caption": {
-      "text": "Deze kat is al meer op de piste dan jij. 🏂❄️",
+      "text": "Deze kat is meer onder de indruk van jouw ski-skills dan jij. 🏂❄️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiVakantie",
-        "#WinterWonders"
+        "#WinterFun"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:43.701Z"
+      "generatedAt": "2026-11-07T23:32:39.477Z"
     }
   },
-  "campaign-BE-q1-2027-v1": {
+  "campaign-BE-q1-2027-18-24-v1": {
     "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Absurdist Gen Z humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow\"}",
     "caption": {
-      "text": "Un nugget en or, des lunettes, un traîneau… et toi, tu skies où ? 🐔⛷️",
+      "text": "Le nugget qui dévale mieux que toi. 🐔⛷️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiVibes",
-        "#WinterEscape"
+        "#WinterFun"
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:45.171Z"
+      "generatedAt": "2026-11-07T23:32:40.946Z"
     }
   },
-  "campaign-AT-q1-2027-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":35,\"ageMin\":25,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
+  "campaign-AT-q1-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
     "caption": {
       "text": "Der Murmeltier-Skilehrer hat heute frei. 🎿🐿️",
       "hashtags": [
         "#PaznaunIschgl",
         "#Winterspaß",
-        "#Alpenhumor"
+        "#Alpenabenteuer"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:46.613Z"
+      "generatedAt": "2026-11-07T23:35:07.384Z"
     }
   },
-  "campaign-DE-q2-2027-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":26,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original playful white cat with a backpack on an illustrated spring Alpine trail\"}",
+  "campaign-DE-q2-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original playful white cat with a backpack on an illustrated spring Alpine trail\"}",
     "caption": {
       "text": "Der Rucksack ist gepackt – die Alpen rufen! 🐱⛰️",
       "hashtags": [
         "#PaznaunIschgl",
-        "#AlpenFrühling",
-        "#Wanderlust"
+        "#AlpenAbenteuer",
+        "#Frühlingsgefühle"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:48.454Z"
+      "generatedAt": "2026-11-07T23:32:45.514Z"
     }
   },
-  "campaign-NL-q2-2027-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":40,\"ageMin\":29,\"country\":\"Netherlands\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original unimpressed beige cat taking a spring Alpine picnic break beside a backpack\"}",
+  "campaign-NL-q2-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original unimpressed beige cat taking a spring Alpine picnic break beside a backpack\"}",
     "caption": {
-      "text": "Als een kat op vakantie: ‘Meh, maar die Alpen zijn wel oké.’ 🏔️🐱",
+      "text": "Alpenpicknick, maar de kat is niet onder de indruk. 😼⛰️",
       "hashtags": [
         "#PaznaunIschgl",
-        "#Alpen",
-        "#LenteVakantie"
+        "#AlpenAvontuur",
+        "#LenteInDeBergen"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:50.064Z"
+      "generatedAt": "2026-11-07T23:32:47.579Z"
     }
   },
-  "campaign-BE-q2-2027-v1": {
+  "campaign-BE-q2-2027-18-24-v1": {
     "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original golden cartoon nugget with sunglasses and a backpack on a green spring Alpine lookout\"}",
     "caption": {
-      "text": "Le nugget doré a trouvé son spot printanier 🏔️😎",
+      "text": "Le nugget en or a trouvé son spot printanier 🌿😎",
       "hashtags": [
         "#PaznaunIschgl",
         "#AlpesAutrichiennes",
@@ -94,27 +94,27 @@
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:51.371Z"
+      "generatedAt": "2026-11-07T23:32:48.969Z"
     }
   },
-  "campaign-AT-q2-2027-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":35,\"ageMin\":25,\"country\":\"Austria\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie hiking through a spring mountain meadow\"}",
+  "campaign-AT-q2-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"spring\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie hiking through a spring mountain meadow\"}",
     "caption": {
-      "text": "Frühlingserwachen im Paznaun – der Murmeltier hat’s schon kapiert. 🧢🌸",
+      "text": "Murmeltier mit Style – wer braucht schon Ski, wenn der Frühling so aussieht? 🧢🌸",
       "hashtags": [
         "#PaznaunIschgl",
-        "#Alpenfrühling",
-        "#Wanderlust"
+        "#AlpenFrühling",
+        "#MurmeltierVibes"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:52.796Z"
+      "generatedAt": "2026-11-07T23:32:50.349Z"
     }
   },
-  "campaign-DE-winter-2026-27-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":26,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
+  "campaign-DE-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
     "caption": {
-      "text": "Wenn die Katze Skifahren kann, warum du nicht? 🐱⛷️",
+      "text": "Der Pisten-Cat hat’s drauf. Und du? 🐱⛷️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiSpaß",
@@ -122,49 +122,49 @@
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:41.023Z"
+      "generatedAt": "2026-11-07T23:34:11.967Z"
     }
   },
-  "campaign-NL-winter-2026-27-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":40,\"ageMin\":29,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
+  "campaign-NL-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
     "caption": {
-      "text": "Deze kat is al meer op de piste dan jij. 🏂❄️",
+      "text": "Deze kat is meer onder de indruk van jouw ski-skills dan jij. 🏂❄️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiVakantie",
-        "#WinterWonders"
+        "#WinterFun"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:43.701Z"
+      "generatedAt": "2026-11-07T23:32:39.477Z"
     }
   },
-  "campaign-BE-winter-2026-27-v1": {
+  "campaign-BE-winter-2026-27-18-24-v1": {
     "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Absurdist Gen Z humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow\"}",
     "caption": {
-      "text": "Un nugget en or, des lunettes, un traîneau… et toi, tu skies où ? 🐔⛷️",
+      "text": "Le nugget qui dévale mieux que toi. 🐔⛷️",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiVibes",
-        "#WinterEscape"
+        "#WinterFun"
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:45.171Z"
+      "generatedAt": "2026-11-07T23:32:40.946Z"
     }
   },
-  "campaign-AT-winter-2026-27-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":35,\"ageMin\":25,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
+  "campaign-AT-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"season\":\"winter\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
     "caption": {
       "text": "Der Murmeltier-Skilehrer hat heute frei. 🎿🐿️",
       "hashtags": [
         "#PaznaunIschgl",
         "#Winterspaß",
-        "#Alpenhumor"
+        "#Alpenabenteuer"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T22:23:46.613Z"
+      "generatedAt": "2026-11-07T23:35:07.384Z"
     }
   }
 }

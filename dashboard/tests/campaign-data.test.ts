@@ -9,7 +9,7 @@ import { metadataKey, validateGenerated } from "../src/campaigns/captions/contra
 import savedCaptions from "../src/campaigns/captions/preGenerated.json";
 import { MARKETS, TRAVEL_PERIODS } from "../src/campaigns/types.ts";
 const provider = new MockCampaignDataProvider();
-test("Q1 campaigns use assigned adult audiences, localized copy and distinct creative", async () => {
+test("Q1 campaigns use selected adult audiences, localized copy and distinct creative", async () => {
   const campaigns = await Promise.all(
     MARKETS.map((m) => provider.getRecommendation(m.code, "q1-2027")),
   );
@@ -106,4 +106,25 @@ test("all 12 saved campaign captions have matching metadata, valid localized out
     c.captionContent.hashtags.push("#LocalMutation");
     assert.ok(!provider.getImmediateRecommendation(market.code, period.id).hashtags.includes("#LocalMutation"));
   }
+});
+test("user-selected audience is independent of market data and preserves image and booking dates", () => {
+  for (const market of MARKETS) for (const period of TRAVEL_PERIODS) {
+    const initial = provider.getImmediateRecommendation(market.code, period.id);
+    assert.equal(initial.ageGroup, "18–24");
+    for (const audience of [{ageMin:25,ageMax:34},{ageMin:35,ageMax:44},{ageMin:45,ageMax:60}]) {
+      const c = provider.getImmediateRecommendation(market.code, period.id, audience);
+      assert.deepEqual(c.marketingPreferences.targetAudience, audience);
+      assert.equal(c.captionMetadata.ageMin, audience.ageMin);
+      assert.equal(c.captionMetadata.ageMax, audience.ageMax);
+      assert.equal(c.captionMetadata.visualDescription, initial.asset.alt);
+      assert.equal(c.asset.src, initial.asset.src);
+      assert.deepEqual(c.travel, initial.travel);
+      assert.equal(c.assumedLeadDays, initial.assumedLeadDays);
+      assert.equal(c.captionContent.source, "demo_fallback");
+      assert.match(c.reasoning, new RegExp(`${audience.ageMin}–${audience.ageMax}`));
+      assert.notEqual(metadataKey(c.captionMetadata), metadataKey(initial.captionMetadata));
+      assert.notEqual(c.id, initial.id);
+    }
+  }
+  assert.throws(() => provider.getImmediateRecommendation("DE","q1-2027",{ageMin:17,ageMax:24}));
 });

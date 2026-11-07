@@ -109,7 +109,7 @@ export default function CampaignReviewDialog({
             <h3>
               Caption to approve{" "}
               <span className="cp-caption-source">
-                {captionSource === "live_ai" ? "Live AI caption" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Demo caption"}
+                {captionSource === "live_ai" ? "AI generated" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Generic preview · not age-personalized"}
               </span>
             </h3>
             <p lang={campaign.language}>{campaign.caption}</p>

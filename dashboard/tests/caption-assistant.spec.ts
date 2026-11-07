@@ -44,7 +44,7 @@ test("explicit regeneration preserves caption while pending, prevents duplicate 
   release();
   await expect(page.locator(".cp-caption-text")).toHaveText("Eine neue Alpenidee.");
   expect(calls).toBe(1);
-  await expect(page.locator(".cp-caption-source")).toHaveText("Live AI caption");
+  await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
   await expect(page.locator(".cp-plan-action")).not.toContainText("Approved locally");
   await page.getByRole("button",{name:"Copy caption"}).click();
   expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe("Eine neue Alpenidee.\n\n#Ischgl #Alpen");
@@ -76,7 +76,7 @@ test("failure preserves saved and live captions and allows retry",async({page})=
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-error")).toBeVisible();
   await expect(page.locator(".cp-caption-text")).toHaveText("Eine gute Alpenidee.");
-  await expect(page.locator(".cp-caption-source")).toHaveText("Live AI caption");
+  await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
 });
 test("travel period isolates regenerated captions and sends current metadata without credentials",async({page})=>{
   const requests:Record<string,unknown>[]=[];
@@ -95,4 +95,55 @@ test("travel period isolates regenerated captions and sends current metadata wit
   await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q1-2027");
   await expect(page.locator(".cp-caption-text")).toHaveText("Winteridee.");
   expect(requests).toHaveLength(2);expect(requests[1].season).toBe("spring");
+});
+test("age choices update targeting immediately, use generic preview and reach regeneration payload", async ({page}) => {
+  const payloads: Record<string,unknown>[] = [];
+  await page.route("**/api/marketing/generate-caption",route=>{
+    const m=route.request().postDataJSON();payloads.push(m);
+    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(`Alpenidee für ${m.ageMin}–${m.ageMax}.`))});
+  });
+  await page.goto("./");
+  const select=page.getByRole("combobox",{name:"Target audience age",exact:true});
+  await expect(select).toHaveValue("18-24");
+  await expect(select.locator("option")).toHaveText(["18–24","25–34","35–44","45–60"]);
+  const image = await page.locator(".cp-social-image").getAttribute("src");
+  await select.selectOption("45-60");
+  expect(await page.locator(".cp-social-image").getAttribute("src")).toBe(image);
+  await expect(page.locator(".cp-summary")).toContainText("Selected target audience");
+  await expect(page.locator(".cp-summary")).toContainText("45–60 years");
+  await expect(page.locator(".cp-reasoning")).toContainText("45–60");
+  await expect(page.locator(".cp-caption-source")).toHaveText("Generic preview");
+  await expect(page.getByText("Not yet personalized for ages 45–60. Regenerate to personalize.")).toBeVisible();
+  expect(payloads).toHaveLength(0);
+  await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+  await expect(page.locator(".cp-caption-text")).toHaveText("Alpenidee für 45–60.");
+  expect(payloads[0].ageMin).toBe(45);expect(payloads[0].ageMax).toBe(60);
+  expect(payloads[0].visualDescription).toContain("cat");
+  await select.selectOption("25-34");
+  await expect(page.locator(".cp-caption-source")).toHaveText("Generic preview");
+  await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+  await expect(page.locator(".cp-caption-text")).toHaveText("Alpenidee für 25–34.");
+  await select.selectOption("45-60");
+  await expect(page.locator(".cp-caption-text")).toHaveText("Alpenidee für 45–60.");
+  await select.selectOption("18-24");
+  await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
+  expect(payloads).toHaveLength(2);
+});
+test("age switching during regeneration keeps each result with its exact audience", async ({page}) => {
+  let release!:()=>void;const gate=new Promise<void>(resolve=>release=resolve);
+  await page.route("**/api/marketing/generate-caption",async route=>{
+    expect(route.request().postDataJSON().ageMin).toBe(45);
+    await gate;await route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine einladende Alpenidee."))});
+  });
+  await page.goto("./");
+  const select=page.getByRole("combobox",{name:"Target audience age",exact:true});
+  await select.selectOption("45-60");
+  await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+  await select.selectOption("18-24");
+  const initial=await page.locator(".cp-caption-text").innerText();release();
+  await expect(page.locator(".cp-caption-text")).toHaveText(initial);
+  await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
+  await select.selectOption("45-60");
+  await expect(page.locator(".cp-caption-text")).toHaveText("Eine einladende Alpenidee.");
+  await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
 });

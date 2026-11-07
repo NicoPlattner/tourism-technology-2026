@@ -29,7 +29,7 @@ export default function CaptionAssistant({
     <>
       <div className="cp-caption-top">
         <span className={`cp-caption-source ${assistant.source === "demo_fallback" ? "demo" : "ai"}`}>
-          {assistant.source === "live_ai" ? "Live AI caption" : assistant.source === "pre_generated" ? "Pre-generated AI caption" : "Demo caption"}
+          {assistant.source === "live_ai" ? "AI generated" : assistant.source === "pre_generated" ? "Pre-generated AI caption" : "Generic preview"}
         </span>
 
       </div>
@@ -39,6 +39,7 @@ export default function CaptionAssistant({
       <p className="cp-hashtags" lang={campaign.language}>
         {hashtags.join(" ")}
       </p>
+      {assistant.source === "demo_fallback" && <p className="cp-caption-copy-status">Not yet personalized for ages {campaign.ageGroup}. Regenerate to personalize.</p>}
       <div className="cp-caption-actions">
         <button
           className="link"

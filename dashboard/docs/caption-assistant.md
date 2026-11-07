@@ -133,3 +133,9 @@ Unit/API tests cover metadata, prompts, both provider adapters, output validatio
 To verify real generation after configuration, run the complete app and POST the metadata above to the API. Check `source: "ai"`, then select another country and regenerate. If credentials are missing or invalid, keep the Demo label; never claim live generation succeeded.
 
 Provider/model/base URL/JSON mode configuration can be stored as Actions repository variables (preferred) or same-named repository secrets. Variables take precedence. GitHub Environment-scoped settings require a deployment job targeting that environment; this workflow does not select a GitHub Environment.
+
+## User-selected adult targeting
+
+Overview defaults to Germany, Q1 2027 and ages 18–24. The compact **Target audience age** selector supports 18–24, 25–34, 35–44 and 45–60. `marketingPreferences.targetAudience` records an explicit marketing decision, independent of tourism forecasts and illustrative market booking assumptions. Planner/review context and reasoning update immediately. Images, booking lead times and travel dates stay tied to the market/period, rather than age.
+
+Saved captions were generated again for the default 18–24 audience. Other age bands show a localized **Generic preview** with an explicit not-personalized note until Regenerate succeeds. No selector change makes an LLM call. The request uses the current age minimum/maximum and actual displayed image description; the shared prompt provides flexible age-tone guidance without demographic stereotypes. Live success is labelled **AI generated**. Cache/state and local approvals include the campaign identity, period and selected age range, with normalized metadata also covering language, season, activity, destination and visual theme. Switching back restores the matching generated caption; late responses remain attached to their own selection.

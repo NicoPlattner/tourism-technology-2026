@@ -37,7 +37,7 @@ export default function CampaignPlanner({
       </div>
       <dl className="cp-summary">
         <div>
-          <dt>Target audience</dt>
+          <dt>Selected target audience</dt>
           <dd>{campaign.ageGroup} years</dd>
         </div>
         <div>
