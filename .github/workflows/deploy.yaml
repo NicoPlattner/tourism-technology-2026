@@ -163,7 +163,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           N8N_WEBHOOK_KEY: ${{ secrets.N8N_WEBHOOK_KEY }}
           CAPTION_SECRET_KEY: ${{ vars.CAPTION_SECRET_KEY || 'api-key' }}
-          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || 'openai' }}
+          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || secrets.CAPTION_PROVIDER || 'openai' }}
           CAPTION_EXISTING_SECRET: ${{ vars.CAPTION_EXISTING_SECRET }}
         run: |
           set -euo pipefail
@@ -182,13 +182,13 @@ jobs:
 
       - name: Deploy Helm release
         env:
-          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || 'openai' }}
-          CAPTION_MODEL: ${{ vars.CAPTION_MODEL || 'gpt-4.1-mini' }}
-          CAPTION_BASE_URL: ${{ vars.CAPTION_BASE_URL || vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || secrets.CAPTION_PROVIDER || 'openai' }}
+          CAPTION_MODEL: ${{ vars.CAPTION_MODEL || secrets.CAPTION_MODEL || 'gpt-4.1-mini' }}
+          CAPTION_BASE_URL: ${{ vars.CAPTION_BASE_URL || vars.OPENAI_BASE_URL || secrets.CAPTION_BASE_URL || secrets.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
           CAPTION_N8N_WEBHOOK_URL: ${{ vars.CAPTION_N8N_WEBHOOK_URL }}
           CAPTION_N8N_AUTH_HEADER: ${{ vars.CAPTION_N8N_AUTH_HEADER || 'X-Caption-Key' }}
           CAPTION_N8N_AUTH_PREFIX: ${{ vars.CAPTION_N8N_AUTH_PREFIX }}
-          CAPTION_JSON_MODE: ${{ vars.CAPTION_JSON_MODE || 'json_schema' }}
+          CAPTION_JSON_MODE: ${{ vars.CAPTION_JSON_MODE || secrets.CAPTION_JSON_MODE || 'json_schema' }}
           CAPTION_TIMEOUT_MS: ${{ vars.CAPTION_TIMEOUT_MS || '8000' }}
           CAPTION_EXISTING_SECRET: ${{ vars.CAPTION_EXISTING_SECRET }}
           CAPTION_SECRET_KEY: ${{ vars.CAPTION_SECRET_KEY || 'api-key' }}
