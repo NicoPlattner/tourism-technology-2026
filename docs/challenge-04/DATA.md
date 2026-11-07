@@ -33,6 +33,19 @@ What the official model does not contain: weather, snow, sentiment, the real
 season-opening date. Its daily series sets the lowest day of the year to 0
 and can exceed its own bed cap (22,078), which itself is not a real limit.
 
+## 2b. Statistik Austria (open data, CC BY 4.0, no login)
+
+| Dataset | Content | Use |
+|---|---|---|
+| `OGD_touextsai_Tour_HKL_1` (data.statistik.gv.at) | arrivals and nights by **federal state × country of origin × month since Nov 1973**, updated monthly; Germany split into 6 origin regions (Bavaria, Baden-Württemberg, NRW, Central, North, East) + Berlin since 05/2003; Austria by state | **market weights now come from here** (`data/market_mix.py`): Tirol's monthly mix replaces the assumed mix; German holidays weighted by where German guests come from (Bavaria 26 %, NRW 17 %, Central 15 %, BW 15 %, East 13 %, North 10 %, Berlin 4 % in recent winters) |
+| `OGD_touextsai_Tour_UA_1` | same by accommodation type | not used yet |
+| statistik.at monthly releases (ODS per month by origin / accommodation type) | Austria and states | context |
+| STATcube `detouextregiosai` (guest access, no login) | **municipality × country of origin**: only in STATcube, no open-data file found | requested from the data owner (spec in PLAN.md §4) |
+
+Tirol winter 24/25 (average of monthly shares): DE 51 %, NL 12 %, AT 9 %,
+CH 4 %, BE 4 %, GB 3.5 %, PL 2.4 %, CZ 2.2 %, DK 1.2 %. Paznaun's own mix
+will differ; it replaces Tirol as soon as the municipality data is in.
+
 ## 3. Explanatory drivers (open, fetched)
 
 | Driver | Source | Tested value |
@@ -102,9 +115,9 @@ nationality data.
 
 ## 7. Still missing (ask the TVB or Statistik Austria)
 
-1. **Guest nationality** (monthly top markets): needed to say "which market"
-   with confidence. Public substitute: Statistik Austria STATcube
-   (municipality × country of origin × month, free login).
+1. **Guest nationality for Paznaun** (monthly top markets): Statistik Austria
+   STATcube table for the four municipalities (guest access, being exported);
+   TVB data asked by mail. Until then Tirol's mix is used.
 2. **How and when the TVB forecast is made** (booking-based? vintage?).
 3. **On-the-books snapshots by stay date** (bookings already held for future
    nights): would enable a real pickup nowcast.

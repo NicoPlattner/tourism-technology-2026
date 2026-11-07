@@ -62,7 +62,7 @@ pip install pandas pyarrow scikit-learn statsmodels lightgbm xlrd openpyxl holid
 ```
 
 ```bash
-python3 data/fetch_open_data.py TR53 && python3 data/fetch_drivers.py && python3 data/fetch_macro.py
+python3 data/fetch_open_data.py TR53 && python3 data/fetch_drivers.py && python3 data/fetch_macro.py && python3 data/market_mix.py
 ```
 
 ```bash
@@ -83,6 +83,7 @@ back to open data.
 data/
   fetch_open_data.py   official forecast API (TR53 monthly + daily)
   fetch_drivers.py     forecast repo data, OpenHolidays, SNOWGRID, Open-Meteo
+  market_mix.py        Statistik Austria open data: monthly market mix (Tirol), German origin regions
   holiday_features.py  school / public / regional holidays, long weekends, bridge days per market
   make_static_holidays.py  generates static/school_holidays_extra.csv (DK, GB, SE; IT/PL/FR gaps)
   fetch_macro.py       Eurostat, ECB, geopolitical risk, policy uncertainty, long snow series

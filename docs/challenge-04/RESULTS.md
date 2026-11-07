@@ -168,6 +168,10 @@ Effect on the real-data backtest (winter 25/26, ex ante):
 | conformal 80 % coverage | 0.77 | **0.79** |
 | summer ensemble daily error | 17.7 % | 18.9 % |
 
+Then market weights switched from the assumed mix to Statistik Austria's
+monthly Tirol mix (German states weighted by guest origin): ensemble 9.5 →
+**9.4 %**, LightGBM 11.5 → **11.3 %**, peak days 7.8 → **7.2 %**.
+
 Ablation: the gain comes from the corrected school-holiday data (LightGBM
 11.6 % with school holidays only). Long weekends and bridge days add almost
 nothing to winter forecasts (few public holidays in winter) and slightly hurt

@@ -51,7 +51,16 @@ are the submission-critical subset.
 | 11:30 | freeze `out/c04_*.json` |
 | 12:00–13:00 | pitch numbers and sources slide, submission |
 
-## 4. Questions for the TVB (Raphael Tonitz, on site)
+## 4. Data requests in progress
+
+STATcube (guest access), open database `detouextregiosai`, one CSV export:
+- Region: municipalities Galtür, Ischgl, Kappl, See (and Pians separately)
+- Time: every month (or season if months are not offered) from Nov 2014 to the latest
+- Country of origin: all single countries, Germany by origin region, Austria by state (no grouping)
+- Values: arrivals and nights
+Raphael Tonitz (TVB) asked by mail for nationality data.
+
+## 4b. Questions for the TVB (Raphael Tonitz, by mail)
 
 1. How and when is the `forecast` column made (booking-based? which date)?
 2. Are the lead-time rows arrival weeks? Class boundaries?

@@ -9,7 +9,9 @@ Per market C:
   bridge_C        share of the population for whom the day is a bridge day ("Fenstertag"): a single
                   working day between two work-free days
   longwe_bridge_C share of the population in a run of >= 4 work-free days once bridge days are taken off
-Plus `<feature>_weighted`: the same, weighted by the assumed market mix (MARKET_SHARE).
+Plus `<feature>_weighted`: the same, weighted by the monthly market mix of Tirol from Statistik Austria
+(data/market_mix.py; falls back to the assumed MARKET_SHARE). German states are weighted by where German
+guests in Tirol come from (Statistik Austria origin regions), not by population.
 
 Weights: population of states / cantons / communities / voivodeships where the calendar differs
 by region (approximate 2023-2024 figures, millions); equal weights over subdivisions elsewhere.
@@ -19,11 +21,14 @@ from __future__ import annotations
 import json
 import pathlib
 
+import sys
+
 import holidays as pyholidays
 import numpy as np
 import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
 HD = ROOT / "raw" / "open" / "holidays"
 STATIC = ROOT / "static" / "school_holidays_extra.csv"
 
@@ -50,6 +55,39 @@ AT_HOLIDAYS_SUBDIV = {"1": "BL", "2": "KÄ", "3": "NÖ", "4": "OÖ", "5": "SB", 
 BE_HOLIDAYS_SUBDIV = {"Flemish": "NL", "French": "FR", "German": "DE"}
 
 
+MIX_FILE = ROOT / "processed" / "market_mix_monthly.parquet"
+
+
+def load_mix():
+    """Monthly market shares (Statistik Austria, Tirol) if built by data/market_mix.py, else None."""
+    return pd.read_parquet(MIX_FILE) if MIX_FILE.exists() else None
+
+
+def _de_origin_weights(mix: pd.DataFrame) -> dict:
+    """German Länder weights from where German guests in Tirol come from (last 3 winters),
+    split inside each Statistik Austria origin region by population."""
+    from market_mix import DE_REGION_LAENDER
+    win = mix[mix.index.month.isin([12, 1, 2, 3])].iloc[-12:]
+    w = {}
+    for reg, laender in DE_REGION_LAENDER.items():
+        share = win.get(f"de_region_{reg}", pd.Series(0.0)).mean()
+        pop = sum(POP["DE"][l] for l in laender)
+        for l in laender:
+            w[l] = share * POP["DE"][l] / pop
+    return w
+
+
+def daily_market_weights(idx: pd.DatetimeIndex, mix: pd.DataFrame) -> pd.DataFrame:
+    """Market share per day = share in that calendar month; months after the data use the latest
+    year with the same calendar month."""
+    cols = [c for c in MARKET_SHARE if c in mix]
+    out = pd.DataFrame(index=idx, columns=cols, dtype=float)
+    for m in pd.date_range(idx.min().to_period("M").to_timestamp(), idx.max(), freq="MS"):
+        src = m if m in mix.index else mix.index[mix.index.month == m.month].max()
+        out.loc[(idx >= m) & (idx < m + pd.offsets.MonthBegin(1))] = mix.loc[src, cols].values
+    return out
+
+
 def _leaves(nodes):
     return [x for n in nodes for x in (_leaves(n["children"]) if n.get("children") else [n["code"]])]
 
@@ -61,7 +99,9 @@ def school(idx: pd.DatetimeIndex) -> pd.DataFrame:
         if not p.exists():
             continue
         recs = json.loads(p.read_text())
-        if c in POP:
+        if c == "DE" and "DE_ORIGIN" in POP:
+            w = {f"DE-{k}": v for k, v in POP["DE_ORIGIN"].items()}
+        elif c in POP:
             w = {f"{c}-{k}": v for k, v in POP[c].items()}
         else:
             subs = json.loads((HD / f"{c}_subdivisions.json").read_text())
@@ -99,6 +139,8 @@ def _region_calendars(c: str, years) -> dict[str, tuple[float, set]]:
         return {BE_HOLIDAYS_SUBDIV[s]: (POP["BE"][BE_HOLIDAYS_SUBDIV[s]],
                                         set(pyholidays.country_holidays("BE", subdiv=s, years=years)))
                 for s in BE_HOLIDAYS_SUBDIV}
+    if c == "DE" and "DE_ORIGIN" in POP:
+        return {s: (POP["DE_ORIGIN"][s], set(pyholidays.country_holidays(c, subdiv=s, years=years))) for s in POP["DE"]}
     if c in ("DE", "CH", "GB"):
         return {s: (POP[c][s], set(pyholidays.country_holidays(c, subdiv=s, years=years))) for s in POP[c]}
     return {c: (1.0, set(pyholidays.country_holidays(c, years=years)))}
@@ -134,11 +176,16 @@ def public(idx: pd.DatetimeIndex) -> pd.DataFrame:
 
 
 def build(idx: pd.DatetimeIndex) -> pd.DataFrame:
+    mix = load_mix()
+    if mix is not None:  # German states weighted by where German guests come from, not by population
+        POP["DE_ORIGIN"] = _de_origin_weights(mix)
     f = pd.concat([school(idx), public(idx)], axis=1)
+    w = daily_market_weights(idx, mix) if mix is not None else \
+        pd.DataFrame({c: MARKET_SHARE[c] for c in MARKET_SHARE}, index=idx)
     for k in ("school", "pub", "longwe", "bridge", "longwe_bridge"):
-        cols = [f"{k}_{c}" for c in MARKET_SHARE if f"{k}_{c}" in f]
-        f[f"{k}_weighted"] = sum(f[col] * MARKET_SHARE[col.split("_")[-1]] for col in cols) / \
-            sum(MARKET_SHARE[col.split("_")[-1]] for col in cols)
+        cs = [c for c in w if f"{k}_{c}" in f]
+        f[f"{k}_weighted"] = sum(f[f"{k}_{c}"] * w[c] for c in cs) / w[cs].sum(axis=1)
+    f.attrs["market_weights"] = "Statistik Austria Tirol monthly mix" if mix is not None else "assumed MARKET_SHARE"
     return f
 
 
