@@ -1,3 +1,4 @@
+import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
 import { useEffect, useState } from "react";
 import type { ViewProps } from "../App";
 import type {
@@ -58,15 +59,36 @@ export default function Overview({
   }, [market, period, provider, retry]);
   const currentCampaign =
     campaign?.market === market && campaign.period === period ? campaign : null;
+  const assistant = useCaptionAssistant(currentCampaign?.captionMetadata);
+  const visibleCampaign = currentCampaign
+    ? {
+        ...currentCampaign,
+        caption: assistant.result?.caption || currentCampaign.caption,
+        hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
+      }
+    : null;
+  const storedApproval = visibleCampaign
+    ? approvals[visibleCampaign.id]
+    : undefined;
+  const visibleApproval =
+    storedApproval &&
+    visibleCampaign &&
+    storedApproval.caption === visibleCampaign.caption &&
+    JSON.stringify(storedApproval.hashtags) ===
+      JSON.stringify(visibleCampaign.hashtags)
+      ? storedApproval
+      : undefined;
   const approve = () => {
-    if (!currentCampaign) return;
+    if (!visibleCampaign) return;
     setApprovals((previous) => ({
       ...previous,
-      [currentCampaign.id]: {
-        campaignId: currentCampaign.id,
+      [visibleCampaign.id]: {
+        campaignId: visibleCampaign.id,
         approvedAt: new Date().toISOString(),
-        publishingDates: [...currentCampaign.publishingDates],
-        caption: currentCampaign.caption,
+        publishingDates: [...visibleCampaign.publishingDates],
+        caption: visibleCampaign.caption,
+        hashtags: [...visibleCampaign.hashtags],
+        captionSource: assistant.result ? "ai" : "demo",
         status: "APPROVED_MOCK",
       },
     }));
@@ -94,8 +116,9 @@ export default function Overview({
         <SourceMarketMap selected={market} onSelect={setMarket} />
         {currentCampaign ? (
           <CampaignPlanner
-            campaign={currentCampaign}
-            approval={approvals[currentCampaign.id]}
+            campaign={visibleCampaign!}
+            approval={visibleApproval}
+            assistant={assistant}
             onReview={() => setReview(true)}
           />
         ) : (
@@ -125,8 +148,9 @@ export default function Overview({
       </div>
       {review && currentCampaign && (
         <CampaignReviewDialog
-          campaign={currentCampaign}
-          approval={approvals[currentCampaign.id]}
+          campaign={visibleCampaign!}
+          approval={visibleApproval}
+          captionSource={assistant.result ? "ai" : "demo"}
           onApprove={approve}
           onClose={() => setReview(false)}
         />

@@ -10,11 +10,13 @@ export default function CampaignReviewDialog({
   approval,
   onApprove,
   onClose,
+  captionSource = "demo",
 }: {
   campaign: CampaignRecommendation;
   approval?: CampaignApproval;
   onApprove: () => void;
   onClose: () => void;
+  captionSource?: "ai" | "demo";
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -104,7 +106,12 @@ export default function CampaignReviewDialog({
         <section className="cp-review-post">
           <img src={campaign.asset.src} alt={campaign.asset.alt} />
           <div>
-            <h3>Caption to approve</h3>
+            <h3>
+              Caption to approve{" "}
+              <span className="cp-caption-source">
+                {captionSource === "ai" ? "AI caption" : "Demo caption"}
+              </span>
+            </h3>
             <p lang={campaign.language}>{campaign.caption}</p>
             <p className="cp-hashtags" lang={campaign.language}>
               {campaign.hashtags.join(" ")}

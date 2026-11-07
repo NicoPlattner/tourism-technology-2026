@@ -1,6 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: {{ .Release.Name }}-caption-api
+data:
+  server.cjs: |
+{{ .Files.Get "caption-server.cjs" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: {{ .Release.Name }}-site
 data:
 {{ (.Files.Glob "site/*").AsConfig | indent 2 }}
@@ -28,6 +36,8 @@ spec:
         app: {{ .Release.Name }}
       annotations:
         checksum/site: {{ (.Files.Glob "site/*").AsConfig | sha256sum }}
+        checksum/caption-api: {{ .Files.Get "caption-server.cjs" | sha256sum }}
+        caption/config-revision: {{ .Values.caption.configRevision | quote }}
         checksum/nginx: {{ .Files.Get "nginx.conf" | sha256sum }}
     spec:
       automountServiceAccountToken: false
@@ -38,6 +48,62 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
+        - name: caption-api
+          image: node:24-alpine
+          command: ["node", "--use-env-proxy", "/opt/caption/server.cjs"]
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: CAPTION_PROVIDER
+              value: {{ .Values.caption.provider | quote }}
+            - name: CAPTION_MODEL
+              value: {{ .Values.caption.model | quote }}
+            - name: CAPTION_BASE_URL
+              value: {{ .Values.caption.baseUrl | quote }}
+            - name: CAPTION_N8N_WEBHOOK_URL
+              value: {{ .Values.caption.n8nWebhookUrl | quote }}
+            - name: CAPTION_N8N_AUTH_HEADER
+              value: {{ .Values.caption.n8nAuthHeader | quote }}
+            - name: CAPTION_N8N_AUTH_PREFIX
+              value: {{ .Values.caption.n8nAuthPrefix | quote }}
+            - name: CAPTION_JSON_MODE
+              value: {{ .Values.caption.jsonMode | quote }}
+            - name: CAPTION_TIMEOUT_MS
+              value: {{ .Values.caption.timeoutMs | quote }}
+            - name: CAPTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-caption-ai" .Release.Name) .Values.caption.existingSecret | quote }}
+                  key: {{ .Values.caption.secretKey | quote }}
+                  optional: true
+          ports:
+            - name: caption-api
+              containerPort: 8787
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: caption-api
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: caption-api
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: caption-api
+              mountPath: /opt/caption
+              readOnly: true
         - name: web
           image: {{ .Values.image }}
           command: ["nginx", "-g", "daemon off;"]
@@ -76,6 +142,9 @@ spec:
             - name: tmp
               mountPath: /tmp
       volumes:
+        - name: caption-api
+          configMap:
+            name: {{ .Release.Name }}-caption-api
         - name: site
           configMap:
             name: {{ .Release.Name }}-site

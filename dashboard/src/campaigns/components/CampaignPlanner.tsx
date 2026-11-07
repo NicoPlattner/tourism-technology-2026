@@ -1,3 +1,4 @@
+import type { CaptionAssistantState } from "../captions/useCaptionAssistant";
 import ArrowIcon from "./ArrowIcon";
 import type { CampaignApproval, CampaignRecommendation } from "../types";
 import { displayRange } from "../mockCampaignData";
@@ -7,10 +8,12 @@ export default function CampaignPlanner({
   campaign,
   approval,
   onReview,
+  assistant,
 }: {
   campaign: CampaignRecommendation;
   approval?: CampaignApproval;
   onReview: () => void;
+  assistant: CaptionAssistantState;
 }) {
   return (
     <section className="card cp-planner" aria-labelledby="cp-planner-heading">
@@ -39,9 +42,7 @@ export default function CampaignPlanner({
         </div>
         <div>
           <dt>Booking lead time</dt>
-          <dd>
-            {campaign.assumedLeadDays} days
-          </dd>
+          <dd>{campaign.assumedLeadDays} days</dd>
         </div>
         <div>
           <dt>Guests travel</dt>
@@ -53,7 +54,7 @@ export default function CampaignPlanner({
         </div>
       </dl>
       <CampaignReasoning campaign={campaign} />
-      <SocialPostPreview campaign={campaign} />
+      <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
         <button className="btn" onClick={onReview}>
           Review &amp; Schedule <ArrowIcon />

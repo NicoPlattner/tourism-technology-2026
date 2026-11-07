@@ -1,2 +1,4 @@
 node_modules/
 helm/tourism-technology/site/
+
+helm/tourism-technology/caption-server.cjs
