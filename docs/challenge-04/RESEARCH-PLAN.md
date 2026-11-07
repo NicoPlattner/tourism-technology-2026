@@ -40,7 +40,7 @@ macro data: no signal on season totals  → look for signals with timing (daily/
 | # | Approach | Hypothesis | Test | Effort | Prio |
 |---|---|---|---|---|---|
 | D1 | Holiday-aligned previous year, LightGBM, TVB pattern, official pattern (have) | members of a stack | done | – | – |
-| D2 | **Stacking with non-negative weights** (fit 24/25, test 25/26) | beats the 10.5 % ensemble | wMAPE, peak-day error | 1 h | H |
+| D2 | **Stacking with non-negative weights** (fit 24/25, test 25/26) | beats the 9.5 % ensemble | wMAPE, peak-day error | 1 h | H |
 | D3 | **GAM** (smooth day-of-season, holiday intensity per market, weekday × season interactions; pyGAM) | as accurate as LightGBM on small data, but each effect is a readable curve for the pitch | same backtest + partial-effect plots | 2 h | H |
 | D4 | Global daily LightGBM across 100 regions (open index 2022–2025) + Paznaun fine-tuning | 100× more rows → better holiday and event effects | same backtest | 2 h | M |
 | D5 | Distributional models: LightGBM quantile, NGBoost, conformal per horizon (have) | calibrated bands per day type | coverage, pinball loss | 1 h | M |

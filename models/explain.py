@@ -33,6 +33,8 @@ DRIVERS = {  # feature -> plain-language label. Markets grouped: single-market h
     "hol_NORTH_UK": "Danish/UK school holidays",
     "hol_NEIGHBOURS": "Swiss/Austrian school holidays",
     "hol_EAST": "Polish/Czech school holidays",
+    "longwe_weighted": "long weekend with public holiday (source markets)",
+    "longwe_bridge_weighted": "bridge-day long weekend (source markets)",
     "xmas_newyear": "Christmas / New Year window", "pre_xmas": "pre-Christmas weeks",
     "carnival_week": "carnival week", "easter_window": "Easter window",
     "opening_weekend": "season opening weekend", "closing_weekend": "season closing weekend",

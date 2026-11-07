@@ -33,7 +33,7 @@ are the submission-critical subset.
 | # | Package | Output | Done when | Priority |
 |---|---|---|---|---|
 | 1 | **Level combination** L1–L4 (MODELS §3), weights by horizon from rolling backtests (TR53 monthly 2010–2026 and real 24/25→25/26), shrunk TVB bias correction per month type | `models/level.py`, backtest table | combination beats every member's monthly error | P1 |
-| 2 | **Daily pattern stacking** S1–S4, non-negative weights fitted on 24/25, tested on 25/26; weekday correction for 0–14 days | `models/shape.py` | beats the 10.5 % ensemble on winter 25/26 | P1 |
+| 2 | **Daily pattern stacking** S1–S4, non-negative weights fitted on 24/25, tested on 25/26; weekday correction for 0–14 days | `models/shape.py` | beats the 9.5 % ensemble on winter 25/26 | P1 |
 | 3 | **Actions engine**: candidate actions per gap or idle window with market (holiday overlap), lead time (booking mix), feasibility, grade, evidence links | `models/actions.py` → `out/c04_actions.json` | top 5 actions with numbers and grades | P1 |
 | 4 | Export for the UI: forecast, intervals, capacity, drivers, actions | `out/c04_*.json` | format agreed with the UI owner | P1 |
 | 5 | Snow scenario band (season level ±1 SD) | field in forecast JSON | | P2 |
