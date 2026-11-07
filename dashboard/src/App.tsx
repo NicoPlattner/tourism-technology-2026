@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
-import type { GaState } from './data/googleAnalytics';
+import { GA_INITIAL, type GaState } from './data/googleAnalytics';
 import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
 import { longDate } from './analysis/format';
@@ -28,7 +28,7 @@ const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?
 
 export default function App() {
   const [tab, setTab] = useState<Tab>(readTab);
-  const [ga, setGa] = useState<GaState>({ status: 'idle' });
+  const [ga, setGa] = useState<GaState>(GA_INITIAL);
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
   const [logoOk, setLogoOk] = useState(true);
 

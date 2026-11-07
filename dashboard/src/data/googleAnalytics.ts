@@ -55,7 +55,8 @@ export function connectGoogleAnalytics(oauth2: GoogleOAuth2): Promise<GaToken> {
       },
       error_callback: (e) => reject(new Error(e.type === 'popup_closed' ? 'The Google window was closed.' : e.type === 'popup_failed_to_open' ? 'The Google window was blocked — allow pop-ups and try again.' : e.message || 'Google sign-in failed.')),
     });
-    client.requestAccessToken({ prompt: 'consent' });
+    // Always show the account chooser so another Google account can be added.
+    client.requestAccessToken({ prompt: 'select_account consent' });
   });
 }
 
@@ -82,7 +83,54 @@ export async function listProperties(token: GaToken): Promise<GaProperty[]> {
   return out;
 }
 
-export type GaState =
-  | { status: 'idle'; error?: string }
-  | { status: 'connecting' }
-  | { status: 'connected'; token: GaToken; properties?: GaProperty[]; error?: string };
+type Row = { dimensionValues?: { value: string }[]; metricValues?: { value: string }[] };
+
+async function runReport(token: GaToken, propertyId: string, method: 'runReport' | 'runRealtimeReport', body: object): Promise<Row[]> {
+  const res = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${encodeURIComponent(propertyId)}:${method}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token.accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (res.status === 401) throw new Error('Google access has expired — remove the property and add it again.');
+  if (!res.ok) throw new Error(json?.error?.message || `Google Analytics returned ${res.status}.`);
+  return json.rows ?? [];
+}
+const num = (r: Row | undefined, i = 0) => Number(r?.metricValues?.[i]?.value ?? 0);
+const top = (rows: Row[]) => rows.map((r) => ({ name: r.dimensionValues?.[0]?.value || '(not set)', value: num(r) }));
+
+export interface GaRealtime { activeUsers: number; countries: { name: string; value: number }[]; pages: { name: string; value: number }[] }
+
+/** Realtime report: users active in the last 30 minutes. Works on a brand-new
+ * property, before the standard (processed) reports have any data. */
+export async function realtime(token: GaToken, propertyId: string): Promise<GaRealtime> {
+  const [total, countries, pages] = await Promise.all([
+    runReport(token, propertyId, 'runRealtimeReport', { metrics: [{ name: 'activeUsers' }] }),
+    runReport(token, propertyId, 'runRealtimeReport', { dimensions: [{ name: 'country' }], metrics: [{ name: 'activeUsers' }], limit: 5 }),
+    runReport(token, propertyId, 'runRealtimeReport', { dimensions: [{ name: 'unifiedScreenName' }], metrics: [{ name: 'activeUsers' }], limit: 5 }),
+  ]);
+  return { activeUsers: num(total[0]), countries: top(countries), pages: top(pages) };
+}
+
+export interface GaSummary { sessions: number; activeUsers: number; views: number }
+
+/** Standard report for the last 28 days including today. Processed data can
+ * lag 24–48 hours, so a new property shows zeros here at first. */
+export async function summary(token: GaToken, propertyId: string): Promise<GaSummary> {
+  const rows = await runReport(token, propertyId, 'runReport', {
+    dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
+    metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'screenPageViews' }],
+  });
+  return { sessions: num(rows[0], 0), activeUsers: num(rows[0], 1), views: num(rows[0], 2) };
+}
+
+export interface GaConnection { property: GaProperty; token: GaToken }
+
+/** Connected properties, plus a login waiting for the user to pick a property. */
+export interface GaState {
+  connections: GaConnection[];
+  connecting?: boolean;
+  picking?: { token: GaToken; properties?: GaProperty[] };
+  error?: string;
+}
+export const GA_INITIAL: GaState = { connections: [] };
