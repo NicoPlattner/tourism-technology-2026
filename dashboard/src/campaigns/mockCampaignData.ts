@@ -1,3 +1,4 @@
+import { socialProfile, demoCaption } from "./socialProfile";
 import { DEFAULT_TARGET_AUDIENCE, TARGET_AGES, type TargetAudience } from "./types";
 import savedCaptions from "./captions/preGenerated.json";
 import { metadataKey } from "./captions/contracts";
@@ -235,7 +236,8 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       description:
         "Meme-inspired fictional illustration; not a photograph or a representation of verified resort conditions.",
     };
-    const genericCaption = scenario.language === "nl" ? "Even wegdromen bij de Alpen. 🏔️" : scenario.language === "fr" ? "Une idée d’évasion dans les Alpes. 🏔️" : "Alpenideen zum Weiterträumen. 🏔️";
+    const profile = socialProfile(targetAudience.ageMin);
+    const genericCaption = demoCaption(scenario.language, targetAudience.ageMin);
     const recommendation: CampaignRecommendation = {
       id: `campaign-${market}-${period}-${targetAudience.ageMin}-${targetAudience.ageMax}-v1`,
       market,
@@ -251,7 +253,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       campaign: { start, end, label: "Recommended promotion window" },
       publishingDates,
       timezone: "Europe/Vienna",
-      platform: "Instagram",
+      platform: profile.platform,
       theme: spring
         ? "Meme-inspired spring escape · mock variation"
         : scenario.theme,
@@ -261,6 +263,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
       reasoning: `You’re targeting travelers aged ${ageGroup} from ${scenario.country}. The illustrative ${scenario.lead}-day booking lead time places promotion ahead of the selected ${spring ? "spring" : "winter"} travel period. Caption personalization uses your selected audience and the displayed illustration.`,
       detailedReasoning: [
+        `${profile.platform}, the writing voice and caption length are illustrative demo heuristics, not measured audience preferences.`,
         `Selected target audience: ages ${ageGroup}. This is your marketing preference, not a demographic finding from tourism data.`,
         `Timing: target arrival ${displayDate(travel.start)} minus ${scenario.lead} assumed booking days gives ${displayDate(start)}. This 8-day promotion window ends before the target travel period.`,
         spring
@@ -288,6 +291,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
         source: "demo_fallback",
       },
       captionMetadata: {
+        ...profile,
         country: scenario.country,
         language: scenario.language,
         ageMin: targetAudience.ageMin,

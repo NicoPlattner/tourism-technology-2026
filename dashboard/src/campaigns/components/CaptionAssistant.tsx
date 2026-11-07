@@ -29,17 +29,18 @@ export default function CaptionAssistant({
     <>
       <div className="cp-caption-top">
         <span className={`cp-caption-source ${assistant.source === "demo_fallback" ? "demo" : "ai"}`}>
-          {assistant.source === "live_ai" ? "AI generated" : assistant.source === "pre_generated" ? "Pre-generated AI caption" : "Generic preview"}
+          {assistant.source === "live_ai" ? "AI generated" : assistant.source === "pre_generated" ? "Pre-generated AI caption" : "Demo preview"}
         </span>
 
       </div>
+      <small className="cp-caption-copy-status">{campaign.platform} · {campaign.captionMetadata.targetCaptionLength?.min}–{campaign.captionMetadata.targetCaptionLength?.max} characters · demo recommendation</small>
       <p className="cp-caption-text" lang={campaign.language}>
         {caption}
       </p>
       <p className="cp-hashtags" lang={campaign.language}>
         {hashtags.join(" ")}
       </p>
-      {assistant.source === "demo_fallback" && <p className="cp-caption-copy-status">Not yet personalized for ages {campaign.ageGroup}. Regenerate to personalize.</p>}
+      {assistant.source === "demo_fallback" && <p className="cp-caption-copy-status">Demo voice for ages {campaign.ageGroup} · {campaign.platform}. Regenerate for AI personalization.</p>}
       <div className="cp-caption-actions">
         <button
           className="link"

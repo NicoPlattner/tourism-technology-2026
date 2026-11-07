@@ -18,6 +18,12 @@ export function InstagramIcon() {
     </svg>
   );
 }
+export function PlatformIcon({ platform }: { platform: CampaignRecommendation["platform"] }) {
+  if (platform === "Instagram") return <span data-platform-icon={platform}><InstagramIcon /></span>;
+  return <svg data-platform-icon={platform} width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    {platform === "Facebook" ? <path d="M14 22v-9h3l.5-4H14V7c0-1 .3-2 2-2h2V1.5A22 22 0 0 0 15 1c-3 0-5 2-5 5v3H7v4h3v9z" /> : <path d="M16 2h-4v13a3 3 0 1 1-3-3V8a7 7 0 1 0 7 7V8a10 10 0 0 0 5 1V5c-3 0-5-2-5-3z" />}
+  </svg>;
+}
 export default function SocialPostPreview({
   campaign,
   assistant,
@@ -28,7 +34,7 @@ export default function SocialPostPreview({
   return (
     <section
       className="cp-social"
-      aria-label={`${campaign.country} Instagram post preview`}
+      aria-label={`${campaign.country} ${campaign.platform} post preview`}
     >
       <div className="cp-social-header">
         <span className="cp-social-avatar" aria-hidden="true">
@@ -36,9 +42,9 @@ export default function SocialPostPreview({
         </span>
         <div>
           <strong>ischgl_inspiration</strong>
-          <span>Campaign concept · {campaign.languageLabel}</span>
+          <span>{campaign.platform} concept · {campaign.languageLabel}</span>
         </div>
-        <InstagramIcon />
+        <PlatformIcon platform={campaign.platform} />
         <span className="cp-social-dots" aria-hidden="true">
           ···
         </span>

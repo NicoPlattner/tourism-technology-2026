@@ -109,7 +109,7 @@ export default function CampaignReviewDialog({
             <h3>
               Caption to approve{" "}
               <span className="cp-caption-source">
-                {captionSource === "live_ai" ? "AI generated" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Generic preview · not age-personalized"}
+                {captionSource === "live_ai" ? "AI generated" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Demo preview · not age-personalized"}
               </span>
             </h3>
             <p lang={campaign.language}>{campaign.caption}</p>
@@ -133,7 +133,7 @@ export default function CampaignReviewDialog({
             <strong>✓ Campaign approved locally</strong>
             <p>
               Approved {displayDate(approval.approvedAt)}. The proposed dates
-              are saved in this Overview session; no Instagram post or real
+              are saved in this Overview session; no social media post or real
               schedule has been created.
             </p>
           </div>

@@ -1,3 +1,4 @@
+import type { SocialPlatform } from "./socialProfile";
 import type { CaptionMetadata } from "./captions/contracts";
 export type SourceMarket = "DE" | "NL" | "BE" | "AT";
 export type TravelPeriod = "q1-2027" | "q2-2027" | "winter-2026-27";
@@ -48,7 +49,7 @@ export interface CampaignRecommendation {
   campaign: DateRange;
   publishingDates: string[];
   timezone: "Europe/Vienna";
-  platform: "Instagram";
+  platform: SocialPlatform;
   theme: string;
   language: CampaignLanguage;
   languageLabel: string;

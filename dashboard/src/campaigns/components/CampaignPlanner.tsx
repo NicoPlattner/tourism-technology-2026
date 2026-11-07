@@ -3,7 +3,7 @@ import ArrowIcon from "./ArrowIcon";
 import type { CampaignApproval, CampaignRecommendation } from "../types";
 import { displayRange } from "../mockCampaignData";
 import CampaignReasoning from "./CampaignReasoning";
-import SocialPostPreview, { InstagramIcon } from "./SocialPostPreview";
+import SocialPostPreview, { PlatformIcon } from "./SocialPostPreview";
 export default function CampaignPlanner({
   campaign,
   approval,
@@ -32,7 +32,7 @@ export default function CampaignPlanner({
           <h3>{campaign.country}</h3>
         </div>
         <span className="cp-platform">
-          <InstagramIcon /> Instagram
+          <PlatformIcon platform={campaign.platform} /> {campaign.platform}
         </span>
       </div>
       <dl className="cp-summary">
