@@ -40,6 +40,17 @@ cd dashboard && npm ci && npm run dev     # local development
 npm run build                             # builds into helm/tourism-technology/site
 ```
 
+## Fan page — Paznaun-Ischgl (unofficial, demo)
+
+`fanpage/` is a small static site (plain HTML/CSS/JS, no build step): what to do
+in winter and summer, filtered by interest (active, nature, family, food &
+culture, events & après), the four villages, and a short fan blog. All content
+lives in `fanpage/app.js`. Photos are hot-linked from Wikimedia Commons with
+credits in the footer. Open `fanpage/index.html` locally or serve the folder
+with any static server.
+
+Deploy it with the same workflow by choosing **site → fanpage**.
+
 ## Deployment
 
 
@@ -77,7 +88,8 @@ Optional Actions variables:
 ## Run the pipeline
 
 After the workflow exists on the default branch, open **Actions → Deploy to
-Kubernetes → Run workflow**, select the branch to deploy, and run it. Any branch
+Kubernetes → Run workflow**, select the branch to deploy and the site
+(`dashboard` by default, or `fanpage`), and run it. Any branch
 can be selected; deploying is manual so unfinished pushes are not published.
 By default the branch is available at
 `https://hackathon.daria-and-nico.com/<branch-name>`. Branch names containing

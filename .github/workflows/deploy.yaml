@@ -8,6 +8,12 @@ on:
         type: boolean
         default: false
         required: true
+      site:
+        description: Which site to deploy (dashboard = Demand Radar, fanpage = Paznaun-Ischgl fan page)
+        type: choice
+        options: [dashboard, fanpage]
+        default: dashboard
+        required: true
 
 concurrency:
   group: pangolin-ci
@@ -35,6 +41,7 @@ jobs:
         env:
           BRANCH_NAME: ${{ github.ref_name }}
           DEPLOY_ROOT: ${{ inputs.deploy_root }}
+          SITE: ${{ inputs.site }}
         run: |
           set -euo pipefail
           # Safe branch names retain their spelling; other names get a unique slug.
@@ -46,6 +53,12 @@ jobs:
             path="/branch-${slug:-ref}-$branch_hash"
           fi
           release="branch-$branch_hash"
+          # Text the deployed page must contain; used by the verification steps.
+          case "$SITE" in
+            fanpage) marker='Paznaun-Ischgl Fan Page' ;;
+            *) marker='Demand Radar' ;;
+          esac
+          printf 'SITE_MARKER=%s\n' "$marker" >> "$GITHUB_ENV"
           if [[ "$DEPLOY_ROOT" == "true" ]]; then
             path=/
             release=tourism-root
@@ -53,16 +66,26 @@ jobs:
           printf 'DEPLOY_PATH=%s\nRELEASE_NAME=%s\n' "$path" "$release" >> "$GITHUB_ENV"
 
       - uses: actions/setup-node@v4
+        if: inputs.site != 'fanpage'
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: dashboard/package-lock.json
 
       - name: Build dashboard
+        if: inputs.site != 'fanpage'
         working-directory: dashboard
         run: |
           npm ci --no-audit --no-fund
           npm run build
+
+      - name: Copy fan page
+        if: inputs.site == 'fanpage'
+        run: |
+          # Static files, no build step. Kept flat: the chart serves a ConfigMap.
+          rm -rf helm/tourism-technology/site
+          mkdir -p helm/tourism-technology/site
+          cp fanpage/index.html fanpage/styles.css fanpage/app.js helm/tourism-technology/site/
 
       - name: Validate Helm chart
         run: helm lint helm/tourism-technology
@@ -164,7 +187,7 @@ jobs:
           trap 'kill "$forward_pid" 2>/dev/null || true' EXIT
           for attempt in {1..15}; do
             if curl -fsS --max-time 5 "http://127.0.0.1:18081$health_path" | grep -Fq 'demand-radar ok' &&
-              curl -fsSL --max-time 5 "http://127.0.0.1:18081$DEPLOY_PATH" | grep -Fq 'Demand Radar'; then
+              curl -fsSL --max-time 5 "http://127.0.0.1:18081$DEPLOY_PATH" | grep -Fq "$SITE_MARKER"; then
               printf '\nService verified. URL: https://hackathon.daria-and-nico.com%s (public route not verified).\n' "$DEPLOY_PATH" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
@@ -176,7 +199,7 @@ jobs:
       - name: Verify public URL
         run: |
           url="https://hackathon.daria-and-nico.com$DEPLOY_PATH"
-          if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fq 'Demand Radar'; then
+          if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fq "$SITE_MARKER"; then
             printf 'Public URL verified: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
           else
             printf 'Public URL verification failed: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
