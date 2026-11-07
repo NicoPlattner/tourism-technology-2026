@@ -83,7 +83,7 @@ def overnights() -> None:
         out(f"- **Check 3, PY alignment** (share equal, corr) by lag: { {k: (round(v[0], 3), round(v[1], 3)) for k, v in res.items()} }")
     else:
         out("- **Check 3, PY alignment**: actual and PY do not overlap by one year; compare PY with TR53 pseudo-daily instead")
-    # 4 municipalities sum + level vs TR53 actual
+    # 4 level vs TR53 actual (TR53 = Galtür, Ischgl, Kappl, Pians, See; hotels + holiday flats only)
     if (t.muni != "total").any() and (t.muni == "total").any():
         s = t[t.muni != "total"].groupby("date").act.sum(min_count=1)
         jj = pd.concat([s, tot.act], axis=1, sort=True).dropna()

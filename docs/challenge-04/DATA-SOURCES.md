@@ -7,15 +7,18 @@ Sunday 13:00.
 Legend: **P1** = build now, **P2** = build if time allows, **P3** = mention in
 the pitch / roadmap only, **ASK** = request from the TVB (Raphael Tonitz is on site).
 
-## 1. Partner data (TTF Data Space, members only, never commit)
+## 1. Partner data (TTF Data Space, TVB Paznaun-Ischgl, never commit raw files)
 
-| Data | Use | Priority |
-|---|---|---|
-| Daily stays PY / forecast / actual per municipality | target, residuals | P1 |
-| Daily available beds | utilisation, capacity flags | P1 |
-| Weekly bookings by lead-time class 2023–2026 | early-warning intake index | P1 |
-| Event calendar 2026–27 | event features, attribution | P1 |
-| Contwise API (POIs, events) | extra events, event metadata | P2 |
+Verified in the public TTF catalogue on 8 Nov (see the TTF catalogue for links
+and full schemas). Access: Join TTF with challenge 04, then Request access.
+
+| Product | Columns | Use | Priority |
+|---|---|---|---|
+| Overnight stays, 2025-11-04 → 2027-04-04 (one daily total for Ischgl, Galtür, Kappl, See) | `date, actual, forecast, previous_year` | target, residuals | P1 |
+| Available beds, 2025-02-06 → 2026-11-07 | `date, available_beds` | utilisation, capacity flags | P1 |
+| Booking lead time, weekly 2023-10-30 → 2026-10-26 | `week_start, bookings_{0,8,31,61,90,180}_days_ahead` | early-warning intake index | P1 |
+| Event calendar 2026–2027 (events, openings/closings, public holidays) | `date, event, weekday` | event and season features, attribution | P1 |
+| Contwise content API (external, POIs, events, tours) | API | extra event metadata | P3 |
 
 ## 2. Ask the TVB on site (biggest upgrade per minute spent)
 
@@ -25,7 +28,7 @@ challenge question 2 needs.
 | Ask | Why | What it unlocks |
 |---|---|---|
 | **Stays by guest nationality** (daily or monthly, Feratel registration data) | Each guest is registered with nationality | Per-market deviations; links holidays to markets directly |
-| **On-the-books by stay date** (bookings already held for each future night, snapshot today and same day last year) | Classic pickup forecasting needs this; the weekly lead-time file is aggregated by booking week | Additive/multiplicative pickup nowcast, strongest short-term signal in the hotel RM literature |
+| **On-the-books by stay date** (bookings already held for each future night, snapshot today and same day last year) | Classic pickup forecasting needs this; the weekly lead-time file has no stay dates | Additive/multiplicative pickup nowcast, strongest short-term signal in the hotel RM literature |
 | **Website / booking-engine sessions by country** (GA4, Deskline search requests) | Search requests are demand before booking | Leading indicator per market (Google Analytics data improved arrival forecasts in published studies) |
 | Old vintages of the forecast column | Backtest the official forecast itself | Honest "official vs ours" error table |
 | Lift ticket / skier days (Silvretta Seilbahn) | Day visitors vs overnight guests | Out of scope unless offered |

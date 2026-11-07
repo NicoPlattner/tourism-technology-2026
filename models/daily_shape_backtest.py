@@ -112,13 +112,14 @@ def fit_predict(kind: str, tr: pd.Index, te: pd.Index) -> pd.Series:
         m = PoissonRegressor(alpha=ALPHA, max_iter=3000).fit(X.loc[w], y[w] / SCALE)
         return pd.Series(m.predict(X.loc[te]) * SCALE, index=te).mask(closed, 0.0)
     m = lgb.LGBMRegressor(objective="poisson", n_estimators=400, learning_rate=.03, num_leaves=15,
-                          min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8,
+                          min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8, random_state=0,
                           verbose=-1).fit(X.loc[w], y[w])
     return pd.Series(m.predict(X.loc[te]), index=te).mask(closed, 0.0)
 
 
-rows, preds = [], {}
-for name, (tr_end, a, b) in SPLITS.items():
+def predict_split(name: str) -> tuple[pd.Index, dict]:
+    """All candidate daily predictions (rescaled to monthly totals) for one split."""
+    tr_end, a, b = SPLITS[name]
     te = f.loc[a:b].index
     te = te[f.loc[te, "month"].isin(WINTER_MONTHS + [11]) & y[te].notna()]
     tr = f.loc[:tr_end].index
@@ -131,21 +132,25 @@ for name, (tr_end, a, b) in SPLITS.items():
         "lgbm": fit_predict("lgbm", tr, te),
         "py_holiday+delta": delta_model(tr, te),
     }
-    cand["ens(py_holiday,lgbm)"] = (rescale_to_month(cand["py_holiday"], totals[te]) +
-                                    rescale_to_month(cand["lgbm"], totals[te])) / 2
-    pk = peak_mask(te, f.loc[te])
-    for k, p in cand.items():
-        p = rescale_to_month(p, totals[te]) if p.notna().all() else p
-        preds[(name, k)] = p
-        rows.append({"split": name, "model": k, "wMAPE all": wmape(y[te], p),
-                     "wMAPE peaks": wmape(y[te][pk], p[pk]),
-                     "wMAPE Dec-Apr": wmape(y[te][f.loc[te, "month"].isin(WINTER_MONTHS)],
-                                            p[f.loc[te, "month"].isin(WINTER_MONTHS)])})
-res = pd.DataFrame(rows)
-res.to_csv(ROOT / "models" / "results_daily_shape.csv", index=False)
-print("Daily shape error (oracle monthly totals), lower is better:")
-print(res.pivot(index="model", columns="split", values="wMAPE all").round(3).loc[
-    ["flat", "py_364", "py_holiday", "official", "glm", "lgbm", "py_holiday+delta", "ens(py_holiday,lgbm)"]].to_string())
-print("\nPeak periods only (Christmas/New Year, Feb half-terms, Easter):")
-print(res.pivot(index="model", columns="split", values="wMAPE peaks").round(3).loc[
-    ["flat", "py_364", "py_holiday", "official", "glm", "lgbm", "py_holiday+delta", "ens(py_holiday,lgbm)"]].to_string())
+    cand = {k: (rescale_to_month(p, totals[te]) if p.notna().all() else p) for k, p in cand.items()}
+    cand["ens(py_holiday,lgbm)"] = (cand["py_holiday"] + cand["lgbm"]) / 2
+    return te, cand
+
+
+ORDER = ["flat", "py_364", "py_holiday", "official", "glm", "lgbm", "py_holiday+delta", "ens(py_holiday,lgbm)"]
+
+if __name__ == "__main__":
+    rows = []
+    for name in SPLITS:
+        te, cand = predict_split(name)
+        pk = peak_mask(te, f.loc[te])
+        win = f.loc[te, "month"].isin(WINTER_MONTHS)
+        for k, p in cand.items():
+            rows.append({"split": name, "model": k, "wMAPE all": wmape(y[te], p),
+                         "wMAPE peaks": wmape(y[te][pk], p[pk]), "wMAPE Dec-Apr": wmape(y[te][win], p[win])})
+    res = pd.DataFrame(rows)
+    res.to_csv(ROOT / "models" / "results_daily_shape.csv", index=False)
+    print("Daily shape error (oracle monthly totals), lower is better:")
+    print(res.pivot(index="model", columns="split", values="wMAPE all").round(3).loc[ORDER].to_string())
+    print("\nPeak periods only (Christmas/New Year, Feb half-terms, Easter):")
+    print(res.pivot(index="model", columns="split", values="wMAPE peaks").round(3).loc[ORDER].to_string())

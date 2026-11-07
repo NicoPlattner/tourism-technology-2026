@@ -1,15 +1,21 @@
 """Schema-tolerant loaders for the TVB Paznaun-Ischgl partner files (TTF Data Space).
 
-The files are members-only: keep them in data/raw/partner/ (git-ignored) and
-never commit them or row-level extracts. Exact column names were not known
-when this was written, so the loaders detect delimiter, decimal comma, the
-date column and column roles by keywords, and print what they mapped.
+Access needs a TTF Data Space account for Challenge 04: keep the files in
+data/raw/partner/ (git-ignored) and never commit them or row-level extracts.
+
+Published schemas (TTF catalogue, 8 Nov 2026):
+  overnight stays   date, actual, forecast, previous_year   (one daily total, Ischgl+Galtür+Kappl+See)
+  available beds    date, available_beds
+  booking lead time week_start, bookings_{0,8,31,61,90,180}_days_ahead
+  event calendar    date, event, weekday
+The loaders match these names first and fall back to keyword detection
+(delimiter, decimal comma, date column, roles) if the CSV headers differ.
 
 Roles for the overnight file (wide or long format):
   py   previous-year figure   (vorjahr, vj, previous, prior, ly)
   fc   forecast               (prognose, forecast, fc, plan)
   act  actual stays           (ist, actual, tatsächlich, aktuell, nächtigungen)
-and an optional municipality dimension (Ischgl, Galtür, Kappl, See, gesamt/total).
+A municipality dimension is supported in case a later edition adds one.
 """
 from __future__ import annotations
 
