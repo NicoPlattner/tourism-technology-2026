@@ -172,8 +172,6 @@ jobs:
 
       - name: Deploy Helm release
         run: |
-          # An earlier chart version used a volume claim that never bound; drop it.
-          kubectl -n tourism-technology-2026 delete pvc "$RELEASE_NAME-api-data" --ignore-not-found --wait=false || true
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \

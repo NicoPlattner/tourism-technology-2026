@@ -149,6 +149,9 @@ export default function GoogleAnalyticsCard({ ga, setGa, loadError }: { ga: GaSt
         </div>
       )}
 
+      {ga.persistent === false && ga.accounts.length > 0 && (
+        <p className="muted small">The server has no permanent storage yet: the connection lasts until the API restarts or is redeployed.</p>
+      )}
       {!GA_CLIENT_ID && <p className="warn">Google sign-in is not configured (VITE_GOOGLE_CLIENT_ID).</p>}
       {GA_CLIENT_ID && !ga.configured && <p className="warn">The server has no Google client secret yet (GOOGLE_CLIENT_SECRET).</p>}
       {error && <p className="warn">{error}</p>}

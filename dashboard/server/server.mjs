@@ -10,6 +10,7 @@
 // Node 22, no dependencies. Configuration (environment):
 //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET  OAuth web client (required)
 //   DATA_DIR      where ga.json is stored (default ./data)
+//   STORE_PERSISTENT  'false' if DATA_DIR is lost on restart (shown in the UI)
 //   PORT          default 8787
 //   GOOGLE_OAUTH_URL, GA_ADMIN_URL, GA_DATA_URL  overridable for tests
 
@@ -27,6 +28,8 @@ const ADMIN = env.GA_ADMIN_URL ?? 'https://analyticsadmin.googleapis.com';
 const DATA = env.GA_DATA_URL ?? 'https://analyticsdata.googleapis.com';
 const CHECK_MS = Number(env.CHECK_INTERVAL_MS ?? 3_600_000);
 const configured = !!(CLIENT_ID && CLIENT_SECRET);
+// false when DATA_DIR does not survive a restart (e.g. an emptyDir).
+const persistent = env.STORE_PERSISTENT !== 'false';
 
 // ---------- storage: one JSON document, refresh tokens encrypted (AES-256-GCM)
 
@@ -51,7 +54,7 @@ const open = (sealed) => {
 let store = { accounts: [], connections: [] };
 const access = new Map(); // accountId -> { token, expiresAt } (memory only)
 
-// File store; in the cluster DATA_DIR is a folder on the node (hostPath).
+// File store under DATA_DIR (a volume in the cluster).
 const FILE = join(DATA_DIR, 'ga.json');
 const fileBackend = {
   async read() {
@@ -169,6 +172,7 @@ async function revoke(account) {
 
 const publicState = () => ({
   configured,
+  persistent,
   accounts: store.accounts.map(({ id, email, error }) => ({ id, email, ...(error && { error }) })),
   connections: store.connections,
 });

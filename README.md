@@ -33,10 +33,16 @@ and weather live when it loads.
 and a small Node API (`dashboard/server/server.mjs`, no dependencies) that the
 ingress routes `<path>/api` to. *Connect Google Analytics* opens Google's
 sign-in popup (authorization code flow) for `openid email analytics.readonly`;
-the API exchanges the code for a refresh token, stores it AES-GCM encrypted in
-a folder on the node (`/var/lib/demand-radar/<release>`, a hostPath volume, so
-it survives restarts and redeploys) and refreshes access hourly. The connection therefore stays
-up 24/7 and is the same on every device until someone disconnects it. Several
+the API exchanges the code for a refresh token, stores it AES-GCM encrypted under
+`/data` and refreshes access hourly, so the connection stays up 24/7 and is the
+same on every device until someone disconnects it. **Storage:** with
+`api.persistence.enabled=true` `/data` is a PersistentVolumeClaim and the
+connection survives restarts and redeploys. The cluster currently has no
+storage class (and enforces Pod Security "baseline", so no hostPath), so this
+is off: `/data` is an emptyDir and the connection must be made again after the
+API pod restarts or is redeployed; the dashboard says so. To turn it on run
+`microk8s enable hostpath-storage` on the node and set
+`api.persistence.enabled: true` in `helm/tourism-technology/values.yaml`. Several
 Google accounts and properties can be added; properties are always picked
 explicitly. *Website data* shows the Realtime report (last 30 minutes —
 Google's realtime limit), refreshed every minute.
@@ -72,9 +78,8 @@ No permanent Kubernetes token is required.
 
 The [Helm chart](helm/tourism-technology) runs two services: the built
 dashboard on unprivileged nginx (files from a ConfigMap) and the Node API
-(code from a ConfigMap, data in a hostPath folder on the node — the cluster has
-no storage class and CI may not create RBAC roles); the workflow builds both
-first. Each branch gets an isolated Helm release and URL under
+(code from a ConfigMap; data on a PersistentVolumeClaim when
+`api.persistence.enabled`, else an emptyDir); the workflow builds both first. Each branch gets an isolated Helm release and URL under
 `https://hackathon.daria-and-nico.com/<branch-name>`.
 
 ## Repository setup
@@ -92,8 +97,8 @@ Set these repository secrets under **Settings → Secrets and variables → Acti
 The workflow selects its `microk8s` context, and `id-token: write` lets the helper
 request short-lived credentials. The namespace and its RBAC must already exist;
 CI does not create them. Helm also needs permission to manage release secrets in
-that namespace, and the API needs secrets there. Pod security must allow
-hostPath volumes and a root init container with only `CHOWN`.
+that namespace, and the API needs secrets (and PersistentVolumeClaims with
+persistence on) there.
 
 Optional Actions variables:
 

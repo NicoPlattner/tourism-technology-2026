@@ -59,7 +59,7 @@ export function googleSignIn(oauth2: GoogleOAuth2, opts: { selectAccount?: boole
 export interface GaProperty { id: string; name: string; account: string }
 export interface GaAccount { id: string; email: string; error?: string }
 export interface GaConnection { property: GaProperty; accountId: string }
-export interface GaState { configured: boolean; accounts: GaAccount[]; connections: GaConnection[] }
+export interface GaState { configured: boolean; persistent?: boolean; accounts: GaAccount[]; connections: GaConnection[] }
 export interface GaRealtime { activeUsers: number; countries: { name: string; value: number }[]; pages: { name: string; value: number }[]; updated: string }
 
 // Relative, so it resolves under the deployment path (e.g. /my-branch/api/…).

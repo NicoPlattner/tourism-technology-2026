@@ -27,7 +27,7 @@ const call = async (method, path, body) => {
 
 test('connect, pick, read realtime data, survive refresh, revoke', async () => {
   let r = await call('GET', '/ga');
-  assert.deepEqual(r.body, { configured: true, accounts: [], connections: [] });
+  assert.deepEqual(r.body, { configured: true, persistent: true, accounts: [], connections: [] });
 
   r = await call('POST', '/ga/accounts', { code: 'good-code' });
   assert.equal(r.status, 200);

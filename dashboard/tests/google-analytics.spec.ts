@@ -132,6 +132,14 @@ test("revoked access shows Reconnect for that account", async ({ page }) => {
   await expect(page.locator(".ga-data .ga-big")).toHaveText("3 active users");
 });
 
+test("a server without permanent storage says the connection is temporary", async ({ page }) => {
+  const { state } = await mockServer(page);
+  Object.assign(state, { persistent: false });
+  state.accounts.push({ id: "user-1", email: "nico@example.com" });
+  await page.goto("./#data");
+  await expect(page.getByText(/no permanent storage yet/)).toBeVisible();
+});
+
 test("without a server-side client secret the button is disabled and says why", async ({ page }) => {
   await mockServer(page, { configured: false });
   await page.goto("./#data");
