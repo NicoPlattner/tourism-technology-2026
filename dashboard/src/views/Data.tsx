@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ModelPerformance from "../analytics/ModelPerformance";
 import type { ViewProps } from "../App";
 import { useDataSnapshot } from "../campaigns/demand/useDataSnapshot";
 import {
@@ -243,6 +244,9 @@ export default function Data(_props: ViewProps) {
         </a>
         <a href="#markets">
           Market intelligence <Arrow down />
+        </a>
+        <a href="#performance">
+          Model performance <Arrow down />
         </a>
         <a href="#why">
           Deviations <Arrow down />
@@ -632,6 +636,7 @@ export default function Data(_props: ViewProps) {
         </State>
       </section>
 
+      <ModelPerformance />
       <section
         id="why"
         className="dr-data-section"
@@ -639,7 +644,7 @@ export default function Data(_props: ViewProps) {
       >
         <div className="di-section-head">
           <div>
-            <p className="eyebrow">04 / Learn from the past</p>
+            <p className="eyebrow">05 / Learn from the past</p>
             <h2 id="data-deviations-heading">Deviations</h2>
           </div>
           <label className="di-history-filter">
