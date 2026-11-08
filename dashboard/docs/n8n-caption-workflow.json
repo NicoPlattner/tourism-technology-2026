@@ -1,0 +1,113 @@
+{
+  "name": "Tourism caption assistant \u2014 one OpenAI request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tourism-caption",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "caption-webhook",
+      "name": "Authenticated caption webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "tourism-caption"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: $json.body.model, messages: $json.body.messages, max_completion_tokens: $json.body.maxOutputTokens, response_format: { type: 'json_schema', json_schema: { name: 'instagram_caption', strict: true, schema: $json.body.responseSchema } } } }}",
+        "options": {
+          "timeout": 7000
+        }
+      },
+      "id": "caption-openai",
+      "name": "One OpenAI caption request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ],
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const choice = $input.first().json.choices?.[0];\nif (choice?.finish_reason !== 'stop' || choice.message?.refusal) throw new Error('Caption generation incomplete');\nconst result = JSON.parse(choice.message.content);\nconst output = { caption: result.caption, hashtags: result.hashtags, language: result.language };\nif ($('Authenticated caption webhook').first().json.body.metadata.generationMode === 'creative') {\n  output.assetId = result.assetId; output.platform = result.platform; output.creativeReason = result.creativeReason;\n}\nreturn [{ json: output }];"
+      },
+      "id": "caption-json",
+      "name": "Return caption JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "caption-respond",
+      "name": "Respond to dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        780,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Authenticated caption webhook": {
+      "main": [
+        [
+          {
+            "node": "One OpenAI caption request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "One OpenAI caption request": {
+      "main": [
+        [
+          {
+            "node": "Return caption JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return caption JSON": {
+      "main": [
+        [
+          {
+            "node": "Respond to dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

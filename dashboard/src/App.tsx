@@ -1,3 +1,4 @@
+import { useCampaigns } from "./campaigns/management/store";
 import { useEffect, useMemo, useState } from 'react';
 import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
 import { gaApi, type GaState } from './data/googleAnalytics';
@@ -17,7 +18,7 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'season', label: 'Season', hint: 'Day by day' },
   { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
   { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
-  { id: 'actions', label: 'Actions', hint: 'Ranked next steps' },
+  { id: 'actions', label: 'Actions', hint: 'Campaigns & publishing' },
   { id: 'integrations', label: 'Integrations', hint: 'Google Analytics and data sources' },
 ];
 
@@ -28,6 +29,7 @@ const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne
 const readTab = (): Tab => (location.hash === '#data' ? 'integrations' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
+  const campaignState = useCampaigns();
   const [tab, setTab] = useState<Tab>(readTab);
   const [ga, setGa] = useState<GaState | null>(null);
   const [gaError, setGaError] = useState<string | undefined>();
@@ -78,7 +80,7 @@ export default function App() {
         <nav className="tabs" aria-label="Sections">
           {TABS.map((t) => (
             <a key={t.id} href={`#${t.id}`} className={tab === t.id ? 'active' : ''} aria-current={tab === t.id ? 'page' : undefined} title={t.hint}
-              onClick={(e) => { e.preventDefault(); go(t.id); }}>{t.label}{t.id === 'actions' && <b className="count">{model.actions.length}</b>}</a>
+              onClick={(e) => { e.preventDefault(); go(t.id); }}>{t.label}{t.id === 'actions' && <b className="count">{campaignState.campaigns.length}</b>}</a>
           ))}
         </nav>
       </header>

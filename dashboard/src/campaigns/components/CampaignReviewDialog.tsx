@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { CampaignApproval, CampaignRecommendation } from "../types";
+import type { CampaignApproval, CampaignRecommendation, CampaignCaption } from "../types";
 import {
   displayDate,
   displayPublishingDate,
@@ -10,11 +10,13 @@ export default function CampaignReviewDialog({
   approval,
   onApprove,
   onClose,
+  captionSource = "demo_fallback",
 }: {
   campaign: CampaignRecommendation;
   approval?: CampaignApproval;
   onApprove: () => void;
   onClose: () => void;
+  captionSource?: CampaignCaption["source"];
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -104,7 +106,12 @@ export default function CampaignReviewDialog({
         <section className="cp-review-post">
           <img src={campaign.asset.src} alt={campaign.asset.alt} />
           <div>
-            <h3>Caption to approve</h3>
+            <h3>
+              Caption to approve{" "}
+              <span className="cp-caption-source">
+                {captionSource === "live_ai" ? "AI generated" : captionSource === "pre_generated" ? "Pre-generated AI caption" : "Demo preview · not age-personalized"}
+              </span>
+            </h3>
             <p lang={campaign.language}>{campaign.caption}</p>
             <p className="cp-hashtags" lang={campaign.language}>
               {campaign.hashtags.join(" ")}
@@ -126,7 +133,7 @@ export default function CampaignReviewDialog({
             <strong>✓ Campaign approved locally</strong>
             <p>
               Approved {displayDate(approval.approvedAt)}. The proposed dates
-              are saved in this Overview session; no Instagram post or real
+              are saved in this Overview session; no social media post or real
               schedule has been created.
             </p>
           </div>
