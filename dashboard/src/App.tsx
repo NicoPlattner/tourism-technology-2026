@@ -22,13 +22,13 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
 const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne_r.png';
 
 // Existing analytics links now open their section on the combined Data page.
-const readTab = (): Tab => (['#season', '#why', '#capacity', '#markets'].includes(location.hash) ? 'data' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
+const readTab = (): Tab => (['#season', '#why', '#capacity', '#markets', '#performance'].includes(location.hash) ? 'data' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
   const campaignState = useCampaigns();
   const [tab, setTab] = useState<Tab>(readTab);
   useEffect(() => {
-    if (tab === 'data' && ['#season', '#why', '#capacity', '#markets'].includes(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+    if (tab === 'data' && ['#season', '#why', '#capacity', '#markets', '#performance'].includes(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView();
   }, [tab]);
   const [ga, setGa] = useState<GaState | null>(null);
   const [gaError, setGaError] = useState<string | undefined>();

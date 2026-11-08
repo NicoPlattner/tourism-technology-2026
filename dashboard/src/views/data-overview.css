@@ -730,3 +730,112 @@ button.di-day {
   vertical-align: middle;
   margin-left: 6px;
 }
+
+.di-performance-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+.di-performance-controls button {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--slate);
+  font: 600 12px var(--sans);
+  cursor: pointer;
+}
+.di-performance-controls button[aria-pressed="true"] {
+  background: var(--slate);
+  color: #fff;
+  border-color: var(--slate);
+}
+.di-performance-chart {
+  margin-top: 24px;
+}
+.di-performance-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.di-performance-key span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.di-performance-window {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+}
+.di-performance-period h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.di-performance-period p {
+  margin: 5px 0 18px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.di-performance-bar {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 90px;
+  gap: 14px;
+  align-items: center;
+  font-size: 12px;
+  margin: 12px 0;
+}
+.di-performance-bar strong {
+  text-align: right;
+}
+.di-performance-track {
+  height: 22px;
+  background: #f0f3f5;
+}
+.di-performance-track i {
+  display: block;
+  height: 100%;
+}
+.di-performance-track .ours {
+  background: var(--red);
+}
+.di-performance-track .provider {
+  background: var(--slate);
+}
+.di-performance-result {
+  margin: 14px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+}
+.di-performance-axis {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 104px 0 184px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.di-performance-provenance {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.di-performance-provenance code {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .di-performance-bar {
+    grid-template-columns: minmax(0, 1fr) 80px;
+    gap: 8px;
+  }
+  .di-performance-bar > span {
+    grid-column: 1/-1;
+  }
+  .di-performance-axis {
+    margin: 10px 88px 0 0;
+  }
+  .di-performance-track {
+    height: 18px;
+  }
+}

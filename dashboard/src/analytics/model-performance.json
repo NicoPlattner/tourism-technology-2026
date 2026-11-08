@@ -1,0 +1,59 @@
+{
+  "source": "models/results_real_backtest.csv",
+  "evaluator": "models/real_backtest.py",
+  "source_sha256": "35906d3350c559f1a727f41b9f81e2f7c40489b4c39a900767f0a67460abf883",
+  "windows": [
+    {
+      "id": "winter 25/26",
+      "label": "Winter 2025/26",
+      "start": "2025-11-01",
+      "end": "2026-04-30",
+      "training_cutoff": "2025-10-31",
+      "matched_day_count": null,
+      "models": {
+        "ours": {
+          "source_model": "ours_ens (winter: + lgbm push-pull)",
+          "metrics": {
+            "daily_wmape": 0.08494459147993899,
+            "monthly_mape": 0.03727422689729138,
+            "peak_wmape": 0.06507468639973935
+          }
+        },
+        "provider": {
+          "source_model": "partner_fc (TVB forecast)",
+          "metrics": {
+            "daily_wmape": 0.05533986589430863,
+            "monthly_mape": 0.06080774750412713,
+            "peak_wmape": 0.04282231636160179
+          }
+        }
+      }
+    },
+    {
+      "id": "May-Oct 2026",
+      "label": "May–October 2026",
+      "start": "2026-05-01",
+      "end": "2026-10-31",
+      "training_cutoff": "2025-10-31",
+      "matched_day_count": null,
+      "models": {
+        "ours": {
+          "source_model": "ours_ens (winter: + lgbm push-pull)",
+          "metrics": {
+            "daily_wmape": 0.18404728942758303,
+            "monthly_mape": 0.19089784659278577,
+            "peak_wmape": null
+          }
+        },
+        "provider": {
+          "source_model": "partner_fc (TVB forecast)",
+          "metrics": {
+            "daily_wmape": 0.1541551887829312,
+            "monthly_mape": 0.2006792030784703,
+            "peak_wmape": null
+          }
+        }
+      }
+    }
+  ]
+}
