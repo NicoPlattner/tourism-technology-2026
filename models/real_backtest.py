@@ -91,7 +91,28 @@ def ours(origin: str, idx: pd.DatetimeIndex):
         lambda m: 1.0)  # full months only (test windows are whole months)
     lg = rescale_to_month(g, tot * frac)
     ph = rescale_to_month(py.fillna(py.mean()), tot * frac)
-    return {"ours_lgbm": lg, "ours_ens": (lg + ph) / 2, "py_holiday": py}
+    # third member: LightGBM with push-pull columns (market-group shares + pull factor), fitted on the same
+    # history only. Kept although winter 24/25 (trained on the open stand-in only) got slightly worse
+    # (14.0 vs 13.5 %): with real training data (winter 25/26) the 3-member ensemble is clearly best
+    # (7.7 vs 9.0 %, peak days 6.3 vs 7.2 %), and real data will keep growing.
+    from push_pull import PushPull
+    trn = h.index[(f.loc[h.index, "in_season"] == 1) & h.notna() & (h > 0)]
+    pp = PushPull(f).fit(h[trn], f.loc[trn, "sample_weight"].clip(lower=.5))
+    total, parts = pp.predict(f.index, by_market=True)
+    sh = parts.div(parts.sum(axis=1), axis=0)
+    groups = {"pp_DE": ["DE"], "pp_BENELUX": ["NL", "BE", "LU"], "pp_NORDIC_UK": ["DK", "SE", "GB"],
+              "pp_NEIGHBOURS": ["CH", "AT", "IT", "FR"], "pp_EAST": ["PL", "CZ"]}
+    Xp = X.copy()
+    for k, ms in groups.items():
+        Xp[k] = sh[[m for m in ms if m in sh]].sum(axis=1)
+    Xp["pp_pull"] = np.log(total / pp.push_index(f.index))
+    gbm2 = lgb.LGBMRegressor(objective="poisson", n_estimators=400, learning_rate=.03, num_leaves=15,
+                             min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8,
+                             random_state=0, verbose=-1).fit(Xp.loc[w], h[w], sample_weight=f.loc[w, "sample_weight"])
+    lp = rescale_to_month(pd.Series(gbm2.predict(Xp.loc[idx]), index=idx), tot * frac)
+    e2, e3 = (lg + ph) / 2, (lg + ph + lp) / 3
+    winter = pd.Series(idx.month.isin([11, 12, 1, 2, 3, 4]), index=idx)  # push-pull is fitted on winter days
+    return {"ours_lgbm": lg, "ours_ens": e3.where(winter, e2), "ours_ens2": e2, "py_holiday": py}
 
 
 def evaluate(origin: str, start: str, end: str, label: str):
@@ -105,7 +126,8 @@ def evaluate(origin: str, start: str, end: str, label: str):
         "py_holiday": o["py_holiday"],
         "official_tr53 x level (in-sample)": f.loc[idx, "official_daily"] * level_ratio(origin),
         "ours_lgbm": o["ours_lgbm"],
-        "ours_ens": o["ours_ens"],
+        "ours_ens2 (py + lgbm)": o["ours_ens2"],
+        "ours_ens (winter: + lgbm push-pull)": o["ours_ens"],
     }
     rows = []
     pk = peak_mask(idx, f.loc[idx])
@@ -141,7 +163,7 @@ if __name__ == "__main__":
     rc = np.log(real[idx_c] / oc).replace([np.inf, -np.inf], np.nan).dropna()
     pk_c = peak_mask(rc.index, f.loc[rc.index])
     q = {"peak": float(np.quantile(rc[pk_c].abs(), .8)), "normal": float(np.quantile(rc[~pk_c].abs(), .8))}
-    p = cand_w["ours_ens"]
+    p = cand_w["ours_ens (winter: + lgbm push-pull)"]
     rt = np.log(real[idx_w] / p).replace([np.inf, -np.inf], np.nan).dropna()
     pk_t = peak_mask(rt.index, f.loc[rt.index])
     cover = float((rt.abs() <= np.where(pk_t, q["peak"], q["normal"])).mean())

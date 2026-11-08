@@ -105,7 +105,8 @@ models/
   m1_origin.py         M1/M2 guests, nights, length of stay per origin (Tirol)
   m3_daily.py          M3 daily distribution per origin (pull x holiday push)
   m4_leadtime.py       M4 booking lead time
-  gui_outputs.py       M4/M5 tables, query(origin, start, end) for the GUI
+  gui_outputs.py       M4/M5 tables, Paznaun share per origin
+  gui_api.py           complete GUI table with estimate flags, query(destination, origin, start, end)
   backtest_v2.py       comparison: push-pull, compact LightGBM, sample weights, ensembles
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)

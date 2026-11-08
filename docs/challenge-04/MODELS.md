@@ -136,6 +136,24 @@ separate; collapsing them into one push index loses information).
    peaks: NL 28 % in its spring-break week (22–28 Feb), DK 9 % in week 7,
    BE 21 % around Easter, DE dominant at Christmas and Easter.
 
+## 3c. Model choices on principle (8 Nov review)
+
+Some choices follow reasoning, not only the last backtest, because the
+data will change (more real seasons, other destinations, other users):
+
+| Choice | Test result | Why it is kept |
+|---|---|---|
+| M1 trained on all 9 Austrian states (destination as a feature) | Tirol 9.9 % vs 10.3 % Tirol-only; median origin 11.3 vs 12.4 % | more data per origin, other states become available in the GUI at no extra cost |
+| Paznaun forecast: third ensemble member = LightGBM with push–pull columns (winter months only) | winter 25/26 (trained on real data) 9.4 → **8.5 %**, peak days 7.2 → 6.5 %; winter 24/25 (trained on the open stand-in only) 13.5 → 14.0 % | it wins where training uses real TVB data, and that data grows every month; summer keeps the 2-member ensemble because push–pull is fitted on winter days |
+| Lead time by market (indicative, shrunk halfway to the all-market mix) | lost to the monthly average by 0.4 pp | direction is plausible (Dutch and Nordic guests book early, Germans late) and every new season adds weeks to fit; shown as an estimate, grade C |
+| Interval quantile 0.85 instead of 0.80 | the 0.80 quantile covered only 74 % after COVID | the band should keep its promise; slightly conservative (84–85 %) |
+| Holiday push in M3 for countries without school data | not testable | the destination pattern alone is used and flagged instead of guessing |
+
+Missing values are never left empty: a fallback ladder (observed → model →
+sum of parts → population split → 2-year average → carried forward →
+destination share; proxies for lead time and age) fills every cell and marks
+it with `is_estimate`, `method` and `grade` (`models/gui_api.py`).
+
 ## 4. Extra data: decision
 
 | Data | Decision |

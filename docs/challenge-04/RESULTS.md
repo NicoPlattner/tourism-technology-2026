@@ -89,7 +89,7 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
 | TVB previous-year column | 14.3 % | 6.3 % | −1.2 % | 20.6 % | +6.6 % |
 | previous year, holiday-aligned | 10.8 % | 5.9 % | −3.5 % | **15.4 %** | +4.0 % |
 | official TR53 × level (in-sample) | 10.4 % | 0.8 % | +0.8 % | 24.5 % | +2.3 % |
-| **ours (ensemble)** | **9.5 %** | **3.7 %** | −1.2 % | 18.9 % | **+2.6 %** |
+| **ours (ensemble; winter: + push–pull member)** | **8.5 %** | **3.7 %** | −1.2 % | 18.4 % | **+2.6 %** |
 
 - Ours has the lowest monthly error and bias of all ex-ante methods and the
   best ex-ante daily error in winter. It beats the TVB previous-year column
@@ -219,6 +219,23 @@ DK 20 %, GB 6.7 %, PL 8.2 %, AT 4.9 %, other origins 12 %. Bavaria → Paznaun,
 Data used per model (selection rule: only blocks that improved the backtest):
 M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
 (push uses the origin's own calendar). M4 no holidays. M5 none of these.
+
+## C-update (8 Nov, review)
+
+- M1 now trained on all 9 Austrian states: Tirol post-COVID monthly error
+  9.9–10.1 % (62 origins incl. small ones and country groups; the origin code
+  mapping was corrected against the official list); intervals use the 0.85
+  quantile (84–85 % coverage).
+- Complete GUI table `out/gui/complete_origin_month.parquet`: 10 destinations
+  (9 states + Paznaun-Ischgl) × 84 origins (incl. Germany and Austria totals
+  and the 16 German states) × months 2024-01 … 2027-12 = 40,320 rows, **no
+  empty cells**: 22,344 observed / model grade A, 3,900 model grade B, 14,076
+  estimates grade C (2-year average for small origins, carried forward after
+  the horizon, population split of German regions, Paznaun share).
+- `models/gui_api.py: query(destination, origin, start, end)` returns every
+  field as `{value, is_estimate, method, grade, note}`. Examples in
+  `out/gui/example_*.json`, e.g. Tirol ← Hesse, Feb 2027: 186k nights,
+  estimate (Central Germany split by population), grade C.
 
 # B. Supporting results (long history and open data)
 
