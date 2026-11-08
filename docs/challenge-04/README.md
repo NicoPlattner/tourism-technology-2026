@@ -113,7 +113,7 @@ models/
   export_gui.py, export_reasons.py   -> results/gui/ (tracked GUI tables, push/pull reasons)
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
 results/gui/           GUI tables for the front end (see its README.md)
-api/c04/               read-only data API (FastAPI, Dockerfile); helm template c04-api.yaml
+api/c04/               read-only data API (FastAPI, Dockerfile -> ghcr.io/nicoplattner/c04-api)
 ```
 
 ## Primary sources
