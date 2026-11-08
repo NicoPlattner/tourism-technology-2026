@@ -158,6 +158,8 @@ Missing for later: lead time by origin (no source), Tirol-wide lead time
 
 ## 8. Execution plan (8 Nov): acquisition → preparation → model decision → models
 
+Status: A–D done for M1–M5 (RESULTS.md section C). Open: push–pull feature test (§6).
+
 **A. Data acquisition** (status)
 - Have: Statistik Austria Tirol × origin × month (arrivals, nights, 1973–2026);
   Landesstatistik Tirol Paznaun origin mix, beds; TVB daily stays, free beds,
