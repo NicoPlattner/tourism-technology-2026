@@ -2,9 +2,9 @@
 
 ## Evidence found
 
-`models/results_real_backtest.csv` stores side-by-side backtest aggregates for our main ensemble (`ours_ens (winter: + lgbm push-pull)`) and `partner_fc (TVB forecast)`. No training or data fetch is needed to use these existing results.
+`c04/evaluation/real_backtest.csv` stores side-by-side backtest aggregates for our main ensemble (`ours_ens (winter: + lgbm push-pull)`) and `partner_fc (TVB forecast)`. No training or data fetch is needed to use these existing results.
 
-`models/real_backtest.py:evaluate` defines the evaluation windows and metric formulas:
+`c04/models/real_backtest.py:evaluate` defines the evaluation windows and metric formulas:
 
 - Winter: 1 November 2025–30 April 2026.
 - Summer: 1 May–31 October 2026.

@@ -26,12 +26,12 @@ api:
     # The cluster has no default class; "retain" keeps the data on the node
     # even if the claim is deleted.
     storageClass: microk8s-retain-hostpath
-# Challenge 04 data API (api/c04), image from .github/workflows/c04-api-image.yaml.
+# Challenge 04 data API (c04/api), image from .github/workflows/c04-api-image.yaml.
 c04Api:
   enabled: true
   image: ghcr.io/nicoplattner/c04-api:latest
   imagePullSecret: ""
-# Live refresh of the c04 data product (models/refresh.py, image from pipeline/c04/Dockerfile).
+# Live refresh of the c04 data product (c04/models/refresh.py, image from c04/pipeline/Dockerfile).
 c04Pipeline:
   # Off by default: only the release that serves the data product runs it (deploy workflow: root deploy).
   enabled: false

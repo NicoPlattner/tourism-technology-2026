@@ -1,6 +1,6 @@
 # Real AI caption assistant
 
-Branch: `feature/ai-caption-assistant`. The existing dashboard, mock tourism data, map, images and other pages stay in place. Only captions are generated at runtime by an external model; seasonal AI-generated image files are bundled locally. There is no hardcoded server-side caption selector.
+The existing dashboard, mock tourism data, map, images and other pages stay in place. Only captions are generated at runtime by an external model; seasonal AI-generated image files are bundled locally. There is no hardcoded server-side caption selector.
 
 ## Configure n8n (optional provider)
 
@@ -21,7 +21,7 @@ CAPTION_TIMEOUT_MS=8000
 
 An n8n **management/public API key** does not automatically authenticate webhooks and is not an OpenAI API key. Use a configured Header Auth credential for this workflow. If your existing workflow uses another header name, set `CAPTION_N8N_AUTH_HEADER` accordingly. For an Authorization/Bearer webhook, use `CAPTION_N8N_AUTH_HEADER=Authorization` and `CAPTION_N8N_AUTH_PREFIX=Bearer`.
 
-The supplied workflow is an integration template: choose credentials, activate it and verify node compatibility with your n8n installation. It was not executed against a live n8n instance in this session because credentials and a webhook URL are to be configured later.
+The supplied workflow is an integration template: choose credentials, activate it and verify node compatibility with your n8n installation. It has not been run against a live n8n instance; credentials and a webhook URL need to be configured first.
 
 The server posts `{ metadata, model, messages, responseSchema, maxOutputTokens }` to n8n. The workflow must return a plain JSON object with **only** `caption`, `hashtags`, `language`. The server checks the output and adds `source: "ai"` only after successful validation. Do not return an array of n8n items or markdown. Workflow errors retain the demo caption. Keep the workflow's OpenAI request timeout below the server's 8-second budget.
 

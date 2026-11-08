@@ -4,20 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - api/c04/**
-      - results/gui/**
-      - results/c04/**
-      - data/*.py
-      - data/static/**
-      - models/*.py
-      - pipeline/c04/**
-      - docs/challenge-04/*.md
+      - c04/**
       - .github/workflows/c04-api-image.yaml
   pull_request:
     paths:
-      - api/c04/**
-      - results/gui/**
-      - results/c04/**
+      - c04/**
   workflow_dispatch:
 
 permissions:
@@ -34,10 +25,10 @@ jobs:
           python-version: "3.13"
       - name: Route tests
         run: |
-          pip install -q -r api/c04/requirements-dev.txt
-          pytest -q api/c04/tests
+          pip install -q -r c04/api/requirements-dev.txt
+          pytest -q c04/api/tests
       - name: Build image
-        run: docker build -f api/c04/Dockerfile -t c04-api:test .
+        run: docker build -f c04/api/Dockerfile -t c04-api:test .
       - name: Smoke test the container (same layout and user as in the cluster)
         run: |
           set -euo pipefail
@@ -65,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build pipeline image
-        run: docker build -f pipeline/c04/Dockerfile -t c04-pipeline:test .
+        run: docker build -f c04/pipeline/Dockerfile -t c04-pipeline:test .
       - name: Smoke test (imports, code layout, user)
         run: |
           set -euo pipefail
@@ -86,7 +77,7 @@ jobs:
                       if mod not in local and mod not in ('__future__', 'chronos', 'torch'):
                           importlib.import_module(mod)
           pandas.read_html(io.StringIO('<table><tr><th>a</th></tr><tr><td>1</td></tr></table>'))
-          assert os.getuid() == 1000 and os.path.isdir('/app/baked-results/gui') and os.path.isdir('/app/pipeline/c04/seed')
+          assert os.getuid() == 1000 and os.path.isdir('/app/baked-results/gui') and os.path.isdir('/app/pipeline/seed')
           print('ok', lightgbm.__version__, pandas.__version__)"
       - name: Push
         if: github.event_name != 'pull_request'
