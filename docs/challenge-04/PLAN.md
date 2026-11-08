@@ -73,7 +73,14 @@ are the submission-critical subset.
 | Explanations confounded (snow vs December, Polish holidays vs summer peak) | say so in the grade text; no causal claims |
 | Partner data leaks into git | raw and derived tables git-ignored; check `git status` before each commit |
 
-## 6. Next test (planned, not run): push–pull as extra features
+## 6. Test: push–pull as extra features (run 8 Nov, not adopted)
+
+Result (`models/test_pushpull_features.py`): ensemble daily error winter
+25/26 9.0 → 8.2 % with market-group + pull columns, but winter 24/25 13.5 →
+14.7 %. The decision rule (both winters must improve) is not met; push–pull
+stays for explanations, the market split and M3. (The summer column of that
+script is not valid: summer days count as closed there.)
+
 
 Goal: use the push–pull structure to improve the forecast without losing the
 detail of the current ensemble (winter 25/26: 9.4 % daily error).
@@ -158,7 +165,7 @@ Missing for later: lead time by origin (no source), Tirol-wide lead time
 
 ## 8. Execution plan (8 Nov): acquisition → preparation → model decision → models
 
-Status: A–D done for M1–M5 (RESULTS.md section C). Open: push–pull feature test (§6).
+Status: A–D done for M1–M5 (RESULTS.md section C). §6 test done: not adopted.
 
 **A. Data acquisition** (status)
 - Have: Statistik Austria Tirol × origin × month (arrivals, nights, 1973–2026);
