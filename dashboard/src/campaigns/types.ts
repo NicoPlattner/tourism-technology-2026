@@ -74,6 +74,7 @@ export interface CampaignDataProvider {
 }
 export interface CampaignApproval {
   campaignId: string;
+  assetId?: string;
   approvedAt: string;
   publishingDates: string[];
   caption: string;

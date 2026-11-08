@@ -1,3 +1,4 @@
+import { SEASONAL_ASSETS } from "../campaigns/seasonalAssets";
 import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
 import { DEFAULT_TARGET_AUDIENCE, type TargetAudience } from "../campaigns/types";
 import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
@@ -69,9 +70,13 @@ export default function Overview({
   const currentCampaign =
     campaign?.market === market && campaign.period === period && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience) || null;
   const assistant = useCaptionAssistant(currentCampaign);
+  const selectedAsset = assistant.result?.assetId ? SEASONAL_ASSETS.find(asset => asset.id === assistant.result?.assetId) : undefined;
   const visibleCampaign = currentCampaign
     ? {
         ...currentCampaign,
+        asset: selectedAsset ? { id:selectedAsset.id,src:selectedAsset.path,alt:selectedAsset.visualDescription,
+          source:"AI_GENERATED" as const,credit:currentCampaign.asset.credit,description:selectedAsset.visualDescription } : currentCampaign.asset,
+        theme: selectedAsset?.creativeTheme || currentCampaign.theme,
         caption: assistant.result?.caption || currentCampaign.caption,
         hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
         captionContent: assistant.result ? {
@@ -88,6 +93,7 @@ export default function Overview({
   const visibleApproval =
     storedApproval &&
     visibleCampaign &&
+    storedApproval.assetId === visibleCampaign.asset.id &&
     storedApproval.caption === visibleCampaign.caption &&
     JSON.stringify(storedApproval.hashtags) ===
       JSON.stringify(visibleCampaign.hashtags)
@@ -99,6 +105,7 @@ export default function Overview({
       ...previous,
       [visibleCampaign.id]: {
         campaignId: visibleCampaign.id,
+        assetId: visibleCampaign.asset.id,
         approvedAt: new Date().toISOString(),
         publishingDates: [...visibleCampaign.publishingDates],
         caption: visibleCampaign.caption,

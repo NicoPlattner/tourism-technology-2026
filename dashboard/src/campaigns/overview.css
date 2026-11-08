@@ -1102,3 +1102,5 @@
 @media (max-width: 600px) { .cp-age-selector { width: 100%; } }
 
 .cp-social-image { object-fit: contain; background: #eef1f2; }
+
+.cp-social-copy > p.cp-creative-reason { font-size: 9px; line-height: 1.5; color: var(--muted); margin: 3px 0; }

@@ -1,3 +1,4 @@
+import { creativeRequest } from "./creativeRequest";
 import { useCallback, useRef, useState } from "react";
 import { CaptionClient } from "./client";
 import { metadataKey, type AiCaption } from "./contracts";
@@ -16,18 +17,19 @@ export function useCaptionAssistant(
   campaign: CampaignRecommendation | null,
   client = captionClient,
 ) {
-  const key = campaign ? campaign.id + metadataKey(campaign.captionMetadata) : "";
+  const requestMetadata = campaign ? creativeRequest(campaign) : undefined;
+  const key = campaign ? campaign.id + metadataKey(requestMetadata!) : "";
   const [states, setStates] = useState<Record<string, State>>({});
   const pending = useRef(new Set<string>());
-  const cached = campaign ? client.getCached(campaign.captionMetadata, campaign.id) : undefined;
+  const cached = campaign ? client.getCached(requestMetadata!, campaign.id) : undefined;
   const visible = states[key] || { result: cached, pending: false, error: "" };
   const regenerate = useCallback(() => {
-    if (!campaign || pending.current.has(key)) return;
+    if (!campaign || !requestMetadata || pending.current.has(key)) return;
     pending.current.add(key);
-    const previous = client.getCached(campaign.captionMetadata, campaign.id);
+    const previous = client.getCached(requestMetadata!, campaign.id);
     const update = (state: State) => setStates(old => ({ ...old, [key]: state }));
     update({ result: previous, pending: true, error: "" });
-    client.generate(campaign.captionMetadata, true, campaign.id)
+    client.generate(requestMetadata!, true, campaign.id)
       .then(result => update({ result, pending: false, error: "" }))
       .catch(error => update({ result: previous, pending: false,
         error: error instanceof Error ? error.message : "Regeneration failed. Please retry." }))

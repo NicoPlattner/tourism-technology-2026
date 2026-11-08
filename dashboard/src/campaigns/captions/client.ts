@@ -22,6 +22,8 @@ export class CaptionClient {
   async generate(input: CaptionMetadata, force = false, identity = ""): Promise<AiCaption> {
     const metadata = normalizeMetadata(input);
     const key = identity + metadataKey(metadata);
+    const active = this.inFlight.get(key);
+    if (metadata.generationMode === "creative" && active) return structuredClone(await active);
     if (!force) {
       const cached = this.getCached(metadata, identity);
       if (cached) return cached;
@@ -70,7 +72,7 @@ export class CaptionClient {
             : "AI caption generation failed. Please retry.";
         throw new CaptionError(message, code, response.status);
       }
-      return validateAiCaption(value, metadata.language, metadata.targetCaptionLength);
+      return validateAiCaption(value, metadata.language, metadata.targetCaptionLength, metadata);
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(

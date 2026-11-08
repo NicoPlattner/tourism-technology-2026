@@ -8,7 +8,11 @@ async function selectAge(page: import("@playwright/test").Page, value: string) {
   await page.getByRole("option",{name:value.replace("-","–"),exact:true}).click();
 }
 const captionText = (text: string, min = 40) => text.length >= min ? text : (text + " Lass dich von einer neuen Alpenidee inspirieren. ".repeat(8)).slice(0,min);
-const answer = (caption: string, language = "de", min = 40) => ({caption: captionText(caption,min), hashtags:["#Ischgl","#Alpen"], language, source:"ai"});
+const answer = (caption: string, language = "de", min = 40, request?: {candidateAssets:{id:string}[];platform:string}) => ({
+  caption: captionText(caption,min), hashtags:["#Ischgl","#Alpen"], language, source:"ai",
+  assetId:request?.candidateAssets[0].id || "winter-18-24", platform:request?.platform.toLowerCase() || "tiktok",
+  creativeReason:"Bild und Text passen zur gewählten Zielgruppe.",
+});
 test("all markets and periods are ready without AI calls", async ({page}) => {
   let calls=0;
   await page.route("**/api/marketing/generate-caption", route => {calls++; return route.abort();});
@@ -73,7 +77,7 @@ test("failure preserves saved and live captions and allows retry",async({page})=
   });
   await page.goto("./"); const original=await page.locator(".cp-caption-text").innerText();
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
-  await expect(page.locator(".cp-caption-error")).toContainText("previous caption is unchanged");
+  await expect(page.locator(".cp-caption-error")).toContainText("previous post is unchanged");
   await expect(page.locator(".cp-caption-text")).toHaveText(original);
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
   await page.getByRole("button",{name:"Retry",exact:true}).click();
@@ -88,7 +92,7 @@ test("travel period isolates regenerated captions and sends current metadata wit
   await page.route("**/api/marketing/generate-caption",route=>{
     const m=route.request().postDataJSON();requests.push(m);
     expect(Object.keys(m).some(key=>/key|token|secret/i.test(key))).toBe(false);
-    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(m.season==="spring"?"Frühlingsidee.":"Winteridee."))});
+    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(m.season==="spring"?"Frühlingsidee.":"Winteridee.",m.language,40,m))});
   });
   await page.goto("./");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
@@ -105,7 +109,7 @@ test("age choices update targeting immediately, use generic preview and reach re
   const payloads: Record<string,unknown>[] = [];
   await page.route("**/api/marketing/generate-caption",route=>{
     const m=route.request().postDataJSON();payloads.push(m);
-    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(`Alpenidee für ${m.ageMin}–${m.ageMax}.`, "de", m.targetCaptionLength.min))});
+    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(`Alpenidee für ${m.ageMin}–${m.ageMax}.`, "de", m.targetCaptionLength.min,m))});
   });
   await page.goto("./");
   const select=page.getByRole("button",{name:/Target audience age/});
@@ -139,8 +143,8 @@ test("age choices update targeting immediately, use generic preview and reach re
 test("age switching during regeneration keeps each result with its exact audience", async ({page}) => {
   let release!:()=>void;const gate=new Promise<void>(resolve=>release=resolve);
   await page.route("**/api/marketing/generate-caption",async route=>{
-    expect(route.request().postDataJSON().ageMin).toBe(45);
-    await gate;await route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine einladende Alpenidee.","de",180))});
+    const m=route.request().postDataJSON(); expect(m.ageMin).toBe(45);
+    await gate;await route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine einladende Alpenidee.","de",180,m))});
   });
   await page.goto("./");
   await selectAge(page,"45-60");
@@ -190,7 +194,7 @@ test("all sixteen visual combinations load instantly, country preserves them and
   let requests:Record<string,unknown>[]=[];
   await page.route("**/api/marketing/generate-caption",route=>{
     const m=route.request().postDataJSON();requests.push(m);
-    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine Sommeridee am See.",m.language,m.targetCaptionLength.min))});
+    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine Sommeridee am See.",m.language,m.targetCaptionLength.min,m))});
   });
   await page.goto("./");const images=new Set<string>();
   for(const period of ["q1-2027","q2-2027","q3-2027","q4-2027"]) {
@@ -215,4 +219,47 @@ test("all sixteen visual combinations load instantly, country preserves them and
   expect(requests[0].activity).toBe("summer lake hiking");
   expect(requests[0].visualDescription).toContain("turquoise Alpine lake");
   await expect(page.locator(".cp-social-image")).toHaveAttribute("src",source!);
+});
+test("creative regeneration replaces image and caption together, caches the pair and preserves it on invalid output",async({page})=>{
+ let release!:()=>void;const gate=new Promise<void>(resolve=>release=resolve);let calls=0;
+ const newCaption=captionText("Ein grüner Panoramaweg lädt zu einer neuen Alpenperspektive ein. ",150);
+ await page.route("**/api/marketing/generate-caption",async route=>{
+  calls++;const m=route.request().postDataJSON();
+  expect(m.generationMode).toBe("creative");expect(m.travelDates.start).toBe("2027-07-12");
+  expect(m.candidateAssets.map((asset:{id:string})=>asset.id)).toEqual(["summer-35-44","summer-45-60"]);
+  await gate;
+  await route.fulfill({contentType:"application/json",body:JSON.stringify({
+   ...answer(newCaption,"de",120,m),assetId:calls===1?"summer-45-60":"winter-45-60",
+   creativeReason:"Der grüne Panoramaweg passt zu einer sommerlichen Auszeit.",
+  })});
+ });
+ await page.goto("./");await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");await selectAge(page,"35-44");
+ const oldImage=await page.locator(".cp-social-image").getAttribute("src");const oldCaption=await page.locator(".cp-caption-text").innerText();
+ await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+ await expect(page.getByRole("button",{name:"Regenerating caption"})).toBeDisabled();
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("src",oldImage!);await expect(page.locator(".cp-caption-text")).toHaveText(oldCaption);
+ release();await expect(page.locator(".cp-caption-text")).toHaveText(newCaption);
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/footpath winding through green/);
+ const newImage=await page.locator(".cp-social-image").getAttribute("src");expect(newImage).not.toBe(oldImage);
+ await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("src",oldImage!);
+ await page.getByRole("button",{name:"Select Germany",exact:true}).click();
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("src",newImage!);await expect(page.locator(".cp-caption-text")).toHaveText(newCaption);
+ await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+ await expect(page.locator(".cp-caption-error")).toBeVisible();await expect(page.locator(".cp-social-image")).toHaveAttribute("src",newImage!);
+ await expect(page.locator(".cp-caption-text")).toHaveText(newCaption);expect(calls).toBe(2);
+});
+test("a delayed alternate creative stays with its audience when age changes",async({page})=>{
+ let release!:()=>void;const gate=new Promise<void>(resolve=>release=resolve);
+ const caption=captionText("Ein Panoramaweg durch grüne Alpenwiesen lädt zum Entdecken ein. ",150);
+ await page.route("**/api/marketing/generate-caption",async route=>{
+  const m=route.request().postDataJSON();await gate;
+  await route.fulfill({contentType:"application/json",body:JSON.stringify({...answer(caption,"de",120,m),assetId:"summer-45-60"})});
+ });
+ await page.goto("./");await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");await selectAge(page,"35-44");
+ await page.getByRole("button",{name:"Regenerate",exact:true}).click();await selectAge(page,"25-34");
+ const bike=await page.locator(".cp-social-image").getAttribute("src");const preview=await page.locator(".cp-caption-text").innerText();release();
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("src",bike!);await expect(page.locator(".cp-caption-text")).toHaveText(preview);
+ await selectAge(page,"35-44");await expect(page.locator(".cp-caption-text")).toHaveText(caption);
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/footpath winding through green/);
 });
