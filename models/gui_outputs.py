@@ -83,6 +83,47 @@ def m5_output():
     return out, pd.DataFrame(stab)
 
 
+def paznaun_view():
+    """M1 for destination Paznaun-Ischgl: Tirol forecast x Paznaun's share of Tirol nights per origin country
+    and season kind (Landesstatistik Tirol municipality table / Statistik Austria Tirol, latest season).
+    German regions and Austrian states use the national share. Origins outside the municipality table get
+    Paznaun's share of all other Tirol nights. Grade B/C."""
+    import sys
+    sys.path.insert(0, str(ROOT / "data"))
+    from build_origin_panel import ORIGIN
+    from market_mix import DE_NAMES
+    o = pd.read_csv(ROOT / "data" / "processed" / "tirol_paznaun_origin.csv")
+    o = o[o.unit.isin(["Galtür", "Ischgl", "Kappl", "See"])]
+    cols = [c for c in o if c.startswith("Übernachtungen ")]
+    paz = o.groupby("season")[cols].sum(min_count=1)
+    paz.columns = [DE_NAMES.get(c.replace("Übernachtungen ", ""), c) for c in paz.columns]
+    t = pd.read_parquet(ROOT / "data" / "processed" / "origin_panel.parquet")
+    t["c"] = t.origin.map(lambda x: ORIGIN[x][0])
+    kv = pd.read_csv(ROOT / "data" / "processed" / "tirol_paznaun_keyfig.csv")
+    rows = {}
+    for kind in ("winter", "summer"):
+        lab = sorted(s for s in paz.index if s.startswith(kind))[-1]
+        y = int(lab.split()[1][:4])
+        months = (pd.date_range(f"{y}-11-01", f"{y + 1}-04-01", freq="MS") if kind == "winter"
+                  else pd.date_range(f"{y}-05-01", f"{y}-10-01", freq="MS"))
+        tir = t[t.month.isin(months)].groupby("c").nights.sum()
+        share = (paz.loc[lab] / tir.reindex(paz.columns)).dropna()
+        paz_total = kv[(kv.season == lab) & kv.unit.isin(["Galtür", "Ischgl", "Kappl", "See"])]
+        ncol = [c for c in kv.columns if "bernachtungen" in c and "Ver" not in c][0]
+        rest = (pd.to_numeric(paz_total[ncol], errors="coerce").sum() - paz.loc[lab].sum()) / (tir.sum() - tir.reindex(share.index).sum())
+        rows[kind] = (share, float(rest), lab)
+    m1 = pd.read_parquet(GUI / "m1_origin_month.parquet")
+    kind = np.where(m1.month.dt.month.isin([11, 12, 1, 2, 3, 4]), "winter", "summer")
+    f = [rows[k][0].get(ORIGIN[o_][0], rows[k][1]) for k, o_ in zip(kind, m1.origin)]
+    out = m1.copy()
+    for c in [c for c in out if c.startswith(("nights", "arrivals"))]:
+        out[c] = out[c] * np.array(f)
+    out["destination"] = "Paznaun-Ischgl"
+    out["paznaun_share_of_tirol"] = f
+    out.to_parquet(GUI / "m1_paznaun_origin_month.parquet")
+    return {k: (v[2], v[0].round(3).to_dict(), round(v[1], 4)) for k, v in rows.items()}
+
+
 def _country_of(origin: str) -> str:
     import sys
     sys.path.insert(0, str(ROOT / "data"))
@@ -92,7 +133,8 @@ def _country_of(origin: str) -> str:
 
 def query(origin: str, start: str, end: str, destination: str = "Tirol") -> dict:
     """Answer one GUI request (destination, origin, time frame) from the precomputed tables."""
-    m1 = pd.read_parquet(GUI / "m1_origin_month.parquet")
+    m1 = pd.read_parquet(GUI / ("m1_paznaun_origin_month.parquet" if destination.startswith("Paznaun")
+                                else "m1_origin_month.parquet"))
     m3 = pd.read_parquet(GUI / "m3_daily_share.parquet")
     m4 = pd.read_parquet(GUI / "m4_leadtime.parquet")
     m5 = pd.read_parquet(GUI / "m5_age.parquet")
@@ -100,6 +142,7 @@ def query(origin: str, start: str, end: str, destination: str = "Tirol") -> dict
     d = m3[(m3.origin == origin) & (m3.date >= s) & (m3.date <= e)].copy()
     one = m1[m1.origin == origin].set_index("month")
     d["month"] = d.date.dt.to_period("M").dt.to_timestamp()
+    d["expected_nights"] = d.share_of_month * d.month.map(one.nights)
     d["nights_p10"] = d.share_of_month * d.month.map(one.nights_p10)
     d["nights_p90"] = d.share_of_month * d.month.map(one.nights_p90)
     d["los"] = d.month.map(one.length_of_stay)
@@ -145,6 +188,9 @@ if __name__ == "__main__":
     print(stab.round(3).to_string(index=False))
     print(age[age.season_kind == "winter"].sort_values("n_persons", ascending=False).head(8)[
         ["origin_country", "n_persons", "median_age_band", "mean_age_approx", "share_children_0_14"]].round(2).to_string(index=False))
+    print("Paznaun share of Tirol nights per origin:", paznaun_view())
+    print("Paznaun example:", {k: v for k, v in query("80", "2027-01-15", "2027-03-15", "Paznaun-Ischgl").items()
+                               if k in ("guests", "nights", "nights_80pct_range", "nights_last_year_same_period")})
     ex = query("80", "2027-01-15", "2027-03-15")
     (GUI / "example_bavaria.json").write_text(json.dumps(ex, indent=1, ensure_ascii=False, default=str))
     print(json.dumps({k: v for k, v in ex.items() if k not in ("weekly_nights", "sources")}, indent=1, default=str))

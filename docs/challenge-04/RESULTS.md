@@ -210,6 +210,12 @@ first arrivals; 44 % book ≥ 90 days ahead); median age band 25–34, 28 %
 children (proxy). Bavarian school holidays 8–12 Feb 2027 roughly double the
 daily nights of the surrounding days.
 
+Destination Paznaun-Ischgl (`query(..., destination="Paznaun-Ischgl")`): M1 ×
+Paznaun's share of Tirol nights per origin country and season kind (latest
+season, Landesstatistik Tirol): winter DE 8.1 %, NL 8.8 %, BE 15 %, CH 12 %,
+DK 20 %, GB 6.7 %, PL 8.2 %, AT 4.9 %, other origins 12 %. Bavaria → Paznaun,
+15 Jan – 15 Mar 2027: ~97k nights (80 % range 78–121k; last year 95k). Grade B/C.
+
 Data used per model (selection rule: only blocks that improved the backtest):
 M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
 (push uses the origin's own calendar). M4 no holidays. M5 none of these.
