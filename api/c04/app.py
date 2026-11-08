@@ -16,7 +16,8 @@ GET {BASE}/deviations?season=             why actual differed from the TVB forec
 GET {BASE}/warnings?kind=                 windows with spare capacity, tight capacity, forecast disagreement
 GET {BASE}/actions?kind=&market=&limit=   ranked marketing actions (launch date, addressable nights, grade)
 GET {BASE}/tables                         list of tables
-GET {BASE}/tables/{name}                  one table as CSV (e.g. monthly_origin.csv, c04/actions.csv)
+GET {BASE}/table?name=                    one table as CSV (e.g. monthly_origin.csv, c04/actions.csv);
+                                          also {BASE}/tables/{name}
 """
 from __future__ import annotations
 
@@ -325,14 +326,14 @@ Values are model estimates: check <code>grade</code> and <code>is_estimate</code
 router = APIRouter(prefix=BASE if BASE != "/" else "")
 
 
-@router.get("/health")
+@router.get("/health", operation_id="getHealth", summary="Service status and served snapshot")
 def health():
     d, c, v = source()
     return {"ok": True, "service": "c04-data-api", "version": v, "tables": len(list(d.glob("*.csv"))),
             "c04_tables": len(list(c.glob("*.csv")))}
 
 
-@router.get("/meta", tags=[TAG_A])
+@router.get("/meta", tags=[TAG_A], operation_id="getMeta", summary="Destinations, origin codes, months, grades, sources, data freshness")
 def meta():
     m = table("monthly_origin")
     return {"destinations": table("destinations").to_dict("records"),
@@ -356,13 +357,18 @@ def freshness() -> dict:
     return out
 
 
-@router.get("/query", tags=[TAG_A])
-def query(destination: str = Query("Tirol"), origin: str = Query(..., description="origin code, see /meta"),
-          start: str = Query(..., description="YYYY-MM-DD"), end: str = Query(..., description="YYYY-MM-DD")):
+@router.get("/query", tags=[TAG_A], operation_id="queryDemand",
+            summary="Guests, nights, stay, lead time, age and reasons for destination x origin x time frame")
+def query(destination: str = Query("Tirol", description="Austrian state (e.g. Tirol, Salzburg) or Paznaun-Ischgl; "
+                                                         "names and codes in /meta"),
+          origin: str = Query("80", description="origin market code, e.g. 80 = Bavaria, 25 = Netherlands, "
+                                                "DE = Germany; list in /meta"),
+          start: str = Query("2027-01-15", description="first day, YYYY-MM-DD (2024-01-01 .. 2027-12-31)"),
+          end: str = Query("2027-03-15", description="last day, YYYY-MM-DD")):
     return answer(destination, origin, start, end)
 
 
-@router.get("/forecast", tags=[TAG_B])
+@router.get("/forecast", tags=[TAG_B], operation_id="getForecast", summary="Paznaun-Ischgl daily forecast with 80 % band, capacity and flags")
 def forecast(start: str | None = Query(None, description="YYYY-MM-DD"),
              end: str | None = Query(None, description="YYYY-MM-DD")):
     d = c04("forecast_daily")
@@ -373,7 +379,7 @@ def forecast(start: str | None = Query(None, description="YYYY-MM-DD"),
     return {"meta": c04_json("forecast_meta"), "monthly": records(c04("forecast_monthly")), "daily": records(d)}
 
 
-@router.get("/deviations", tags=[TAG_B])
+@router.get("/deviations", tags=[TAG_B], operation_id="getDeviations", summary="Why actual stays differed from the TVB forecast (drivers, grades)")
 def deviations(season: str | None = Query(None, description='"winter 25/26" or "summer 26"')):
     m, dr, sm = c04("deviations_monthly"), c04("deviations_drivers"), c04_json("deviations_summary")
     if season:
@@ -384,7 +390,7 @@ def deviations(season: str | None = Query(None, description='"winter 25/26" or "
     return {"summary": sm, "monthly": records(m), "drivers": records(dr)}
 
 
-@router.get("/warnings", tags=[TAG_B])
+@router.get("/warnings", tags=[TAG_B], operation_id="getWarnings", summary="Windows with spare or tight capacity, forecast disagreement")
 def warnings(kind: str | None = Query(None, description="spare_capacity, tight, tvb_forecast_outside_our_80pct_band")):
     w = live_warnings(c04("warnings"))
     if kind:
@@ -392,7 +398,7 @@ def warnings(kind: str | None = Query(None, description="spare_capacity, tight, 
     return records(w)
 
 
-@router.get("/actions", tags=[TAG_B])
+@router.get("/actions", tags=[TAG_B], operation_id="getActions", summary="Ranked marketing actions with launch dates and confidence")
 def actions(kind: str | None = Query(None, description='"win demand" or "protect yield"'),
             market: str | None = Query(None, description="market name or code, e.g. Belgium or 62"),
             start: str | None = Query(None, description="windows ending on or after YYYY-MM-DD"),
@@ -410,13 +416,19 @@ def actions(kind: str | None = Query(None, description='"win demand" or "protect
     return records(a.head(limit))
 
 
-@router.get("/tables", tags=[TAG_T])
+@router.get("/tables", tags=[TAG_T], operation_id="listTables", summary="Names of all tables (CSV)")
 def tables():
     d, c, _ = source()
     return sorted(p.name for p in d.glob("*.csv")) + sorted(f"c04/{p.name}" for p in c.glob("*.csv"))
 
 
-@router.get("/tables/{name:path}", tags=[TAG_T])
+@router.get("/table", tags=[TAG_T], operation_id="getTable", summary="One table as CSV")
+def get_table_q(name: str = Query("monthly_origin.csv", description="table name from /tables, e.g. "
+                                                                    "monthly_origin.csv or c04/actions.csv")):
+    return get_table(name)
+
+
+@router.get("/tables/{name:path}", include_in_schema=False)
 def get_table(name: str):
     d, c, _ = source()
     root, file = (c, name[4:]) if name.startswith("c04/") else (d, name)
