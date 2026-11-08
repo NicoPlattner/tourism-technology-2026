@@ -192,11 +192,26 @@ Protocol references:
 
 ## Development workflow
 
-- Work on a feature branch, not directly on `main`. Use a short, URL-safe branch name (lowercase letters,
-  digits, hyphens): it is also the deployment path.
-- When a change is ready, deploy its branch to `https://hackathon.daria-and-nico.com/<branch-name>`. Branch
-  deployments are isolated and never overwrite other branches or the root.
-- Deploy to the domain root `https://hackathon.daria-and-nico.com/` only on explicit request. Finishing or
-  merging a feature does not by itself mean a root deployment.
-- Check the deployed URL and share the branch, URL and result. If the deployment or the public check is
-  blocked, say so instead of announcing the deployment.
+- Work on a feature branch; small, finished changes such as repository rules may go directly to `main`.
+  Everything that should go live ends up on `main`.
+- Production: `main` is deployed to the root domain `https://hackathon.daria-and-nico.com/` with the workflow
+  "Deploy to Kubernetes" (branch `main`, option `deploy_root`). Merge the latest `main` before pushing, so a
+  deploy never drops another team's work.
+- Branch deployments (`https://hackathon.daria-and-nico.com/<branch-name>`) are possible but not the default.
+  Decide per change, for example to test a larger feature in the cluster or for a requested preview. Each one
+  runs its own pods on the shared server.
+- Use a short, URL-safe branch name (lowercase letters, digits, hyphens) when a branch may be deployed: it
+  becomes the path. Other names get a generated path, shown in the run summary.
+- Check a deployed URL and share the branch or commit, URL and result. If the deployment or the public check
+  is blocked, say so instead of announcing the deployment.
+
+## Shared server: no heavy jobs by default
+
+- Nothing heavy runs on deploy. Model training, data refreshes and other batch jobs run only on request, or
+  when a schedule is explicitly switched on.
+- The Challenge 04 refresh (`models/refresh.py`, Helm `templates/c04-pipeline.yaml`) exists only in the root
+  release; its CronJobs are deployed suspended (`c04Pipeline.schedule.fast` / `.full` = `false`). A root
+  deploy with the input `c04_refresh` starts one manual run: `fast` (snow and weather, no training, about
+  10 s) or `full` (all sources, retrains the models whose inputs changed).
+- New jobs need resource limits, `backoffLimit: 0` unless retries are really needed, and default to off,
+  also in branch releases.
