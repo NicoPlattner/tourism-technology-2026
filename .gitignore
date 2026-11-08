@@ -1,5 +1,7 @@
 node_modules/
 helm/tourism-technology/site/
+
+helm/tourism-technology/caption-server.cjs
 helm/tourism-technology/api/
 data/raw/
 .env*
