@@ -6,7 +6,6 @@ import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
 import { useEffect, useState } from "react";
 import type { ViewProps } from "../App";
 import type {
-  CampaignApproval,
   CampaignDataProvider,
   CampaignRecommendation,
   SourceMarket,
@@ -16,23 +15,20 @@ import { campaignDataProvider } from "../campaigns/mockCampaignData";
 import SourceMarketMap from "../campaigns/components/SourceMarketMap";
 import TravelPeriodSelector from "../campaigns/components/TravelPeriodSelector";
 import CampaignPlanner from "../campaigns/components/CampaignPlanner";
-import CampaignReviewDialog from "../campaigns/components/CampaignReviewDialog";
+import { receive } from "../campaigns/management/model";
+import { updateCampaigns } from "../campaigns/management/store";
 import "../campaigns/overview.css";
 
 // The provider boundary is the only part that needs replacing for a real campaign service.
 // Dashboard data and other pages remain independent of these explicitly fictional scenarios.
 export default function Overview({
-  provider = campaignDataProvider,
+  provider = campaignDataProvider, go,
 }: ViewProps & { provider?: CampaignDataProvider }) {
   const [market, setMarket] = useState<SourceMarket>("DE");
   const [targetAudience, setTargetAudience] = useState<TargetAudience>(DEFAULT_TARGET_AUDIENCE);
   const period = "custom" as const;
   const [travelDates, setTravelDates] = useState<TravelDates>(DEFAULT_TRAVEL_DATES);
   const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", period, DEFAULT_TARGET_AUDIENCE, DEFAULT_TRAVEL_DATES) || null);
-  const [approvals, setApprovals] = useState<Record<string, CampaignApproval>>(
-    {},
-  );
-  const [review, setReview] = useState(false);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -40,12 +36,10 @@ export default function Overview({
     if (provider.getImmediateRecommendation) {
       setCampaign(provider.getImmediateRecommendation(market, period, targetAudience, travelDates));
       setError("");
-      setReview(false);
       return;
     }
     setCampaign(null);
     setError("");
-    setReview(false);
     provider
       .getRecommendation(market, period, targetAudience, travelDates)
       .then((result) => {
@@ -79,6 +73,10 @@ export default function Overview({
         asset: selectedAsset ? { id:selectedAsset.id,src:selectedAsset.path,alt:selectedAsset.visualDescription,
           source:"AI_GENERATED" as const,credit:currentCampaign.asset.credit,description:selectedAsset.visualDescription } : currentCampaign.asset,
         theme: selectedAsset?.creativeTheme || currentCampaign.theme,
+        captionMetadata: selectedAsset ? { ...currentCampaign.captionMetadata,
+          assetId: selectedAsset.id, activity: selectedAsset.activity,
+          creativeTheme: selectedAsset.creativeTheme, visualDescription: selectedAsset.visualDescription,
+        } : currentCampaign.captionMetadata,
         caption: assistant.result?.caption || currentCampaign.caption,
         hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
         captionContent: assistant.result ? {
@@ -89,34 +87,6 @@ export default function Overview({
         } : currentCampaign.captionContent,
       }
     : null;
-  const storedApproval = visibleCampaign
-    ? approvals[visibleCampaign.id]
-    : undefined;
-  const visibleApproval =
-    storedApproval &&
-    visibleCampaign &&
-    storedApproval.assetId === visibleCampaign.asset.id &&
-    storedApproval.caption === visibleCampaign.caption &&
-    JSON.stringify(storedApproval.hashtags) ===
-      JSON.stringify(visibleCampaign.hashtags)
-      ? storedApproval
-      : undefined;
-  const approve = () => {
-    if (!visibleCampaign) return;
-    setApprovals((previous) => ({
-      ...previous,
-      [visibleCampaign.id]: {
-        campaignId: visibleCampaign.id,
-        assetId: visibleCampaign.asset.id,
-        approvedAt: new Date().toISOString(),
-        publishingDates: [...visibleCampaign.publishingDates],
-        caption: visibleCampaign.caption,
-        hashtags: [...visibleCampaign.hashtags],
-        captionSource: assistant.source,
-        status: "APPROVED_MOCK",
-      },
-    }));
-  };
   return (
     <div className="view cp-overview">
       <div className="cp-view-heading">
@@ -144,9 +114,8 @@ export default function Overview({
         {currentCampaign ? (
           <CampaignPlanner
             campaign={visibleCampaign!}
-            approval={visibleApproval}
             assistant={assistant}
-            onReview={() => setReview(true)}
+            onReview={() => { updateCampaigns(state => receive(state, visibleCampaign!, assistant.result?.creativeReason)); go("actions"); }}
           />
         ) : (
           <section className="card cp-loading" aria-live="polite">
@@ -173,15 +142,7 @@ export default function Overview({
           </section>
         )}
       </div>
-      {review && currentCampaign && (
-        <CampaignReviewDialog
-          campaign={visibleCampaign!}
-          approval={visibleApproval}
-          captionSource={assistant.source}
-          onApprove={approve}
-          onClose={() => setReview(false)}
-        />
-      )}
+
     </div>
   );
 }

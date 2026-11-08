@@ -1,3 +1,4 @@
+import { useCampaigns } from "./campaigns/management/store";
 import { useEffect, useMemo, useState } from 'react';
 import { buildDataset, parsePartnerCsv, refreshOpenData, SAMPLE, type PartnerFile } from './data/sources';
 import type { Dataset } from './data/types';
@@ -16,7 +17,7 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'season', label: 'Season', hint: 'Day by day' },
   { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
   { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
-  { id: 'actions', label: 'Actions', hint: 'Ranked next steps' },
+  { id: 'actions', label: 'Actions', hint: 'Campaigns & publishing' },
   { id: 'data', label: 'Data', hint: 'Sources and upload' },
 ];
 
@@ -26,6 +27,7 @@ const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne
 const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
+  const campaignState = useCampaigns();
   const [tab, setTab] = useState<Tab>(readTab);
   const [partner, setPartner] = useState<PartnerFile>(SAMPLE);
   const [uploaded, setUploaded] = useState<string | undefined>();
@@ -71,7 +73,7 @@ export default function App() {
         <nav className="tabs" aria-label="Sections">
           {TABS.map((t) => (
             <a key={t.id} href={`#${t.id}`} className={tab === t.id ? 'active' : ''} aria-current={tab === t.id ? 'page' : undefined} title={t.hint}
-              onClick={(e) => { e.preventDefault(); go(t.id); }}>{t.label}{t.id === 'actions' && <b className="count">{model.actions.length}</b>}</a>
+              onClick={(e) => { e.preventDefault(); go(t.id); }}>{t.label}{t.id === 'actions' && <b className="count">{campaignState.campaigns.length}</b>}</a>
           ))}
         </nav>
       </header>
