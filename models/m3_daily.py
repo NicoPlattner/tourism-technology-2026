@@ -109,6 +109,7 @@ def validate_push():
 def build_output():
     tirol = pd.read_parquet(ROOT / "data" / "processed" / "tirol_daily.parquet").tirol
     m1 = pd.read_parquet(ROOT / "out" / "gui" / "m1_origin_month.parquet")
+    m1 = m1[m1.dest == "W96-7"]  # Tirol (M1 now covers all 9 states)
     dates = pd.date_range(m1.month.min(), m1.month.max() + pd.offsets.MonthEnd(0))
     pull = pull_pattern(tirol, dates)
     out = []
