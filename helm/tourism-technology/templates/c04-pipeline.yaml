@@ -1,7 +1,7 @@
-# Live refresh of the Challenge 04 data product: a volume with the caches and published snapshots, a bootstrap
-# Job per deploy (full run when nothing is published yet), and two CronJobs: "fast" (weather, snow, official
-# forecast, re-dated actions) and "full" (all sources incl. TVB data via the TTF Data Space; models re-run
-# only when their inputs changed). The API mounts the volume read-only and serves snapshots/current.
+# Refresh of the Challenge 04 data product: a volume with caches and published snapshots, and two CronJobs,
+# suspended unless switched on: "fast" (snow and weather only, no model fit) and "full" (all sources incl. TVB
+# data via the TTF Data Space; models re-run only when their inputs changed). Nothing runs on deploy; a manual
+# run is started by the deploy workflow (input c04_refresh). The API mounts the volume read-only.
 {{- if and .Values.c04Api.enabled .Values.c04Pipeline.enabled }}
 {{- $p := .Values.c04Pipeline }}
 apiVersion: v1
@@ -18,22 +18,8 @@ spec:
   resources:
     requests:
       storage: {{ $p.size }}
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: {{ .Release.Name }}-c04-refresh-r{{ .Release.Revision }}
-spec:
-  backoffLimit: 1
-  activeDeadlineSeconds: 3600
-  ttlSecondsAfterFinished: 86400
-  template:
-    metadata:
-      labels:
-        app: {{ .Release.Name }}-c04-refresh
-    spec:
-{{- include "c04.pipelinePod" (dict "root" . "mode" "auto") }}
 {{- range $name, $cfg := dict "fast" $p.fastSchedule "full" $p.fullSchedule }}
+{{- $on := index $p.schedule $name }}
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -42,13 +28,15 @@ metadata:
 spec:
   schedule: {{ $cfg | quote }}
   timeZone: Europe/Vienna
+  # Off unless c04Pipeline.schedule.{{ $name }} is true; a manual run uses this CronJob as its template.
+  suspend: {{ not $on }}
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 3600
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      backoffLimit: 1
+      backoffLimit: 0
       activeDeadlineSeconds: {{ if eq $name "full" }}3600{{ else }}1800{{ end }}
       template:
         metadata:

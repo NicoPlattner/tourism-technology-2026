@@ -25,11 +25,11 @@
                   optional: true
           resources:
             requests:
-              cpu: 250m
-              memory: 1Gi
+              cpu: 100m
+              memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 4Gi
+              cpu: "1"
+              memory: 3Gi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
