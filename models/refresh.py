@@ -206,7 +206,7 @@ def publish(mode: str, ran: list[str]) -> str:
         shutil.copytree((ROOT / "results" / part).resolve(), stage / part)
     man_p = stage / "c04" / "manifest.json"
     man = json.loads(man_p.read_text()) if man_p.exists() else {}
-    man.update(refresh_mode=mode, models_rerun=ran, snapshot=ts)
+    man.update(refresh_mode=mode, models_rerun=ran, built_snapshot=ts)  # the API adds "snapshot" = served one
     man_p.write_text(json.dumps(man, ensure_ascii=False, indent=1))
     validate(stage, previous)
     final = snaps / ts
