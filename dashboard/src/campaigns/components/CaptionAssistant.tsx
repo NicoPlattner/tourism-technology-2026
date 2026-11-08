@@ -40,7 +40,6 @@ export default function CaptionAssistant({
       <p className="cp-hashtags" lang={campaign.language}>
         {hashtags.join(" ")}
       </p>
-      {assistant.source === "demo_fallback" && <p className="cp-caption-copy-status">Demo voice for ages {campaign.ageGroup} · {campaign.platform}. Regenerate for AI personalization.</p>}
       <div className="cp-caption-actions">
         <button
           className="link"
@@ -58,7 +57,6 @@ export default function CaptionAssistant({
           Copy caption
         </button>
       </div>
-      {result?.creativeReason && <p className="cp-creative-reason">{result.creativeReason}</p>}
       {assistant.error && (
         <p className="cp-caption-error" role="status">
           {assistant.error}

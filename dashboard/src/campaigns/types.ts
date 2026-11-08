@@ -1,8 +1,9 @@
 import type { SocialPlatform } from "./socialProfile";
 import type { CaptionMetadata } from "./captions/contracts";
 export type SourceMarket = "DE" | "NL" | "BE" | "AT";
-export type TravelPeriod = "q1-2027" | "q2-2027" | "q3-2027" | "q4-2027" | "winter-2026-27";
+export type TravelPeriod = "q1-2027" | "q2-2027" | "q3-2027" | "q4-2027" | "winter-2026-27" | "custom";
 export type CampaignLanguage = "de" | "nl" | "fr";
+export interface TravelDates { start: string; end: string; }
 export interface DateRange {
   start: string;
   end: string;
@@ -20,6 +21,7 @@ export interface TargetAudience { ageMin: number; ageMax: number; }
 export interface MarketingPreferences {
   country: string;
   travelPeriod: TravelPeriod;
+  travelDates?: TravelDates;
   targetAudience: TargetAudience;
 }
 export const TARGET_AGES = [
@@ -65,11 +67,12 @@ export interface CampaignRecommendation {
   variation: boolean;
 }
 export interface CampaignDataProvider {
-  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod, targetAudience?: TargetAudience): CampaignRecommendation;
+  getImmediateRecommendation?(market: SourceMarket, period: TravelPeriod, targetAudience?: TargetAudience, travelDates?: TravelDates): CampaignRecommendation;
   getRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
     targetAudience?: TargetAudience,
+    travelDates?: TravelDates,
   ): Promise<CampaignRecommendation>;
 }
 export interface CampaignApproval {

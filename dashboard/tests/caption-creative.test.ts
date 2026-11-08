@@ -12,7 +12,7 @@ const result=()=>({assetId:"summer-45-60",caption:"Ein grüner Panoramaweg führ
 const response=(value:unknown)=>new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:JSON.stringify(value)}}]}),{headers:{"Content-Type":"application/json"}});
 const config=()=>readProviderConfig({OPENAI_API_KEY:"test-key-not-a-real-credential",CAPTION_MODEL:"test-model"});
 test("travel dates and audience prioritize relevant compatible candidates without exposing image binaries",()=>{
- assert.equal(seasonFromTravelDate("2027-03-22"),"winter");assert.equal(seasonFromTravelDate("2027-07-12"),"summer");
+ assert.equal(seasonFromTravelDate("2027-03-22"),"spring");assert.equal(seasonFromTravelDate("2027-07-12"),"summer");
  assert.deepEqual(creativeCandidates(18,"summer").map(a=>a.id),["summer-18-24"]);
  assert.deepEqual(creativeCandidates(35,"summer").map(a=>a.id),["summer-35-44","summer-45-60"]);
  assert.deepEqual(creativeCandidates(45,"winter").map(a=>a.id),["winter-45-60"]);

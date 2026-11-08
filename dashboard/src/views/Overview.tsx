@@ -1,3 +1,4 @@
+import { DEFAULT_TRAVEL_DATES } from "../campaigns/travelDates";
 import { SEASONAL_ASSETS } from "../campaigns/seasonalAssets";
 import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
 import { DEFAULT_TARGET_AUDIENCE, type TargetAudience } from "../campaigns/types";
@@ -9,7 +10,7 @@ import type {
   CampaignDataProvider,
   CampaignRecommendation,
   SourceMarket,
-  TravelPeriod,
+  TravelDates,
 } from "../campaigns/types";
 import { campaignDataProvider } from "../campaigns/mockCampaignData";
 import SourceMarketMap from "../campaigns/components/SourceMarketMap";
@@ -25,8 +26,9 @@ export default function Overview({
 }: ViewProps & { provider?: CampaignDataProvider }) {
   const [market, setMarket] = useState<SourceMarket>("DE");
   const [targetAudience, setTargetAudience] = useState<TargetAudience>(DEFAULT_TARGET_AUDIENCE);
-  const [period, setPeriod] = useState<TravelPeriod>("q1-2027");
-  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", "q1-2027") || null);
+  const period = "custom" as const;
+  const [travelDates, setTravelDates] = useState<TravelDates>(DEFAULT_TRAVEL_DATES);
+  const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", period, DEFAULT_TARGET_AUDIENCE, DEFAULT_TRAVEL_DATES) || null);
   const [approvals, setApprovals] = useState<Record<string, CampaignApproval>>(
     {},
   );
@@ -36,7 +38,7 @@ export default function Overview({
   useEffect(() => {
     let current = true;
     if (provider.getImmediateRecommendation) {
-      setCampaign(provider.getImmediateRecommendation(market, period, targetAudience));
+      setCampaign(provider.getImmediateRecommendation(market, period, targetAudience, travelDates));
       setError("");
       setReview(false);
       return;
@@ -45,10 +47,10 @@ export default function Overview({
     setError("");
     setReview(false);
     provider
-      .getRecommendation(market, period, targetAudience)
+      .getRecommendation(market, period, targetAudience, travelDates)
       .then((result) => {
         if (current) {
-          if (result.market !== market || result.period !== period || result.captionMetadata.ageMin !== targetAudience.ageMin || result.captionMetadata.ageMax !== targetAudience.ageMax) {
+          if (result.market !== market || result.period !== period || result.travel.start !== travelDates.start || result.travel.end !== travelDates.end || result.captionMetadata.ageMin !== targetAudience.ageMin || result.captionMetadata.ageMax !== targetAudience.ageMax) {
             setError(
               "The campaign service returned a different market or period. Please retry.",
             );
@@ -66,9 +68,9 @@ export default function Overview({
     return () => {
       current = false;
     };
-  }, [market, period, targetAudience, provider, retry]);
+  }, [market, period, travelDates, targetAudience, provider, retry]);
   const currentCampaign =
-    campaign?.market === market && campaign.period === period && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience) || null;
+    campaign?.market === market && campaign.period === period && campaign.travel.start === travelDates.start && campaign.travel.end === travelDates.end && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience, travelDates) || null;
   const assistant = useCaptionAssistant(currentCampaign);
   const selectedAsset = assistant.result?.assetId ? SEASONAL_ASSETS.find(asset => asset.id === assistant.result?.assetId) : undefined;
   const visibleCampaign = currentCampaign
@@ -126,7 +128,7 @@ export default function Overview({
           </p>
         </div>
         <div className="cp-controls">
-          <TravelPeriodSelector value={period} onChange={setPeriod} />
+          <TravelPeriodSelector value={travelDates} onChange={setTravelDates} />
           <TargetAgeSelector value={targetAudience} onChange={setTargetAudience} />
         </div>
       </div>

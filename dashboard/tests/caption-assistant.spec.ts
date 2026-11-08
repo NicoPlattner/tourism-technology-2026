@@ -1,3 +1,4 @@
+import { selectPeriod } from "./helpers/travel";
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.route("https://naechtigungen.pol.joanneum.at/**", route => route.fulfill({contentType:"application/json",body:'{"forecast_data":[]}'}));
@@ -20,7 +21,7 @@ test("all markets and periods are ready without AI calls", async ({page}) => {
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
   await expect(page.locator(".cp-caption-spinner")).toHaveCount(0);
   for(const period of ["q1-2027","q2-2027","q3-2027","q4-2027","winter-2026-27"]) {
-    await page.getByRole("combobox",{name:"Target travel period"}).selectOption(period);
+    await selectPeriod(page,period);
     for(const country of ["Germany","Netherlands","Belgium","Austria"]) {
       await page.getByRole("button",{name:`Select ${country}`,exact:true}).click();
       await expect(page.locator(".cp-caption-text")).not.toBeEmpty();
@@ -97,11 +98,11 @@ test("travel period isolates regenerated captions and sends current metadata wit
   await page.goto("./");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Winteridee."));
-  await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q2-2027");
+  await selectPeriod(page,"q2-2027");
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Frühlingsidee."));
-  await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q1-2027");
+  await selectPeriod(page,"q1-2027");
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Winteridee."));
   expect(requests).toHaveLength(2);expect(requests[1].season).toBe("spring");
 });
@@ -124,7 +125,6 @@ test("age choices update targeting immediately, use generic preview and reach re
   await expect(page.locator(".cp-summary")).toContainText("45–60 years");
   await expect(page.locator(".cp-reasoning")).toContainText("45–60");
   await expect(page.locator(".cp-caption-source")).toHaveText("Demo preview");
-  await expect(page.getByText("Demo voice for ages 45–60 · Facebook. Regenerate for AI personalization.")).toBeVisible();
   expect(payloads).toHaveLength(0);
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 45–60.",180));
@@ -198,7 +198,7 @@ test("all sixteen visual combinations load instantly, country preserves them and
   });
   await page.goto("./");const images=new Set<string>();
   for(const period of ["q1-2027","q2-2027","q3-2027","q4-2027"]) {
-    await page.getByRole("combobox",{name:"Target travel period"}).selectOption(period);
+    await selectPeriod(page,period);
     for(const age of ["18-24","25-34","35-44","45-60"]) {
       await selectAge(page,age);
       const img=page.locator(".cp-social-image");
@@ -208,7 +208,7 @@ test("all sixteen visual combinations load instantly, country preserves them and
     }
   }
   expect(images.size).toBe(16);expect(requests).toHaveLength(0);
-  await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");
+  await selectPeriod(page,"q3-2027");
   await selectAge(page,"18-24");
   const source=await page.locator(".cp-social-image").getAttribute("src");
   await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
@@ -233,7 +233,7 @@ test("creative regeneration replaces image and caption together, caches the pair
    creativeReason:"Der grüne Panoramaweg passt zu einer sommerlichen Auszeit.",
   })});
  });
- await page.goto("./");await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");await selectAge(page,"35-44");
+ await page.goto("./");await selectPeriod(page,"q3-2027");await selectAge(page,"35-44");
  const oldImage=await page.locator(".cp-social-image").getAttribute("src");const oldCaption=await page.locator(".cp-caption-text").innerText();
  await page.getByRole("button",{name:"Regenerate",exact:true}).click();
  await expect(page.getByRole("button",{name:"Regenerating caption"})).toBeDisabled();
@@ -256,10 +256,73 @@ test("a delayed alternate creative stays with its audience when age changes",asy
   const m=route.request().postDataJSON();await gate;
   await route.fulfill({contentType:"application/json",body:JSON.stringify({...answer(caption,"de",120,m),assetId:"summer-45-60"})});
  });
- await page.goto("./");await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");await selectAge(page,"35-44");
+ await page.goto("./");await selectPeriod(page,"q3-2027");await selectAge(page,"35-44");
  await page.getByRole("button",{name:"Regenerate",exact:true}).click();await selectAge(page,"25-34");
  const bike=await page.locator(".cp-social-image").getAttribute("src");const preview=await page.locator(".cp-caption-text").innerText();release();
  await expect(page.locator(".cp-social-image")).toHaveAttribute("src",bike!);await expect(page.locator(".cp-caption-text")).toHaveText(preview);
  await selectAge(page,"35-44");await expect(page.locator(".cp-caption-text")).toHaveText(caption);
  await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/footpath winding through green/);
+});
+test("calendar date range accepts exact dates, rejects a reversed range and sends the actual dates to AI",async({page})=>{
+ let calls=0;let request:Record<string,unknown>={};
+ await page.route("**/api/marketing/generate-caption",route=>{
+  calls++;const m=route.request().postDataJSON();request=m;
+  return route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine Sommeridee am See.",m.language,m.targetCaptionLength.min,m))});
+ });
+ await page.goto("./");
+ const start=page.getByLabel("Travel start date",{exact:true}),end=page.getByLabel("Travel end date",{exact:true});
+ await expect(start).toHaveAttribute("type","text");await expect(end).toHaveAttribute("type","text");
+ await expect(start).toHaveValue("15.02.2027");await expect(end).toHaveValue("21.02.2027");
+ await start.fill("2028-07-15");await expect(page.getByRole("status").filter({hasText:"End date must be on or after start date."})).toBeVisible();
+ await expect(page.locator(".cp-summary")).toContainText("15 Feb 2027");
+ await end.fill("2028-07-22");await expect(page.locator(".cp-summary")).toContainText("15 Jul 2028 – 22 Jul 2028");
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/turquoise Alpine lake/);
+ await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
+ await expect(start).toHaveValue("15.07.2028");await expect(end).toHaveValue("22.07.2028");expect(calls).toBe(0);
+ await page.getByRole("button",{name:"Regenerate",exact:true}).click();await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
+ expect(request.travelPeriod).toBe("custom");expect(request.travelDates).toEqual({start:"2028-07-15",end:"2028-07-22"});expect(request.season).toBe("summer");
+ await end.fill("");await expect(page.getByText("Choose both dates to update the campaign.")).toBeVisible();
+ await expect(page.locator(".cp-summary")).toContainText("15 Jul 2028 – 22 Jul 2028");
+});
+test("styled calendar selects a date range with red endpoints, month/year navigation and keyboard dismissal",async({page})=>{
+ await page.goto("./");const start=page.getByRole("button",{name:"Open start date calendar",exact:true});
+ await start.click();const calendar=page.getByRole("dialog",{name:"Choose travel dates",exact:true});
+ await expect(calendar).toBeVisible();
+ await calendar.screenshot({path:"test-results/styled-calendar.png"});
+ const bounds=await calendar.boundingBox();expect(bounds!.width).toBe(300);
+ await expect(calendar.locator(".cp-calendar-day.selected")).toHaveCount(2);
+ await expect(calendar.locator(".cp-calendar-day.in-range")).toHaveCount(5);
+ await expect(page.getByRole("gridcell",{name:"15 February 2027",exact:true})).toBeFocused();
+ await page.keyboard.press("ArrowRight");await expect(page.getByRole("gridcell",{name:"16 February 2027",exact:true})).toBeFocused();
+ await page.keyboard.press("Escape");await expect(calendar).toHaveCount(0);await expect(start).toBeFocused();
+ await start.click();await page.getByLabel("Calendar year",{exact:true}).fill("2028");await page.getByLabel("Calendar month",{exact:true}).selectOption("6");
+ await page.getByRole("gridcell",{name:"15 July 2028",exact:true}).click();
+ await expect(page.getByText("Choose your departure date",{exact:true})).toBeVisible();
+ await page.getByRole("button",{name:"Done",exact:true}).click();
+ await page.getByRole("button",{name:"Open end date calendar",exact:true}).click();
+ await expect(page.getByRole("grid",{name:"July 2028",exact:true})).toBeVisible();
+ await page.getByRole("gridcell",{name:"22 July 2028",exact:true}).click();await expect(calendar).toHaveCount(0);
+ await expect(page.getByLabel("Travel start date",{exact:true})).toHaveValue("15.07.2028");
+ await expect(page.getByLabel("Travel end date",{exact:true})).toHaveValue("22.07.2028");
+ await expect(page.locator(".cp-summary")).toContainText("15 Jul 2028 – 22 Jul 2028");
+ await page.getByRole("button",{name:"Open end date calendar",exact:true}).click();
+ await page.getByRole("heading",{name:"Campaign overview",exact:true}).click();await expect(calendar).toHaveCount(0);
+});
+test("March–April guest dates change the picture, caption and AI season immediately",async({page})=>{
+ let calls=0;let metadata:Record<string,unknown>={};
+ await page.route("**/api/marketing/generate-caption",route=>{
+  calls++;const m=route.request().postDataJSON();metadata=m;
+  return route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Mit der Wanderkatze in den Frühling.",m.language,m.targetCaptionLength.min,m))});
+ });
+ await page.goto("./");await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/snowy Alpine slope/);
+ const winter=await page.locator(".cp-social-image").getAttribute("src");
+ await page.getByLabel("Travel start date",{exact:true}).fill("2027-03-18");
+ await page.getByLabel("Travel end date",{exact:true}).fill("2027-04-20");
+ await expect(page.locator(".cp-summary")).toContainText("18 Mar 2027 – 20 Apr 2027");
+ await expect(page.locator(".cp-summary")).toContainText("17 Jan 2027 – 24 Jan 2027");
+ await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/flower-lined green Alpine trail/);
+ expect(await page.locator(".cp-social-image").getAttribute("src")).not.toBe(winter);
+ await expect(page.locator(".cp-caption-text")).not.toContainText("Winter");expect(calls).toBe(0);
+ await page.getByRole("button",{name:"Regenerate",exact:true}).click();await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
+ expect(metadata.season).toBe("spring");expect(metadata.assetId).toBe("spring-18-24");
 });

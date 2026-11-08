@@ -50,6 +50,5 @@ export default function TargetAgeSelector({ value, onChange }: {
       </button>)}
     </div>}
     </div>
-    <span>Your marketing preference.</span>
   </div>;
 }

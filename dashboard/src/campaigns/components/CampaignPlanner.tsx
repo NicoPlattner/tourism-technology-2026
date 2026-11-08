@@ -20,7 +20,7 @@ export default function CampaignPlanner({
       <div className="card-head">
         <div>
           <p className="eyebrow">02 / A story for your market</p>
-          <h2 id="cp-planner-heading">AI campaign planner</h2>
+          <h2 id="cp-planner-heading">Campaign planner</h2>
         </div>
         <span className={`status ${approval ? "connected" : "snapshot"}`}>
           {approval ? "Approved · demo" : "Mock proposal"}
@@ -53,7 +53,6 @@ export default function CampaignPlanner({
           <dd>{displayRange(campaign.campaign)}</dd>
         </div>
       </dl>
-      <CampaignReasoning campaign={campaign} />
       <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
         <button className="btn" onClick={onReview}>
@@ -65,6 +64,7 @@ export default function CampaignPlanner({
             : "Human review first. Nothing publishes automatically."}
         </span>
       </div>
+      <CampaignReasoning campaign={campaign} />
     </section>
   );
 }

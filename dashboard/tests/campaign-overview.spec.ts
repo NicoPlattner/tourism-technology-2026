@@ -1,3 +1,4 @@
+import { selectPeriod } from "./helpers/travel";
 import { test, expect } from "@playwright/test";
 // Isolate Overview tests from the pre-existing dashboard's optional live refresh and remote logo/fonts.
 test.beforeEach(async ({ page }) => {
@@ -22,7 +23,7 @@ test("all four geographical countries update audience, localized copy, asset and
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
-  const planner = page.getByRole("region", { name: "AI campaign planner" });
+  const planner = page.getByRole("region", { name: "Campaign planner" });
   await expect(
     planner.getByRole("heading", { name: "Germany", exact: true }),
   ).toBeVisible();
@@ -102,17 +103,13 @@ test("period-specific approvals are preserved across countries and review is key
   await expect(page.locator(".cp-plan-action")).toContainText(
     "Approved locally",
   );
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q2-2027");
-  await expect(page.locator(".cp-summary")).toContainText("May 2027");
+  await selectPeriod(page,"q2-2027");
+  await expect(page.locator(".cp-summary")).toContainText("Apr 2027");
   await expect(page.locator(".cp-summary")).not.toContainText("February");
   await expect(page.locator(".cp-plan-action")).not.toContainText(
     "Approved locally",
   );
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q1-2027");
+  await selectPeriod(page,"q1-2027");
   await expect(page.locator(".cp-plan-action")).toContainText(
     "Approved locally",
   );
@@ -122,14 +119,12 @@ test("all periods update all market contexts without stale recommendations", asy
 }) => {
   await page.goto("./");
   for (const period of ["q1-2027", "q2-2027", "winter-2026-27"]) {
-    await page
-      .getByRole("combobox", { name: "Target travel period" })
-      .selectOption(period);
+    await selectPeriod(page,period);
     for (const [market, month] of [
       ["Germany", "April"],
       ["Netherlands", "April"],
-      ["Belgium", "May"],
-      ["Austria", "May"],
+      ["Belgium", "April"],
+      ["Austria", "April"],
     ]) {
       await page
         .getByRole("button", { name: `Select ${market}`, exact: true })
@@ -233,14 +228,12 @@ test("campaign interactions remain available offline and rapid changes do not sh
   await page
     .getByRole("button", { name: "Select Netherlands", exact: true })
     .click();
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q2-2027");
+  await selectPeriod(page,"q2-2027");
   await page
     .getByRole("button", { name: "Select Austria", exact: true })
     .click();
   await expect(page.locator(".cp-plan-title h3")).toHaveText("Austria");
-  await expect(page.locator(".cp-summary")).toContainText("May 2027");
+  await expect(page.locator(".cp-summary")).toContainText("Apr 2027");
   await page.getByRole("button", { name: "Review & Schedule" }).click();
   await page
     .getByRole("button", { name: "Approve mock campaign", exact: true })
