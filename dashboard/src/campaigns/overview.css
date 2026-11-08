@@ -1078,3 +1078,70 @@
     height: 190px;
   }
 }
+/* Compact caption assistant: the rest of the planner remains interactive. */
+.cp-caption-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.cp-caption-source{font:600 8px var(--sans);color:var(--muted);background:var(--line-soft);padding:3px 6px;white-space:nowrap;letter-spacing:.02em}.cp-caption-source.ai{color:var(--red-dark);background:var(--red-wash)}.cp-caption-working{display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:8px}.cp-caption-spinner{animation:spin .9s linear infinite}.cp-caption-actions{display:flex;gap:13px;margin:7px 0}.cp-caption-actions>.link{font:600 9px var(--sans);letter-spacing:0;text-transform:none;text-decoration:none}.cp-caption-actions>.link:hover{text-decoration:underline}.cp-caption-actions>.link:disabled{opacity:.45;cursor:default}.cp-social-copy>p.cp-caption-error{font-size:8px;color:var(--muted);line-height:1.6;margin:4px 0}.cp-social-copy>p.cp-caption-copy-status{font-size:8px;color:var(--green)}.cp-review-post h3>.cp-caption-source{display:inline-block;margin-left:5px;font-size:8px}.cp-caption-text{white-space:pre-wrap;overflow-wrap:anywhere}
+
+.cp-caption-actions .link { display: inline-flex; align-items: center; gap: 5px; }
+
+.cp-controls { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+@media (max-width: 1100px) { .cp-view-heading { flex-direction: column; align-items: flex-start; } .cp-controls { width: 100%; } }
+
+.cp-controls .cp-period-label:last-child select { min-width: 155px; }
+@media (max-width: 600px) { .cp-controls > label { width: 100%; } .cp-controls select { width: 100%; } }
+
+.cp-age-selector { min-width: 155px; }
+.cp-age-control { position: relative; }
+.cp-age-selector > .cp-age-label { font-size: 11px; font-weight: 700; color: var(--slate); }
+.cp-age-trigger { display: flex; align-items: center; justify-content: space-between; gap: 24px; width: 100%; min-height: 40px; border: 1px solid var(--line); border-radius: 0; padding: 10px 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.cp-age-trigger[aria-expanded="true"] { border-color: var(--red); }
+.cp-age-trigger:focus-visible, .cp-age-options button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.cp-age-options { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 40; padding: 4px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px #17232c18; }
+.cp-age-options button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 38px; padding: 8px 10px; border: 0; border-radius: 0; background: transparent; color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.cp-age-options button:hover, .cp-age-options button:focus-visible { background: var(--bg); }
+.cp-age-options button[aria-selected="true"] { background: #bb1c3f0d; color: var(--red); }
+@media (max-width: 600px) { .cp-age-selector { width: 100%; } }
+
+.cp-social-image { object-fit: contain; background: #eef1f2; }
+
+
+.cp-travel-dates { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.cp-travel-dates legend { padding: 0; margin-bottom: 5px; font-size: 11px; font-weight: 700; color: var(--slate); }
+.cp-date-fields { display: flex; gap: 10px; }
+.cp-date-fields label { position: relative; display: flex; flex-direction: column; gap: 3px; }
+.cp-date-fields label > span { font-size: 10px; color: var(--muted); }
+.cp-date-fields input { box-sizing: border-box; min-width: 145px; min-height: 40px; padding: 8px 10px; font: 600 13px var(--sans); color: var(--ink); border: 1px solid var(--line); border-radius: 0; background: var(--surface); color-scheme: light; cursor: pointer; }
+.cp-date-fields input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.cp-travel-dates > span { font-size: 10px; color: var(--muted); }
+.cp-travel-dates > .cp-date-error { color: var(--red); }
+@media (max-width: 600px) { .cp-travel-dates { width: 100%; } .cp-date-fields label { flex: 1; min-width: 0; } .cp-date-fields input { width: 100%; min-width: 0; } }
+
+.cp-date-fields label { flex-direction: row; align-items: center; gap: 0; border: 1px solid var(--line); background: var(--surface); }
+.cp-date-fields label > span { padding-left: 9px; }
+.cp-date-fields input { min-width: 130px; width: 134px; border: 0; }
+.cp-date-fields label:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
+.cp-date-fields input:focus-visible { outline: none; }
+
+.cp-calendar-control { position: relative; }
+.cp-date-fields input { min-width: 0; width: 104px; padding-right: 2px; }
+.cp-calendar-trigger { display: grid; place-items: center; width: 30px; height: 38px; border: 0; background: transparent; color: var(--slate); cursor: pointer; }
+.cp-calendar-trigger:hover, .cp-calendar-trigger[aria-expanded="true"] { color: var(--red); }
+.cp-calendar { position: absolute; z-index: 50; top: calc(100% + 8px); left: 0; width: 300px; padding: 14px; box-sizing: border-box; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 10px 30px #17232c20; color: var(--ink); }
+.cp-calendar-heading { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.cp-calendar-heading button { width: 28px; height: 28px; border: 0; background: transparent; color: var(--slate); font-size: 23px; cursor: pointer; }
+.cp-calendar-heading select, .cp-calendar-heading input { min-width: 0; border: 0; background: transparent; color: var(--ink); font: 600 12px var(--sans); padding: 5px 2px; }
+.cp-calendar-heading select { flex: 1; width: 120px; }
+.cp-calendar-heading input { width: 55px; }
+.cp-calendar-grid > div { display: grid; grid-template-columns: repeat(7,1fr); }
+.cp-calendar-weekdays span { text-align: center; color: var(--muted); font-size: 10px; padding-bottom: 7px; font-weight: 600; }
+.cp-calendar-day { border: 0; border-radius: 0; background: transparent; color: var(--ink); min-width: 0; height: 34px; padding: 0; font: 500 12px var(--sans); cursor: pointer; }
+.cp-calendar-day.outside { color: var(--muted); opacity: .55; }
+.cp-calendar-day.in-range { background: #bb1c3f0d; }
+.cp-calendar-day.selected { background: var(--red); color: white; opacity: 1; font-weight: 700; }
+.cp-calendar-day:hover { box-shadow: inset 0 0 0 1px var(--red); }
+.cp-calendar button:focus-visible, .cp-calendar select:focus-visible, .cp-calendar input:focus-visible, .cp-calendar-trigger:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+.cp-calendar-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.cp-calendar-footer span { color: var(--muted); font-size: 10px; }
+.cp-calendar-footer button { border: 0; background: transparent; color: var(--red); font: 600 11px var(--sans); padding: 4px; cursor: pointer; }
+@media (max-width: 600px) { .cp-calendar { width: min(300px,100%); } .cp-date-fields input { width: 100%; } }
+
+.cp-plan-action + .cp-reasoning { margin-top: 14px; margin-bottom: 0; }

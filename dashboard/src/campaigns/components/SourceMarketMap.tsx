@@ -179,13 +179,6 @@ export default function SourceMarketMap({
           </button>
         ))}
       </div>
-      <p className="cp-map-attribution">
-        Boundaries:{" "}
-        <a href={geography.sourceUrl} target="_blank" rel="noreferrer">
-          Natural Earth · public domain
-        </a>
-        . Campaign recommendations use fictional data.
-      </p>
     </section>
   );
 }

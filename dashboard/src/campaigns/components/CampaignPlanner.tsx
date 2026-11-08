@@ -1,23 +1,26 @@
+import type { CaptionAssistantState } from "../captions/useCaptionAssistant";
 import ArrowIcon from "./ArrowIcon";
 import type { CampaignApproval, CampaignRecommendation } from "../types";
 import { displayRange } from "../mockCampaignData";
 import CampaignReasoning from "./CampaignReasoning";
-import SocialPostPreview, { InstagramIcon } from "./SocialPostPreview";
+import SocialPostPreview, { PlatformIcon } from "./SocialPostPreview";
 export default function CampaignPlanner({
   campaign,
   approval,
   onReview,
+  assistant,
 }: {
   campaign: CampaignRecommendation;
   approval?: CampaignApproval;
   onReview: () => void;
+  assistant: CaptionAssistantState;
 }) {
   return (
     <section className="card cp-planner" aria-labelledby="cp-planner-heading">
       <div className="card-head">
         <div>
           <p className="eyebrow">02 / A story for your market</p>
-          <h2 id="cp-planner-heading">AI campaign planner</h2>
+          <h2 id="cp-planner-heading">Campaign planner</h2>
         </div>
         <span className={`status ${approval ? "connected" : "snapshot"}`}>
           {approval ? "Approved · demo" : "Mock proposal"}
@@ -29,19 +32,17 @@ export default function CampaignPlanner({
           <h3>{campaign.country}</h3>
         </div>
         <span className="cp-platform">
-          <InstagramIcon /> Instagram
+          <PlatformIcon platform={campaign.platform} /> {campaign.platform}
         </span>
       </div>
       <dl className="cp-summary">
         <div>
-          <dt>Target audience</dt>
+          <dt>Selected target audience</dt>
           <dd>{campaign.ageGroup} years</dd>
         </div>
         <div>
           <dt>Booking lead time</dt>
-          <dd>
-            {campaign.assumedLeadDays} days
-          </dd>
+          <dd>{campaign.assumedLeadDays} days</dd>
         </div>
         <div>
           <dt>Guests travel</dt>
@@ -52,8 +53,7 @@ export default function CampaignPlanner({
           <dd>{displayRange(campaign.campaign)}</dd>
         </div>
       </dl>
-      <CampaignReasoning campaign={campaign} />
-      <SocialPostPreview campaign={campaign} />
+      <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
         <button className="btn" onClick={onReview}>
           Review &amp; Schedule <ArrowIcon />
@@ -64,6 +64,7 @@ export default function CampaignPlanner({
             : "Human review first. Nothing publishes automatically."}
         </span>
       </div>
+      <CampaignReasoning campaign={campaign} />
     </section>
   );
 }

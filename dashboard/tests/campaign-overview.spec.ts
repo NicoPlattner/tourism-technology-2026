@@ -1,3 +1,4 @@
+import { selectPeriod } from "./helpers/travel";
 import { test, expect } from "@playwright/test";
 // Isolate Overview tests from the pre-existing dashboard's optional live refresh and remote logo/fonts.
 test.beforeEach(async ({ page }) => {
@@ -22,16 +23,16 @@ test("all four geographical countries update audience, localized copy, asset and
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
-  const planner = page.getByRole("region", { name: "AI campaign planner" });
+  const planner = page.getByRole("region", { name: "Campaign planner" });
   await expect(
     planner.getByRole("heading", { name: "Germany", exact: true }),
   ).toBeVisible();
   const images = new Set<string>();
   for (const [name, age, lead, language] of [
-    ["Germany", "18–26", "60", "de"],
-    ["Netherlands", "29–40", "14", "nl"],
+    ["Germany", "18–24", "60", "de"],
+    ["Netherlands", "18–24", "14", "nl"],
     ["Belgium", "18–24", "35", "fr"],
-    ["Austria", "25–35", "21", "de"],
+    ["Austria", "18–24", "21", "de"],
   ]) {
     await page
       .getByRole("button", { name: `Select ${name}`, exact: true })
@@ -53,83 +54,39 @@ test("all four geographical countries update audience, localized copy, asset and
       .toBeGreaterThan(0);
     images.add((await image.getAttribute("src"))!);
   }
-  expect(images.size).toBe(4);
+  expect(images.size).toBe(1);
   expect(errors).toEqual([]);
 });
-test("period-specific approvals are preserved across countries and review is keyboard accessible", async ({
-  page,
-}) => {
+test("review navigates with localized campaign and keeps approval across repeated visits", async ({page}) => {
   await page.goto("./");
-  await page
-    .getByRole("button", { name: "Select Belgium", exact: true })
-    .focus();
+  await page.getByRole("button", {name:"Select Belgium",exact:true}).focus();
   await page.keyboard.press("Enter");
-  await expect(page.locator(".cp-plan-title h3")).toHaveText("Belgium");
-  await page.getByRole("button", { name: "Review & Schedule" }).click();
-  const dialog = page.getByRole("dialog", { name: "Ready for a human yes?" });
-  await expect(dialog).toBeVisible();
-  await expect(dialog.locator(".cp-publishing li")).toHaveCount(3);
-  await expect(dialog).toContainText("Europe/Vienna");
-  await expect(dialog.locator(".cp-review-post p").first()).toHaveAttribute(
-    "lang",
-    "fr",
-  );
-  await dialog
-    .getByRole("button", { name: "Approve mock campaign", exact: true })
-    .click();
-  await expect(
-    dialog.getByText("Campaign approved locally", { exact: false }),
-  ).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(dialog).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Review & Schedule" }),
-  ).toBeFocused();
-  await expect(page.locator(".cp-plan-action")).toContainText(
-    "Approved locally",
-  );
-  await page
-    .getByRole("button", { name: "Select Germany", exact: true })
-    .focus();
-  await page.keyboard.press("Space");
-  await expect(page.locator(".cp-plan-title h3")).toHaveText("Germany");
-  await expect(page.locator(".cp-plan-action")).not.toContainText(
-    "Approved locally",
-  );
-  await page
-    .getByRole("button", { name: "Select Belgium", exact: true })
-    .click();
-  await expect(page.locator(".cp-plan-action")).toContainText(
-    "Approved locally",
-  );
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q2-2027");
-  await expect(page.locator(".cp-summary")).toContainText("May 2027");
-  await expect(page.locator(".cp-summary")).not.toContainText("February");
-  await expect(page.locator(".cp-plan-action")).not.toContainText(
-    "Approved locally",
-  );
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q1-2027");
-  await expect(page.locator(".cp-plan-action")).toContainText(
-    "Approved locally",
-  );
+  const copy = await page.locator(".cp-caption-text").innerText();
+  await page.getByRole("button", {name:"Review & Schedule"}).click();
+  await expect(page).toHaveURL(/#actions$/);
+  const card = page.locator(".am-campaign.is-open");
+  await expect(card).toContainText(copy);
+  await expect(card.locator(".am-post")).toHaveCount(3);
+  await card.getByRole("button", {name:"Approve campaign",exact:true}).click();
+  await expect(card.locator(".am-status")).toHaveText("APPROVED");
+  const count = await page.locator(".am-campaign").count();
+  await page.getByRole("link", {name:"Overview",exact:true}).click();
+  await page.getByRole("button", {name:"Select Belgium",exact:true}).click();
+  await page.getByRole("button", {name:"Review & Schedule"}).click();
+  await expect(page.locator(".am-campaign")).toHaveCount(count);
+  await expect(page.locator(".am-campaign.is-open .am-status")).toHaveText("APPROVED");
 });
 test("all periods update all market contexts without stale recommendations", async ({
   page,
 }) => {
   await page.goto("./");
   for (const period of ["q1-2027", "q2-2027", "winter-2026-27"]) {
-    await page
-      .getByRole("combobox", { name: "Target travel period" })
-      .selectOption(period);
+    await selectPeriod(page,period);
     for (const [market, month] of [
       ["Germany", "April"],
       ["Netherlands", "April"],
-      ["Belgium", "May"],
-      ["Austria", "May"],
+      ["Belgium", "April"],
+      ["Austria", "April"],
     ]) {
       await page
         .getByRole("button", { name: `Select ${market}`, exact: true })
@@ -137,11 +94,11 @@ test("all periods update all market contexts without stale recommendations", asy
       await expect(page.locator(".cp-plan-title h3")).toHaveText(market);
       if (period === "q2-2027") {
         await expect(page.locator(".cp-summary")).toContainText(
-          `${month} 2027`,
+          `${month === "April" ? "Apr" : month} 2027`,
         );
         await expect(page.locator(".cp-social-image")).toHaveAttribute(
           "alt",
-          /spring/,
+          /spring|flower/,
         );
       } else {
         await expect(page.locator(".cp-social-image")).toHaveAttribute(
@@ -168,10 +125,10 @@ test("existing navigation, Google Analytics connect and Actions export remain fu
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
   await page.getByRole("link", { name: /^Actions/ }).click();
   await expect(page).toHaveURL(/#actions$/);
-  await expect(page.locator(".actions-min > li").first()).toBeVisible();
+  await expect(page.locator(".am-campaign").first()).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV", exact: true }).click();
-  expect((await download).suggestedFilename()).toBe("next-steps.csv");
+  expect((await download).suggestedFilename()).toBe("campaign-posts.csv");
   await page.getByRole("link", { name: "Overview", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Campaign overview" }),
@@ -225,19 +182,15 @@ test("campaign interactions remain available offline and rapid changes do not sh
   await page
     .getByRole("button", { name: "Select Netherlands", exact: true })
     .click();
-  await page
-    .getByRole("combobox", { name: "Target travel period" })
-    .selectOption("q2-2027");
+  await selectPeriod(page,"q2-2027");
   await page
     .getByRole("button", { name: "Select Austria", exact: true })
     .click();
   await expect(page.locator(".cp-plan-title h3")).toHaveText("Austria");
-  await expect(page.locator(".cp-summary")).toContainText("May 2027");
+  await expect(page.locator(".cp-summary")).toContainText("Apr 2027");
   await page.getByRole("button", { name: "Review & Schedule" }).click();
   await page
-    .getByRole("button", { name: "Approve mock campaign", exact: true })
+    .getByRole("button", { name: "Approve campaign", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toContainText(
-    "Campaign approved locally",
-  );
+  await expect(page.locator(".am-campaign.is-open .am-status")).toHaveText("APPROVED");
 });

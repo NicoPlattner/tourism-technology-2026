@@ -59,7 +59,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: dashboard/package-lock.json
 
@@ -71,6 +71,14 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npm run build
+          npm run test:unit
+
+      - name: Validate nginx routing
+        run: |
+          web_image=$(awk '/^image:/ {print $2}' helm/tourism-technology/values.yaml)
+          docker run --rm --user 101 --tmpfs /tmp \
+            --mount "type=bind,src=$GITHUB_WORKSPACE/helm/tourism-technology/nginx.conf,dst=/etc/nginx/nginx.conf,readonly" \
+            --entrypoint nginx "$web_image" -t
 
       - name: Validate Helm chart
         run: helm lint helm/tourism-technology
@@ -158,6 +166,34 @@ jobs:
           done
           kubectl get deployments -n tourism-technology-2026
 
+      - name: Upload static campaign images
+        run: |
+          python dashboard/scripts/deploy-static-assets.py \
+            --release "$RELEASE_NAME" --namespace tourism-technology-2026 \
+            --site helm/tourism-technology/site --values "$RUNNER_TEMP/static-assets-values.json"
+
+      - name: Configure caption API credentials
+        env:
+          CAPTION_API_KEY: ${{ secrets.CAPTION_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          N8N_WEBHOOK_KEY: ${{ secrets.N8N_WEBHOOK_KEY }}
+          CAPTION_SECRET_KEY: ${{ vars.CAPTION_SECRET_KEY || 'api-key' }}
+          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || secrets.CAPTION_PROVIDER || 'openai' }}
+          CAPTION_EXISTING_SECRET: ${{ vars.CAPTION_EXISTING_SECRET }}
+        run: |
+          set -euo pipefail
+          api_key="$CAPTION_API_KEY"
+          if [[ -z "$api_key" ]]; then
+            if [[ "$CAPTION_PROVIDER" == "n8n" ]]; then api_key="$N8N_WEBHOOK_KEY"; else api_key="$OPENAI_API_KEY"; fi
+          fi
+          if [[ -n "$api_key" && -z "$CAPTION_EXISTING_SECRET" ]]; then
+            umask 077
+            key_file="$RUNNER_TEMP/caption-api-key"
+            trap 'rm -f "$key_file"' EXIT
+            printf '%s' "$api_key" > "$key_file"
+            kubectl -n tourism-technology-2026 create secret generic "$RELEASE_NAME-caption-ai" \
+              --from-file="$CAPTION_SECRET_KEY=$key_file" --dry-run=client -o yaml | kubectl apply -f -
+          fi
       - name: Store Google OAuth client and analytics API token for the API
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
@@ -180,6 +216,17 @@ jobs:
           printf 'GOOGLE_SECRET_CHECKSUM=%s\n' "$checksum" >> "$GITHUB_ENV"
 
       - name: Deploy Helm release
+        env:
+          CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || secrets.CAPTION_PROVIDER || 'openai' }}
+          CAPTION_MODEL: ${{ vars.CAPTION_MODEL || secrets.CAPTION_MODEL || 'gpt-4.1-mini' }}
+          CAPTION_BASE_URL: ${{ vars.CAPTION_BASE_URL || vars.OPENAI_BASE_URL || secrets.CAPTION_BASE_URL || secrets.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
+          CAPTION_N8N_WEBHOOK_URL: ${{ vars.CAPTION_N8N_WEBHOOK_URL }}
+          CAPTION_N8N_AUTH_HEADER: ${{ vars.CAPTION_N8N_AUTH_HEADER || 'X-Caption-Key' }}
+          CAPTION_N8N_AUTH_PREFIX: ${{ vars.CAPTION_N8N_AUTH_PREFIX }}
+          CAPTION_JSON_MODE: ${{ vars.CAPTION_JSON_MODE || secrets.CAPTION_JSON_MODE || 'json_schema' }}
+          CAPTION_TIMEOUT_MS: ${{ vars.CAPTION_TIMEOUT_MS || '8000' }}
+          CAPTION_EXISTING_SECRET: ${{ vars.CAPTION_EXISTING_SECRET }}
+          CAPTION_SECRET_KEY: ${{ vars.CAPTION_SECRET_KEY || 'api-key' }}
         run: |
           # After a failed deploy, Helm merges into live objects and keeps what
           # later versions removed: old fields on the API Deployment, and old
@@ -190,7 +237,14 @@ jobs:
             kubectl -n tourism-technology-2026 delete configmap "$RELEASE_NAME-site" --ignore-not-found
           fi
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
+            --values "$RUNNER_TEMP/static-assets-values.json" \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
+            --set-string "caption.provider=$CAPTION_PROVIDER" --set-string "caption.model=$CAPTION_MODEL" \
+            --set-string "caption.baseUrl=$CAPTION_BASE_URL" --set-string "caption.jsonMode=$CAPTION_JSON_MODE" \
+            --set-string "caption.n8nWebhookUrl=$CAPTION_N8N_WEBHOOK_URL" --set-string "caption.n8nAuthHeader=$CAPTION_N8N_AUTH_HEADER" \
+            --set-string "caption.n8nAuthPrefix=$CAPTION_N8N_AUTH_PREFIX" \
+            --set-string "caption.timeoutMs=$CAPTION_TIMEOUT_MS" --set-string "caption.existingSecret=$CAPTION_EXISTING_SECRET" \
+            --set-string "caption.secretKey=$CAPTION_SECRET_KEY" --set-string "caption.configRevision=$GITHUB_RUN_ID" \
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \
             --set "c04Api.enabled=${{ inputs.c04_api }}" \
             --set-string "c04Api.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api:latest" \
@@ -206,6 +260,7 @@ jobs:
           for attempt in {1..15}; do
             if curl -fsS --max-time 5 "http://127.0.0.1:18081$health_path" | grep -Fq 'demand-radar ok' &&
               curl -fsSL --max-time 5 "http://127.0.0.1:18081$DEPLOY_PATH" | grep -Fq 'Demand Radar'; then
+              curl -sS --max-time 5 -X POST -H 'Content-Type: application/json' -d '{}' "http://127.0.0.1:18081${DEPLOY_PATH%/}/api/marketing/generate-caption" | grep -Fq 'INVALID_METADATA'
               printf '\nService verified. URL: https://hackathon.daria-and-nico.com%s (public route not verified).\n' "$DEPLOY_PATH" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
@@ -236,9 +291,15 @@ jobs:
         run: |
           url="https://hackathon.daria-and-nico.com$DEPLOY_PATH"
           api="https://hackathon.daria-and-nico.com${DEPLOY_PATH%/}/api/health"
-          if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fq 'Demand Radar' &&
+          if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fq 'Demand Radar' &&\
             curl --fail --silent --show-error --max-time 30 "$api" | grep -Fq '"ok":true'; then
-            printf 'Public URL verified: %s (API: %s)\n' "$url" "$api" >> "$GITHUB_STEP_SUMMARY"
+            curl -sS --max-time 10 -X POST -H 'Content-Type: application/json' -d '{}' "${url%/}/api/marketing/generate-caption" | grep -Fq 'INVALID_METADATA'
+            for image in helm/tourism-technology/site/*.webp; do
+              [[ -f "$image" ]] || continue
+              curl --fail --silent --show-error --max-time 30 "${url%/}/$(basename "$image")" -o "$RUNNER_TEMP/public-image.webp"
+              cmp "$image" "$RUNNER_TEMP/public-image.webp"
+            done
+            printf 'Public URL verified: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
           else
             printf 'Public URL verification failed: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
             exit 1
