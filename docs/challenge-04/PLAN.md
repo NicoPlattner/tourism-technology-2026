@@ -117,9 +117,24 @@ GUI input: destination=Tirol, origin=Bavaria, time frame=15 Jan-15 Mar 2027
 | **M4** | share of bookings 0 / 8 / 31 / 61 / 90 / 180+ days before arrival, per arrival month; "advertise by" date | TVB booking lead time (arrival weeks, 2023–2026, Paznaun, no origin split) | multinomial shares per arrival month + linear trend per class (winter books earlier, summer later) | leave-one-season-out | medium for Paznaun as proxy for Tirol; **no origin split** in any available data (shown as "all markets") |
 | **M5** (optional) | age bands, median age per origin | Salzburg guest-card usage (age band × origin, 7 winters, comparable ski region); T-MONA Tirol reports (state level) | empirical distribution per origin and season, shrunk to the all-origin distribution for small origins | stability across seasons | low (proxy region) |
 
-Data each model does **not** need: M1/M2 need no TVB data; M4 needs no holidays
-or market mix; M5 needs neither. The Paznaun forecast (sections 1–6) keeps
-using everything.
+Selection rule: datasets may be combined, derived or interpolated freely, but a
+data block enters a model only if it improves that model's backtest (ablation:
+add one block at a time, keep it only if out-of-sample error drops and summer
+or small origins do not get worse). Starting sets: M1/M2 without TVB data, M4
+without holidays, M5 with neither; blocks are added only through this test.
+
+Derived datasets planned (combining sources):
+- **M4 lead time by origin**: combine the TVB lead-time mix per arrival week
+  with the estimated market composition of the same weeks (market split,
+  section 3b of MODELS.md). Weeks dominated by Dutch spring-break or Danish
+  week-7 guests vs German weeks give an estimate of each market's lead-time
+  profile (constrained regression of class shares on market shares, grade C).
+- **M3 Tirol daily pattern**: aggregate the open daily index of all Tirol
+  regions (2022–2025), scaled to Statistik Austria monthly totals, extended
+  with the Paznaun real daily pattern for 2025/26.
+- **M1 Paznaun view**: Tirol × origin forecast scaled by Paznaun's market
+  share per origin (Landesstatistik seasons), so the GUI can later switch the
+  destination to Paznaun.
 
 Derived GUI outputs:
 - **Advertising window** for an origin and time frame = arrival weeks of
