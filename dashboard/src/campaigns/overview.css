@@ -1143,3 +1143,5 @@
 .cp-calendar-footer span { color: var(--muted); font-size: 10px; }
 .cp-calendar-footer button { border: 0; background: transparent; color: var(--red); font: 600 11px var(--sans); padding: 4px; cursor: pointer; }
 @media (max-width: 600px) { .cp-calendar { width: min(300px,100%); } .cp-date-fields input { width: 100%; } }
+
+.cp-plan-action + .cp-reasoning { margin-top: 14px; margin-bottom: 0; }

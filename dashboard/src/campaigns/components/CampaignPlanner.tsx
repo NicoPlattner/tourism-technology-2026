@@ -53,7 +53,6 @@ export default function CampaignPlanner({
           <dd>{displayRange(campaign.campaign)}</dd>
         </div>
       </dl>
-      <CampaignReasoning campaign={campaign} />
       <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
         <button className="btn" onClick={onReview}>
@@ -65,6 +64,7 @@ export default function CampaignPlanner({
             : "Human review first. Nothing publishes automatically."}
         </span>
       </div>
+      <CampaignReasoning campaign={campaign} />
     </section>
   );
 }
