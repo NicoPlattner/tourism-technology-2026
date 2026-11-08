@@ -6,7 +6,7 @@
   "description": "Demand Radar for TVB Paznaun-Ischgl \u2014 overnight stays, forecast and bed capacity explained (TTF Hackathon 2026, challenge 04)",
   "scripts": {
     "dev": "node scripts/dev-caption.mjs",
-    "build": "tsc --noEmit && vite build && npm run build:api",
+    "build": "tsc --noEmit && vite build && npm run build:api && mkdir -p ../helm/tourism-technology/api && cp server/server.mjs server/analytics.mjs ../helm/tourism-technology/api/",
     "preview": "vite preview",
     "data:open": "node scripts/fetch-open-data.mjs",
     "data:sample": "node scripts/make-sample-data.mjs",
@@ -17,7 +17,9 @@
     "dev:api": "node --env-file-if-exists=.env --use-env-proxy --import tsx --watch server/index.ts",
     "build:api": "esbuild server/index.ts --bundle --platform=node --format=cjs --target=node24 --outfile=../helm/tourism-technology/caption-server.cjs",
     "start:api": "node --env-file-if-exists=.env --use-env-proxy ../helm/tourism-technology/caption-server.cjs",
-    "captions:pregenerate": "node --env-file-if-exists=.env --use-env-proxy --import tsx scripts/pregenerate-captions.ts"
+    "captions:pregenerate": "node --env-file-if-exists=.env --use-env-proxy --import tsx scripts/pregenerate-captions.ts",
+    "server": "node server/server.mjs",
+    "test:server": "node --test server/server.test.mjs"
   },
   "dependencies": {
     "d3-array": "3.2.4",

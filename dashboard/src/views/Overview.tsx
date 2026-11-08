@@ -106,7 +106,7 @@ export default function Overview({
         <span className="status sample">Campaign demo</span>
         <p>
           Illustrative booking patterns and campaign recommendations. You choose the target audience.
-          Independent of the dashboard’s real and uploaded data.
+          Independent of the dashboard’s real and connected data.
         </p>
       </div>
       <div className="cp-layout">

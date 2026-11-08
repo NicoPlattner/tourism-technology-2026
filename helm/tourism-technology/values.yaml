@@ -17,3 +17,19 @@ caption:
 
 # Public binary assets supplied by the deployment workflow.
 staticAssetConfigMaps: []
+api:
+  image: node:22-alpine
+  persistence:
+    # false keeps the Google connection only until the API pod restarts.
+    enabled: true
+    size: 64Mi
+    # The cluster has no default class; "retain" keeps the data on the node
+    # even if the claim is deleted.
+    storageClass: microk8s-retain-hostpath
+# Challenge 04 data API (api/c04), image from .github/workflows/c04-api-image.yaml.
+c04Api:
+  enabled: true
+  image: ghcr.io/nicoplattner/c04-api:latest
+  imagePullSecret: ""
+# Set by the deploy workflow so the API restarts when the Google secret changes.
+googleSecretChecksum: ""

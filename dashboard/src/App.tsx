@@ -1,6 +1,7 @@
 import { useCampaigns } from "./campaigns/management/store";
 import { useEffect, useMemo, useState } from 'react';
-import { buildDataset, parsePartnerCsv, refreshOpenData, SAMPLE, type PartnerFile } from './data/sources';
+import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
+import { gaApi, type GaState } from './data/googleAnalytics';
 import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
 import { longDate } from './analysis/format';
@@ -11,26 +12,27 @@ import Capacity from './views/Capacity';
 import Actions from './views/Actions';
 import Sources from './views/Sources';
 
-export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'data';
+export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'integrations';
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'overview', label: 'Overview', hint: 'Overview' },
   { id: 'season', label: 'Season', hint: 'Day by day' },
   { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
   { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
   { id: 'actions', label: 'Actions', hint: 'Campaigns & publishing' },
-  { id: 'data', label: 'Data', hint: 'Sources and upload' },
+  { id: 'integrations', label: 'Integrations', hint: 'Google Analytics and data sources' },
 ];
 
 // Official Ischgl logo, loaded from ischgl.com (the asset stays with its owner).
 const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne_r.png';
 
-const readTab = (): Tab => (TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
+// #data is the tab's old address; keep old links working.
+const readTab = (): Tab => (location.hash === '#data' ? 'integrations' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
   const campaignState = useCampaigns();
   const [tab, setTab] = useState<Tab>(readTab);
-  const [partner, setPartner] = useState<PartnerFile>(SAMPLE);
-  const [uploaded, setUploaded] = useState<string | undefined>();
+  const [ga, setGa] = useState<GaState | null>(null);
+  const [gaError, setGaError] = useState<string | undefined>();
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
   const [logoOk, setLogoOk] = useState(true);
 
@@ -41,15 +43,20 @@ export default function App() {
     return () => removeEventListener('hashchange', onHash);
   }, []);
 
-  const ds = useMemo(() => buildDataset(partner, { openForecast: live?.openForecast, weather: live?.weather, retrieved: live?.retrieved, uploaded }), [partner, live, uploaded]);
+  // The Google Analytics connection lives on the server; reload it when the
+  // tab comes back so changes made on another device show up.
+  useEffect(() => {
+    const load = () => gaApi.state().then((s) => { setGa(s); setGaError(undefined); }).catch((e: Error) => setGaError(e.message));
+    load();
+    const onVisible = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
+  const ds = useMemo(() => buildDataset(SAMPLE, { openForecast: live?.openForecast, weather: live?.weather, retrieved: live?.retrieved }), [live]);
   const model = useMemo(() => computeModel(ds), [ds]);
 
   const go = (t: Tab) => { location.hash = t; setTab(t); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  const onUpload = async (file: File) => {
-    const text = await file.text();
-    setPartner(parsePartnerCsv(text, SAMPLE));
-    setUploaded(file.name);
-  };
   const props = { ds, model, go };
 
   return (
@@ -57,7 +64,7 @@ export default function App() {
       <div className="metabar">
         <span className="meta-l">Demand Radar · TVB Paznaun-Ischgl</span>
         <span className="meta-r">
-          {ds.sampleData && <button className="sample" onClick={() => go('data')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
+          {ds.sampleData && <button className="sample" onClick={() => go('integrations')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
           <span>{longDate(ds.today)}</span>
         </span>
       </div>
@@ -84,7 +91,7 @@ export default function App() {
         {tab === 'why' && <Why {...props} />}
         {tab === 'capacity' && <Capacity {...props} />}
         {tab === 'actions' && <Actions {...props} />}
-        {tab === 'data' && <Sources {...props} onUpload={onUpload} uploaded={uploaded} />}
+        {tab === 'integrations' && <Sources {...props} ga={ga} setGa={setGa} gaError={gaError} />}
       </main>
 
       <footer>

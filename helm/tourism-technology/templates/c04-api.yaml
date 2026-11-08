@@ -1,0 +1,84 @@
+# Challenge 04 data API (read-only): demand by origin with reasons and flags.
+# Image built by .github/workflows/c04-api-image.yaml from api/c04/Dockerfile
+# (code + results/gui tables baked in). Served under <ingress.path>/c04-api.
+{{- if .Values.c04Api.enabled }}
+{{- $base := printf "%s/c04-api" (trimSuffix "/" .Values.ingress.path) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-c04-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-c04-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-c04-api
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.c04Api.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ . }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: {{ .Values.c04Api.image }}
+          imagePullPolicy: Always
+          env:
+            - name: BASE_PATH
+              value: {{ $base | quote }}
+            - name: PORT
+              value: "8080"
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: {{ printf "%s/health" $base | quote }}
+              port: http
+          livenessProbe:
+            httpGet:
+              path: {{ printf "%s/health" $base | quote }}
+              port: http
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-c04-api
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}-c04-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+{{- end }}
