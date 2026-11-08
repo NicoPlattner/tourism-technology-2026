@@ -72,3 +72,20 @@ are the submission-critical subset.
 | One year of TVB forecast history | shrink corrections to 50 %, show grade C where only one year supports a claim |
 | Explanations confounded (snow vs December, Polish holidays vs summer peak) | say so in the grade text; no causal claims |
 | Partner data leaks into git | raw and derived tables git-ignored; check `git status` before each commit |
+
+## 6. Next test (planned, not run): push–pull as extra features
+
+Goal: use the push–pull structure to improve the forecast without losing the
+detail of the current ensemble (winter 25/26: 9.4 % daily error).
+
+1. Features: from a push–pull fit on the training window only (no look-ahead),
+   add per day (a) expected guests per market group (DE, Benelux, Nordics/UK,
+   neighbours, East) = share × holiday response × within-month spread, and
+   (b) the pull factor. Keep all existing holiday columns.
+2. Variants: LightGBM + (a); LightGBM + (a) + (b); ensemble with each.
+3. Evaluation: origins 31 Oct 2024 and 31 Oct 2025, same monthly anchor,
+   daily and peak-day error, conformal coverage; summer May–Oct 2026 as a check.
+4. Decision rule: adopt only if the ensemble improves in both winters and
+   summer does not get worse; otherwise keep push–pull for explanation and the
+   market split only.
+5. If adopted: re-run `forecast_winter.py`, `market_split.py`, update RESULTS.
