@@ -22,20 +22,58 @@ Only derived values and monthly sums: no TVB daily values.
 | `deviations_drivers.csv` | season × driver | `stays_total` (stays explained: + = more stays than forecast), 80 % interval, `kind` (push = source-market free time, pull = destination), `grade` |
 | `deviations_summary.json` | season | R², Theil shares (bias / variance / covariance), unexplained stays, forecast-zero days |
 | `warnings.csv` | window of consecutive flagged days | kind, from, to, days, forecast, capacity, spare beds, utilisation, days until start, meaning, grade |
-| `actions.csv` | market × window | `rank`, `kind` (win demand / protect yield), `action`, `launch_by`, `median_lead_days`, `share_still_bookable`, `market_share`, `holiday_push`, `addressable_nights`, `score`, `grade`, `note`, `basis` |
+| `actions.csv` | market × window | `rank`, `kind` (win demand / protect yield), `reason_type`, `action_type`, `action`, `holiday_days`, `holidays`, `free_block_days_max`, `reach_days`, `launch_by`, `median_lead_days`, `share_still_bookable`, `market_share`, `trip_push_max`, `midweek_share_of_spare`, `expected_nights`, `holiday_part_nights`, `base_part_nights`, `addressable_nights`, `score`, `grade`, `note`, `basis` |
 
 ## How the actions are ranked
 
+Spare beds come from the forecast, which already contains the weekday pattern
+(Fri/Sat nights ×1.25), so weekends are not weighted again. Weekends enter
+through free-day blocks and decide the action type.
+
+Per market m and day t (`push_reasons.csv` shares, population-weighted):
 ```
-spare beds (window)  = capacity − our forecast, summed over the days
-weight (market)      = market share in Paznaun that month (M1) × holiday push of the market in the window
-addressable nights   = spare beds × weight / Σ weight
-share still bookable = share of the arrival month's bookings usually made later than today (TVB lead times)
-score                = addressable nights × share still bookable (× 1.15 if the market is on holiday)
-launch_by            = window start − median lead time of the arrival month (not before today)
+free days    free_m(t)  = max(school, public holiday, bridge day, weekend)        0..1
+block        block_m(t) = length of the run of days with free_m >= 0.5 that contains t
+reach        reach_m    = minimum block for a trip to Paznaun
+                          2 days: Tyrol, Vorarlberg           (a weekend is enough)
+                          3 days: rest of Austria, CH/LI, Bavaria, Baden-Württemberg
+                          4 days: rest of Germany, Italy, Czech Republic
+                          7 days: all other markets (NL, BE, LU, DK, SE, GB, PL, FR, ...)
+trip push    push_m(t)  = 1 + γS_m · school_m(t)
+                            + γL_m · longweekend_m(t) · [block_m(t) >= reach_m] · (1 − school_m(t))
+               γS_m = measured school-holiday effect (push-pull fit on Paznaun, DE 1.3 … GB 2.4)
+               γL_m = 0.5 / 0.3 / 0.15 / 0 for reach 2 / 3 / 4 / 7 days
 ```
-"Protect yield" rows (tight windows) rank below demand actions of the same size.
-`addressable_nights` is the room to win, not a promised effect.
+Per window W (calendar weeks; consecutive weeks with the same market, reason
+and action type are merged):
+```
+spare_t      = max(0, capacity_t − forecast_t)
+share        s_m = market share of Paznaun nights in the month (M1)
+expected     E_m = Σ_t forecast_t · s_m
+holiday part H_m = min( Σ_t spare_t · s_m (push_m(t) − 1) / Σ_k s_k push_k(t) ,  1.0 · E_m )
+base part    B_m = min( Σ_t spare_t · s_m / Σ_k s_k push_k(t)               ,  0.15 · E_m )
+score        = (H_m + 0.3 · B_m) × share still bookable
+reason_type  = holiday-driven if the market has >= 2 days with push >= 1.3, else share-driven
+action_type  = holiday campaign  (holiday-driven, mainly school holidays)
+               short-trip package (holiday-driven, mainly long weekends)
+               midweek offer     (share-driven, >= 70 % of spare beds on Sun–Thu nights)
+               short-stay offer  (share-driven, otherwise)
+launch_by    = window start − median lead time of the arrival month (not before today)
+```
+`addressable_nights` = H + B is the room to win, not a promised effect.
+"Protect yield" rows (tight windows) score 5 % of the market's nights.
+
+### Assumptions and why
+
+| Assumption | Value | Reasoning |
+|---|---|---|
+| free-day threshold | 0.5 | a block should reflect what most of the market can do; regional holidays below half the population stay in the push term but do not open a block |
+| reach classes | 2 / 3 / 4 / 7 days | travel time to Paznaun: Tyrol and Vorarlberg under 2 h (weekend trips), rest of Austria, Switzerland, southern Germany 3–6 h, rest of Germany, Italy, Czech Republic 6–9 h, others a week-long trip |
+| long-weekend effect γL | 0.5 / 0.3 / 0.15 / 0 | not measurable in the TVB totals (winter: grade C, summer: only bridge weekends, small); a cautious prior that is half or less of the school-holiday effect and falls with distance; long-weekend-driven actions are grade C |
+| holiday cap | 1.0 × expected nights | measured school-holiday effects are ×1.9–3.4 presence vs a normal day, and the forecast already contains the expected holiday uplift; winning more than the market's own volume again is implausible |
+| base cap | 0.15 × expected nights | without a trigger, a campaign reactivates regular guests only; monthly forecast errors in winter 25/26 were 2–7 %, so a 15 % ceiling is generous but bounded |
+| base weight | 0.3 | holiday-driven nights rest on a measured effect; share-driven nights need demand to be created; weighting them at 0.3 keeps big markets visible without letting market size alone top the list |
+| holiday day | push >= 1.3 | about 25–30 % of the market's population on school holiday, or a full long weekend for near markets |
 
 ## Grades
 
@@ -43,6 +81,9 @@ A = observed or well-tested; B = model with real-data backtest (forecast: 8.5 %
 daily error in winter 25/26, 80 % band); C = estimate (Paznaun markets = Tirol ×
 Paznaun share, capacity from last year); D = rough. An action takes the worst
 grade of its inputs.
+
+Data fix: OpenHolidays lists the Dutch southern region's 2027 spring holiday as
+13 Feb – 21 Mar; corrected to 13–21 Feb (`data/holiday_corrections.py`).
 
 Sources: TVB Paznaun-Ischgl with feratel (TTF 2026 data licence), Statistik
 Austria (CC BY 4.0), Österreich Werbung / Nächtigungsprognose (CC BY 4.0),
