@@ -156,3 +156,22 @@ def test_snapshot_switch(client, monkeypatch, tmp_path):
     assert f["snapshot"] == "20270101T0000Z" and f["built_snapshot"] == "20270101T0000Z"  # manifest cannot override
     monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "missing")
     assert get(client, "/health")["version"] == "baked"
+
+
+def test_openapi_has_no_required_parameters(client):
+    """TTF Space turns required parameters into fixed values: every parameter needs a default or is optional."""
+    spec = get(client, "/openapi.json")
+    for path, ops in spec["paths"].items():
+        for op in ops.values():
+            assert op["operationId"][0].islower() and "_" not in op["operationId"], op["operationId"]
+            for prm in op.get("parameters", []):
+                assert not prm.get("required"), f"{path}: {prm['name']} is required"
+    assert B + "/table" in spec["paths"] and B + "/tables/{name}" not in spec["paths"]
+
+
+def test_query_defaults_and_table_param(client):
+    q = get(client, "/query")
+    assert q["origin"] == "80" and q["nights"]["value"] > 0
+    assert get(client, "/table", name="c04/actions.csv").startswith("rank,")
+    assert get(client, "/table").startswith("destination,")
+    get(client, "/table", 404, name="../app.py")
