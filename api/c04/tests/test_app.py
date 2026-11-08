@@ -147,9 +147,12 @@ def test_snapshot_switch(client, monkeypatch, tmp_path):
     snap = tmp_path / "snapshots" / "20270101T0000Z"
     shutil.copytree(os.environ["DATA_DIR"], snap / "gui")
     shutil.copytree(os.environ["C04_DIR"], snap / "c04")
+    man = json.loads((snap / "c04" / "manifest.json").read_text())
+    (snap / "c04" / "manifest.json").write_text(json.dumps({**man, "snapshot": "stale", "built_snapshot": snap.name}))
     (tmp_path / "snapshots" / "current").symlink_to(snap.name)
     monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "snapshots")
     assert get(client, "/health")["version"] == "20270101T0000Z"
-    assert get(client, "/meta")["freshness"]["snapshot"] == "20270101T0000Z"
+    f = get(client, "/meta")["freshness"]
+    assert f["snapshot"] == "20270101T0000Z" and f["built_snapshot"] == "20270101T0000Z"  # manifest cannot override
     monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "missing")
     assert get(client, "/health")["version"] == "baked"
