@@ -3,7 +3,7 @@ OpenHolidays API does not cover. Rule-based, approximate, one row per break with
 on holiday. Weekends adjoining a break are included.
 
 Covered: Denmark, United Kingdom (England pattern; Scotland and Northern Ireland differ), Sweden,
-school years 2021/22-2026/27; Italy summer 2026 and 2026/27 (API ends June 2026); Poland Christmas,
+school years 2013/14-2026/27; Italy summer 2026 and 2026/27 (API ends June 2026); Poland Christmas,
 Easter and summer 2026/27; France summer 2027.
 
 Sources for the rules (checked 8 Nov 2026):
@@ -60,7 +60,7 @@ def add(c, a, b, share, name, conf="approx"):
     rows.append((c, a.isoformat(), b.isoformat(), share, name, conf))
 
 
-for y in range(2021, 2027):  # school year y/y+1
+for y in range(2013, 2027):  # school year y/y+1
     e = easter(y + 1)
     # Denmark
     add("DK", *iso_week(y, 42), 1.0, "efterårsferie")
