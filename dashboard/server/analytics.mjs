@@ -132,6 +132,169 @@ const DATE = /^(\d{4}-\d{2}-\d{2}|today|yesterday|\d{1,4}daysAgo)$/;
 const minuteKey = (ms) => new Date(Math.floor(ms / 60_000) * 60_000).toISOString();
 const hourKey = (iso) => `${iso.slice(0, 13)}:00:00.000Z`;
 
+// ---------- OpenAPI description and Swagger UI (public: they describe the API, no data)
+
+const SWAGGER_UI = 'https://unpkg.com/swagger-ui-dist@5.17.14';
+
+/** The OpenAPI 3.1 description; `server` is this deployment's absolute /api/v1 URL. */
+export function openapiSpec(server, retentionDays = 180) {
+  const id = { name: 'id', in: 'path', required: true, description: 'GA4 property id from GET /properties, or `default` for the first connected property.', schema: { type: 'string', pattern: '^(default|[0-9]+)$', maxLength: 32, default: 'default' } };
+  const freshParam = { name: 'fresh', in: 'query', required: false, description: 'Set to 1 to skip the server cache.', schema: { type: 'string', enum: ['1', 'true'] } };
+  const date = (name, def) => ({ name, in: 'query', required: false, description: 'YYYY-MM-DD, `today`, `yesterday` or `NdaysAgo`.', schema: { type: 'string', pattern: '^(\\d{4}-\\d{2}-\\d{2}|today|yesterday|\\d{1,4}daysAgo)$', maxLength: 10, default: def } });
+  const json = (schema, example) => ({ content: { 'application/json': { schema, ...(example && { example }) } } });
+  const err = (description) => ({ description, ...json({ $ref: '#/components/schemas/Error' }) });
+  const errors = {
+    401: err('Missing or wrong bearer token.'),
+    403: err('The analytics API is switched off in the dashboard (Integrations → Google Analytics → Analytics API).'),
+    404: err('Property not connected.'),
+    502: err('Google Analytics returned an error, e.g. the Google connection needs to be renewed.'),
+    503: err('The server has no ANALYTICS_API_TOKEN configured.'),
+  };
+  const ok = (description, schema, example) => ({ 200: { description, ...json(schema, example) }, ...errors });
+  const op = (operationId, summary, description, parameters, responses, extra = {}) => ({ operationId, summary, description, parameters, responses, ...extra });
+  const queryBody = (realtime) => ({
+    required: true,
+    ...json({
+      type: 'object',
+      description: `A GA4 ${realtime ? 'runRealtimeReport' : 'runReport'} request. dimensions and metrics may be plain names.${realtime ? '' : ' startDate / endDate are a shortcut for dateRanges (default 28daysAgo – today).'}`,
+      required: ['metrics'],
+      properties: {
+        dimensions: { type: 'array', items: { oneOf: [{ type: 'string' }, { type: 'object' }] }, maxItems: 9 },
+        metrics: { type: 'array', items: { oneOf: [{ type: 'string' }, { type: 'object' }] }, minItems: 1, maxItems: 10 },
+        ...(realtime ? { minuteRanges: { type: 'array', items: { type: 'object' } } } : {
+          startDate: { type: 'string', default: '28daysAgo' },
+          endDate: { type: 'string', default: 'today' },
+          dateRanges: { type: 'array', items: { type: 'object' } },
+        }),
+        dimensionFilter: { type: 'object' },
+        orderBys: { type: 'array', items: { type: 'object' } },
+        limit: { type: 'integer', minimum: 1, maximum: 250000 },
+      },
+      additionalProperties: true,
+    }, realtime
+      ? { dimensions: ['country', 'city'], metrics: ['activeUsers'] }
+      : { dimensions: ['country', 'userAgeBracket', 'userGender'], metrics: ['activeUsers', 'keyEvents'], startDate: '28daysAgo' }),
+  });
+
+  return {
+    openapi: '3.1.0',
+    info: {
+      title: 'Demand Radar analytics API',
+      version: '1.0.0',
+      description: 'Read access to the Google Analytics (GA4) properties connected in the Demand Radar dashboard, for marketing and campaign tools.\n\n'
+        + '- **Auth:** `Authorization: Bearer <ANALYTICS_API_TOKEN>` on every endpoint except this description.\n'
+        + '- **On/off:** switched in the dashboard under Integrations → Google Analytics → Analytics API (403 while off).\n'
+        + '- **Rows** are flat objects (`{"country":"Austria","activeUsers":12,"share":0.4}`); each report section has a `status` (`ok`, `empty`, `error`) and a `note` explaining missing data.\n'
+        + '- **New properties:** standard reports fill in after 24–48 h; age, gender and interests need Google signals and enough users (GA privacy thresholds, flagged `thresholded: true`). Use realtime and history meanwhile.',
+    },
+    servers: [{ url: server }],
+    security: [{ bearerAuth: [] }],
+    tags: [{ name: 'Properties' }, { name: 'Live and history' }, { name: 'Reports' }, { name: 'Custom queries' }, { name: 'About' }],
+    paths: {
+      '/': { get: op('getOverview', 'API overview', 'Endpoint list and whether the API is switched on. No token needed.', [], { 200: { description: 'Overview', ...json({ type: 'object', properties: { name: { type: 'string' }, enabled: { type: 'boolean' }, endpoints: { type: 'object' } } }) } }, { tags: ['About'], security: [] }) },
+      '/properties': { get: op('listProperties', 'Connected properties', 'GA4 properties connected in the dashboard.', [], ok('Properties', { type: 'object', properties: { properties: { type: 'array', items: { $ref: '#/components/schemas/Property' } } } }, { properties: [{ id: '563193335', name: 'traffic', account: 'Tourism Technology', collectingSince: '2026-11-08T00:51:45.658Z' }] }), { tags: ['Properties'] }) },
+      '/properties/{id}/realtime': {
+        get: op('getRealtime', 'Live visitors (last 30 minutes)', 'Active users in the last 30 and 5 minutes, per-minute trend, and breakdowns by country, city, device, platform, page, event and audience. No demographics or traffic sources (GA does not offer them in realtime). Cached 30 s.', [id, freshParam], ok('Realtime snapshot', { $ref: '#/components/schemas/Realtime' }), { tags: ['Live and history'] }),
+        post: op('queryRealtime', 'Custom live query', 'Any GA4 realtime query. Realtime dimensions: country, city, deviceCategory, platform, unifiedScreenName, eventName, audienceName, minutesAgo, … Metrics: activeUsers, eventCount, screenPageViews, keyEvents. eventName only combines with event metrics; audienceName only with activeUsers.', [id], ok('Rows', { $ref: '#/components/schemas/QueryResult' }), { tags: ['Custom queries'], requestBody: queryBody(true) }),
+      },
+      '/properties/{id}/history': { get: op('getHistory', 'Visitor history', `Realtime data recorded by this server every 10 minutes while the API is on (kept ${retentionDays} days): totals, daily, hourly, and breakdowns by country, city, device, platform, page and event. activeUserMinutes adds up users active in each minute; peakActiveUsers is the most users in one minute.`, [id, { name: 'days', in: 'query', required: false, description: `Number of days back from now to include (1–${retentionDays}). Out-of-range values are clamped.`, schema: { type: 'integer', minimum: 1, maximum: retentionDays, default: 7 } }], ok('History', { $ref: '#/components/schemas/History' }), { tags: ['Live and history'] }) },
+      '/properties/{id}/insights': { get: op('getInsights', 'Audience & marketing insights', 'GA standard reports in one call: overview, daily trend, demographics (age, gender, age × gender, interests, language, new vs returning), geography (country, region, city), technology, acquisition (channel, source/medium, campaign, first-user channel), content (landing pages, pages, events) and timing (weekday, hour, weekday × hour), plus highlights and next steps. Cached 10 min.', [id, date('startDate', '28daysAgo'), date('endDate', 'today'), { name: 'limit', in: 'query', required: false, description: 'Rows per breakdown (1–250).', schema: { type: 'integer', minimum: 1, maximum: 250, default: 50 } }, freshParam], { ...ok('Insights', { $ref: '#/components/schemas/Insights' }), 400: err('Invalid date.') }, { tags: ['Reports'] }) },
+      '/properties/{id}/metadata': { get: op('getMetadata', 'Available data fields', 'Every dimension and metric the property supports, including custom definitions (custom: true). Use the apiName values in custom queries.', [id, freshParam], ok('Fields', { type: 'object', properties: { property: { $ref: '#/components/schemas/Property' }, dimensions: { type: 'array', items: { $ref: '#/components/schemas/Field' } }, metrics: { type: 'array', items: { $ref: '#/components/schemas/Field' } } } }), { tags: ['Reports'] }) },
+      '/properties/{id}/report': { post: op('queryReport', 'Custom report', 'Any GA4 report query (runReport), e.g. demographics by country or item performance (itemId, itemName with itemsViewed, itemsPurchased, itemRevenue). Field names: GET /metadata or https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema', [id], { ...ok('Rows', { $ref: '#/components/schemas/QueryResult' }), 400: err('Invalid query (e.g. unknown or incompatible fields).') }, { tags: ['Custom queries'], requestBody: queryBody(false) }) },
+    },
+    components: {
+      securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', description: 'The ANALYTICS_API_TOKEN deployment secret.' } },
+      schemas: {
+        Error: { type: 'object', properties: { error: { type: 'string' } }, required: ['error'] },
+        Property: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' }, account: { type: 'string' }, collectingSince: { type: ['string', 'null'], format: 'date-time' } } },
+        Field: { type: 'object', properties: { apiName: { type: 'string' }, uiName: { type: 'string' }, category: { type: 'string' }, custom: { type: 'boolean' }, description: { type: 'string' } } },
+        Row: { type: 'object', description: 'Dimension values as strings, metrics as numbers, share (0–1) of the first metric.', additionalProperties: { oneOf: [{ type: 'string' }, { type: 'number' }, { type: 'null' }] } },
+        Section: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', enum: ['ok', 'empty', 'error'] },
+            rows: { type: 'array', items: { $ref: '#/components/schemas/Row' } },
+            totals: { type: 'object', additionalProperties: { type: 'number' } },
+            rowCount: { type: 'integer' },
+            thresholded: { type: 'boolean', description: 'GA withheld rows below its privacy thresholds.' },
+            note: { type: 'string', description: 'Why data is missing or limited.' },
+            error: { type: 'string' },
+          },
+          required: ['status'],
+        },
+        Realtime: {
+          type: 'object',
+          properties: {
+            property: { $ref: '#/components/schemas/Property' },
+            generatedAt: { type: 'string', format: 'date-time' },
+            summary: { type: 'object', properties: { activeUsers30Minutes: { type: 'integer' }, activeUsers5Minutes: { type: 'integer' }, eventCount: { type: 'integer' }, screenPageViews: { type: 'integer' }, keyEvents: { type: 'integer' }, topCountry: { type: ['string', 'null'] }, topCity: { type: ['string', 'null'] }, topDevice: { type: ['string', 'null'] }, topPage: { type: ['string', 'null'] } } },
+            breakdowns: { type: 'object', description: 'perMinute, country, city, device, platform, page, event, audience', additionalProperties: { $ref: '#/components/schemas/Section' } },
+          },
+          example: { summary: { activeUsers30Minutes: 1, activeUsers5Minutes: 1, eventCount: 3, screenPageViews: 1, keyEvents: 0, topCountry: 'Austria', topCity: 'Salzburg', topDevice: 'desktop', topPage: 'Paznaun-Ischgl Fan Page · unofficial' } },
+        },
+        HistoryMetrics: { type: 'object', properties: { activeUserMinutes: { type: 'integer' }, eventCount: { type: 'integer' }, screenPageViews: { type: 'integer' }, keyEvents: { type: 'integer' } } },
+        History: {
+          type: 'object',
+          properties: {
+            property: { $ref: '#/components/schemas/Property' },
+            range: { type: 'object', properties: { from: { type: 'string', format: 'date-time' }, to: { type: 'string', format: 'date-time' }, days: { type: 'integer' } } },
+            collector: { type: 'object', properties: { intervalMinutes: { type: 'integer' }, collectingSince: { type: ['string', 'null'] }, lastRun: { type: ['string', 'null'] }, lastError: { type: 'string' }, retentionDays: { type: 'integer' } } },
+            coverage: { type: 'object', properties: { minutesObserved: { type: 'integer' }, minutesInRange: { type: 'integer' } } },
+            status: { type: 'string', enum: ['ok', 'empty'] },
+            totals: { allOf: [{ $ref: '#/components/schemas/HistoryMetrics' }, { type: 'object', properties: { peakActiveUsers: { type: 'integer' } } }] },
+            daily: { type: 'array', items: { type: 'object', properties: { date: { type: 'string', format: 'date' }, minutesObserved: { type: 'integer' }, peakActiveUsers: { type: 'integer' } } } },
+            hourly: { type: 'array', items: { type: 'object', properties: { hour: { type: 'string', format: 'date-time' }, minutesObserved: { type: 'integer' }, peakActiveUsers: { type: 'integer' } } } },
+            breakdowns: { type: 'object', description: 'country, city, device, platform, page, event — rows with the dimension plus HistoryMetrics and share.', additionalProperties: { type: 'array', items: { $ref: '#/components/schemas/Row' } } },
+          },
+          example: { status: 'ok', totals: { activeUserMinutes: 1, eventCount: 3, screenPageViews: 1, keyEvents: 0, peakActiveUsers: 1 }, breakdowns: { country: [{ country: 'Austria', activeUserMinutes: 1, eventCount: 3, screenPageViews: 1, keyEvents: 0, share: 1 }] } },
+        },
+        Insights: {
+          type: 'object',
+          properties: {
+            property: { $ref: '#/components/schemas/Property' },
+            dateRange: { type: 'object', properties: { startDate: { type: 'string' }, endDate: { type: 'string' } } },
+            timeZone: { type: 'string' },
+            dataAvailability: { type: 'object', properties: { standardReports: { type: 'string' }, demographics: { type: 'string', enum: ['ok', 'not yet'] } } },
+            highlights: { type: 'object', description: 'Top values per area (topCountries, topCities, topAgeBrackets, gender, topAgeAndGender, topInterests, topLanguages, newVsReturning, topChannels, topSources, topCampaigns, topLandingPages, topDevices, busiestDays, busiestHours); areas without data are left out.', additionalProperties: { type: 'array', items: { type: 'object' } } },
+            nextSteps: { type: 'array', items: { type: 'string' } },
+            overview: { type: 'object', properties: { status: { type: 'string' }, metrics: { type: 'object', additionalProperties: { type: 'number' } }, note: { type: 'string' } } },
+            trend: { $ref: '#/components/schemas/Section' },
+            demographics: { type: 'object', description: 'age, gender, ageAndGender, interests, language, newVsReturning', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            geography: { type: 'object', description: 'country, region, city', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            technology: { type: 'object', description: 'device, operatingSystem, browser', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            acquisition: { type: 'object', description: 'channel, sourceMedium, campaign, firstUserChannel', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            content: { type: 'object', description: 'landingPage, page, event', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            timing: { type: 'object', description: 'dayOfWeek, hour, dayAndHour', additionalProperties: { $ref: '#/components/schemas/Section' } },
+            quota: { type: 'object', description: 'Remaining GA API quota.', additionalProperties: { type: 'number' } },
+          },
+        },
+        QueryResult: { type: 'object', properties: { property: { $ref: '#/components/schemas/Property' }, rows: { type: 'array', items: { $ref: '#/components/schemas/Row' } }, totals: { type: 'object' }, rowCount: { type: 'integer' }, metadata: { type: 'object', description: 'GA response metadata, e.g. subjectToThresholding.' }, quota: { type: 'object' } } },
+      },
+    },
+  };
+}
+
+const DOCS_HTML = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demand Radar analytics API</title>
+  <link rel="stylesheet" href="${SWAGGER_UI}/swagger-ui.css" />
+  <style>body { margin: 0; background: #fff; } .topbar { display: none; }</style>
+</head>
+<body>
+  <div id="ui"></div>
+  <script src="${SWAGGER_UI}/swagger-ui-bundle.js" crossorigin></script>
+  <script>
+    // openapi.json sits next to this page, also under a branch path and with a trailing slash.
+    const spec = new URL('openapi.json', location.href.replace(/\\/docs\\/?([?#].*)?$/, '/'));
+    SwaggerUIBundle({ url: spec.href, dom_id: '#ui', persistAuthorization: true, deepLinking: true, tryItOutEnabled: true });
+  </script>
+</body>
+</html>
+`;
+
 // ---------- the module
 
 export function createAnalytics({ token, dataDir, dataUrl, google, HttpError, connections, accessTokenFor, isEnabled = () => true, collectMs = 600_000, retentionDays = 180 }) {
@@ -516,11 +679,25 @@ export function createAnalytics({ token, dataDir, dataUrl, google, HttpError, co
       'POST /api/v1/properties/{id}/realtime': 'Any GA4 runRealtimeReport query, e.g. {"dimensions":["city"],"metrics":["activeUsers"]}.',
     },
     query: 'Add ?fresh=1 to skip the cache.',
+    openapi: 'GET /api/v1/openapi.json (OpenAPI 3.1, public)',
+    swagger: 'GET /api/v1/docs (Swagger UI, public; paste the token under Authorize)',
     docs: 'https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema',
   };
 
+  // Absolute /api/v1 URL of this deployment, from the request (behind the ingress and Pangolin).
+  function serverUrl(req) {
+    const full = new URL(req.url, 'http://x').pathname;
+    const prefix = full.slice(0, full.indexOf('/api/'));
+    const host = String(req.headers['x-forwarded-host'] ?? req.headers.host ?? 'localhost').split(',')[0].trim();
+    const local = /^(localhost|127\.|\[::1\])/.test(host);
+    const proto = String(req.headers['x-forwarded-proto'] ?? (local ? 'http' : 'https')).split(',')[0].trim();
+    return `${proto}://${host}${prefix}/api/v1`;
+  }
+
   const routes = [
     ['GET', /^\/api\/v1\/?$/, () => ({ ...index, enabled: !!expected && isEnabled() })],
+    ['GET', /^\/api\/v1\/openapi\.json$/, (_m, _b, req) => openapiSpec(serverUrl(req), retentionDays)],
+    ['GET', /^\/api\/v1\/docs$/, () => ({ rawBody: DOCS_HTML, type: 'text/html; charset=utf-8' })],
     ['GET', /^\/api\/v1\/properties$/, guarded(() => ({ properties: connections().map((c) => ({ ...c.property, collectingSince: hist[c.property.id]?.since ?? null })) }))],
     ['GET', /^\/api\/v1\/properties\/([^/]+)\/realtime$/, guarded((m, _b, req) => {
       const p = prop(m);
