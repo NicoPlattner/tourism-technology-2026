@@ -9,9 +9,9 @@ on:
         default: false
         required: true
       c04_api:
-        description: Also deploy the Challenge 04 data API (image ghcr.io/<owner>/c04-api must exist)
+        description: Deploy the Challenge 04 data API (image ghcr.io/<owner>/c04-api)
         type: boolean
-        default: false
+        default: true
         required: true
 
 concurrency:
@@ -249,6 +249,9 @@ jobs:
         run: |
           kubectl --request-timeout=10s -n tourism-technology-2026 get deployments,services,ingresses,pods || true
           kubectl --request-timeout=10s -n tourism-technology-2026 logs "deployment/$RELEASE_NAME-api" --tail=50 || true
+          kubectl --request-timeout=10s -n tourism-technology-2026 logs "deployment/$RELEASE_NAME-c04-api" --tail=80 || true
+          kubectl --request-timeout=10s -n tourism-technology-2026 logs "deployment/$RELEASE_NAME-c04-api" --previous --tail=80 || true
+          kubectl --request-timeout=10s -n tourism-technology-2026 describe pods -l "app=$RELEASE_NAME-c04-api" | tail -40 || true
           kubectl --request-timeout=10s -n tourism-technology-2026 get events --sort-by=.lastTimestamp || true
 
       - name: Pangolin diagnostics

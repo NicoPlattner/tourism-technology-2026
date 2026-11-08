@@ -1,0 +1,17 @@
+{
+ "generated": "2026-11-08T01:02:38",
+ "mode": "real (TVB data)",
+ "level": "Paznaun-Ischgl total, TVB / feratel",
+ "model": "monthly anchor (2-season avg, Easter-corrected, TVB level) x daily shape (mean of holiday-aligned previous year and LightGBM)",
+ "interval": "split-conformal 80 % (calibrated on real winter 24/25, coverage 0.77 on 25/26)",
+ "capacity": "stays + free beds on the same weekday last year (TVB free beds end 7 Nov 2026)",
+ "sources": [
+  "TVB Paznaun-Ischgl with feratel (TTF 2026 data licence)",
+  "Österreich Werbung / JOANNEUM RESEARCH / TU Wien / AAU (CC BY 4.0)",
+  "GeoSphere Austria (CC BY 4.0)",
+  "OpenHolidays (ODbL)"
+ ],
+ "destination": "Paznaun-Ischgl",
+ "as_of": "2026-11-08",
+ "note": "forecast_tvb per day not published (partner data); monthly sums only"
+}
