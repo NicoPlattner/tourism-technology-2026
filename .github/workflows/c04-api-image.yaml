@@ -1,4 +1,4 @@
-name: Build c04 data API image
+name: Build c04 data API and pipeline images
 
 on:
   push:
@@ -7,6 +7,11 @@ on:
       - api/c04/**
       - results/gui/**
       - results/c04/**
+      - data/*.py
+      - data/static/**
+      - models/*.py
+      - pipeline/c04/**
+      - docs/challenge-04/*.md
       - .github/workflows/c04-api-image.yaml
   pull_request:
     paths:
@@ -52,5 +57,30 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           docker tag c04-api:test "$img:latest"
           docker tag c04-api:test "$img:${GITHUB_SHA}"
+          docker push "$img:latest"
+          docker push "$img:${GITHUB_SHA}"
+
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pipeline image
+        run: docker build -f pipeline/c04/Dockerfile -t c04-pipeline:test .
+      - name: Smoke test (imports, code layout, user)
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint python c04-pipeline:test -c "
+          import sys, os; sys.path.insert(0, '/app/models'); sys.path.insert(0, '/app/data')
+          import lightgbm, sklearn, statsmodels, pandas, holidays, refresh, build_origin_panel, holiday_corrections
+          assert os.getuid() == 1000 and os.path.isdir('/app/baked-results/gui')
+          print('ok', lightgbm.__version__, pandas.__version__)"
+      - name: Push
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          img="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-pipeline"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker tag c04-pipeline:test "$img:latest"
+          docker tag c04-pipeline:test "$img:${GITHUB_SHA}"
           docker push "$img:latest"
           docker push "$img:${GITHUB_SHA}"

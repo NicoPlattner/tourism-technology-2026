@@ -346,7 +346,7 @@ def freshness() -> dict:
     _, c, v = source()
     p = c / "manifest.json"
     man = _json(str(p), v) if p.exists() else {}
-    return {"snapshot": v, "today": today().strftime("%Y-%m-%d"), **man}
+    return {**man, "snapshot": v, "today": today().strftime("%Y-%m-%d")}
 
 
 @router.get("/query", tags=[TAG_A])

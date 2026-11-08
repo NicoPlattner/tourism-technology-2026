@@ -68,11 +68,11 @@
  "booking_lead_time_this_market": {
   "value": {
    "share_by_days_ahead": {
-    "0d": 0.221,
-    "8d": 0.252,
-    "31d": 0.172,
+    "0d": 0.224,
+    "8d": 0.253,
+    "31d": 0.171,
     "61d": 0.152,
-    "90d": 0.13,
+    "90d": 0.127,
     "180d": 0.072
    },
    "median_days_ahead": 45

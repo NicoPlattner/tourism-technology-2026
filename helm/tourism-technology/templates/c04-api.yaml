@@ -40,6 +40,10 @@ spec:
               value: {{ $base | quote }}
             - name: PORT
               value: "8080"
+            {{- if .Values.c04Pipeline.enabled }}
+            - name: SNAPSHOT_DIR
+              value: /work/snapshots
+            {{- end }}
           ports:
             - name: http
               containerPort: 8080
@@ -67,10 +71,21 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.c04Pipeline.enabled }}
+            - name: work
+              mountPath: /work
+              readOnly: true
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir:
             sizeLimit: 16Mi
+        {{- if .Values.c04Pipeline.enabled }}
+        - name: work
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-c04-data
+            readOnly: true
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service
