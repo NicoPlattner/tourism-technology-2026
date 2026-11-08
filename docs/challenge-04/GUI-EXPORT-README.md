@@ -14,6 +14,9 @@ Every value carries `is_estimate`, `method` and `grade`: no cell is empty.
 | `lead_time_by_arrival_month.csv` | arrival month (1–12) | `share_0d … share_180d` (booked 0–7, 8–30, 31–60, 61–89, 90–179, 180+ days ahead), `booked_at_least_Xd_ahead`, `median_days_ahead` |
 | `lead_time_by_market_indicative.csv` | market group (DE, NL, BE_LU, NORDIC_UK, OTHER) | same shares, **indicative only** (grade C) |
 | `age_profile.csv` | origin country × season (`winter`, `summer`); `ALL` = fallback | `age_0-5 … age_65+`, `median_age_band`, `share_children_0_14` |
+| `push_reasons.csv` | origin × day (2024–2027) | **why people travel then**: `school_holiday_share`, `public_holiday_share`, `long_weekend_share`, `bridge_day_share` (0–1, population-weighted), `holiday_names`, `push_multiplier` (presence vs a normal day of that origin) |
+| `pull_reasons.csv` | destination (Paznaun-Ischgl, Tirol) × day | **why the destination attracts then**: `season_open`, `christmas_window`, `easter_window`, `weekday`, `events` (names), `snow_depth_cm` (+ `snow_depth_is_typical_not_observed`: future dates show the typical depth of that date 2000–2025), `new_snow_3d_cm`, `forecast_snowfall_cm` / `forecast_temp_max_c` (next 16 days only), `pull_multiplier` (Paznaun) |
+| `driver_effects.csv` | driver | effect size per reason (`effect_multiplier`), basis, grade: e.g. Saturday night ×1.25, big concert weekend ×1.13, school holidays in GB ×3.4 for British guests |
 | `origins.csv`, `destinations.csv` | lookups | codes, names, kind |
 | `examples/*.json` | worked answers of `query()` | every field as `{value, is_estimate, method, grade, note}` |
 
@@ -38,6 +41,19 @@ For destination D, origin O, time frame start … end:
 5. Flags of the answer = worst grade of the rows used; `is_estimate` if any
    row is an estimate. Show the `method` text as a hint.
 
+## Showing the reasons (push and pull)
+
+For a request, list the strongest reasons in the time frame:
+- **Push** (from `push_reasons` of the origin): days with `school_holiday_share`
+  > 0.5 or long weekends, with `holiday_names` and the `push_multiplier`
+  ("Bavarian winter holidays 8–12 Feb: ×2.3 guests from Bavaria").
+- **Pull** (from `pull_reasons` of the destination): `events`, season opening /
+  closing, Christmas / Easter window, snow (observed or typical), the weather
+  forecast for the next 16 days, and the `pull_multiplier`.
+- **How strong** each reason is in general: `driver_effects.csv`.
+Pull multipliers are relative to a normal day of the same month and season
+phase; push multipliers to a normal day of that origin.
+
 ## Grades and methods
 
 | Grade | Meaning |
@@ -60,9 +76,9 @@ Austrian ski region (Salzburger Sportwelt).
 - Österreich Werbung / Nächtigungsprognose (JOANNEUM RESEARCH, TU Wien, AAU; CC BY 4.0)
 - OpenHolidays API (ODbL); python `holidays`
 - TVB Paznaun-Ischgl (TTF 2026 data licence; attribute TVB Paznaun-Ischgl)
-- Salzburger Sportwelt guest cards (TTF challenge licence: non-commercial,
-  attribution, **no redistribution**: `age_profile.csv` is derived from it;
-  keep it inside the team and the TTF hackathon)
+- Salzburger Sportwelt guest cards (TTF challenge licence, attribution;
+  `age_profile.csv` is a derived aggregate, not the original data)
+- GeoSphere Austria SNOWGRID (CC BY 4.0), Open-Meteo (CC BY 4.0)
 
 ## Refresh
 
@@ -73,3 +89,5 @@ python3 data/market_mix.py && python3 data/build_origin_panel.py
 ```bash
 cd models && python3 m1_origin.py && python3 m4_leadtime.py && python3 m3_daily.py && python3 gui_outputs.py && python3 gui_api.py && python3 export_gui.py
 ```
+
+Output: `results/gui/` (tracked in git). The data API (`api/c04/`) serves these files.

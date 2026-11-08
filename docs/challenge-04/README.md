@@ -21,7 +21,8 @@ sources listed at the end.
   `paznaun-demand-radar` for the dashboard). Results go to `main` or
   dedicated branches later via pull request.
 - Raw TVB files only in `data/raw/partner/`, derived tables in
-  `data/processed/` and `out/`: all git-ignored. Commit aggregates only.
+  `data/processed/` and `out/`: all git-ignored. Commit aggregates only;
+  final GUI tables go to the tracked `results/gui/`.
 - Never commit keys. The TTF Space key lives in the cloud environment's
   network secrets (injected by the proxy) or in a local environment variable.
 - Deployments follow `AGENTS.md` (path `/<branch>`, never the root unless asked).
@@ -109,7 +110,10 @@ models/
   gui_api.py           complete GUI table with estimate flags, query(destination, origin, start, end)
   backtest_v2.py       comparison: push-pull, compact LightGBM, sample weights, ensembles
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
+  export_gui.py, export_reasons.py   -> results/gui/ (tracked GUI tables, push/pull reasons)
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
+results/gui/           GUI tables for the front end (see its README.md)
+api/c04/               read-only data API (FastAPI, Dockerfile); helm template c04-api.yaml
 ```
 
 ## Primary sources

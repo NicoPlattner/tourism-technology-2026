@@ -1,0 +1,43 @@
+kind,driver,applies_to,effect_multiplier,basis,grade
+pull,Monday night,"Paznaun-Ischgl, all markets",0.97,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Tuesday night,"Paznaun-Ischgl, all markets",0.99,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Wednesday night,"Paznaun-Ischgl, all markets",1.08,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Thursday night,"Paznaun-Ischgl, all markets",1.16,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Friday night,"Paznaun-Ischgl, all markets",1.23,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Saturday night,"Paznaun-Ischgl, all markets",1.25,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,first week of the season,"Paznaun-Ischgl, all markets",0.71,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,weeks 2-3 of the season,"Paznaun-Ischgl, all markets",0.99,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,last week of the season,"Paznaun-Ischgl, all markets",0.8,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,season opening weekend,"Paznaun-Ischgl, all markets",1.12,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,season closing weekend,"Paznaun-Ischgl, all markets",1.1,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Christmas / New Year window,"Paznaun-Ischgl, all markets",0.84,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,pre-Christmas weeks,"Paznaun-Ischgl, all markets",1.02,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Holy Week,"Paznaun-Ischgl, all markets",1.1,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Easter week,"Paznaun-Ischgl, all markets",0.93,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,snow depth < 30 cm,"Paznaun-Ischgl, all markets",1.04,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,> 20 cm new snow in 3 days,"Paznaun-Ischgl, all markets",1.01,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,big concert weekend (Top of the Mountain),"Paznaun-Ischgl, all markets",1.13,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+push,school holidays in DE,guests from DE,2.3,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in NL,guests from NL,1.9,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in BE,guests from BE,2.7,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in CH,guests from CH,2.0,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in AT,guests from AT,3.0,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in DK,guests from DK,2.6,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in GB,guests from GB,3.4,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in PL,guests from PL,2.1,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in CZ,guests from CZ,2.0,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in SE,guests from SE,2.3,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in FR,guests from FR,2.5,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in LU,guests from LU,3.2,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in IT,guests from IT,2.0,push-pull fit on Paznaun (used in daily_share): presence on a full school-holiday day vs a normal day of that market,B
+push,school holidays in NL (Salzburg mobile data),guests from NL,10.2,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in GB (Salzburg mobile data),guests from GB,7.3,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in BE (Salzburg mobile data),guests from BE,5.2,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in LU (Salzburg mobile data),guests from LU,3.2,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in DK (Salzburg mobile data),guests from DK,2.8,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in FR (Salzburg mobile data),guests from FR,2.6,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in SE (Salzburg mobile data),guests from SE,2.3,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+push,school holidays in DE (Salzburg mobile data),guests from DE,0.9,"Hutchison Drei mobile visitors, Salzburger Sportwelt Feb-Apr 2026",C
+pull,+10 cm more snow (Dec-Mar mean) than last season,"season total, Paznaun",1.0045,"20 winter seasons, r = 0.50",B
+context,"economy, inflation, exchange rates, geopolitical risk",season total,1.0,no significant effect on season growth (20 seasons),B
+push,Easter in March instead of April,March/April split,,"April share = -0.062 + 0.004 x Easter day-of-year (25 seasons, r 0.75)",A

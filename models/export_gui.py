@@ -1,4 +1,4 @@
-"""Export package for the front-end team: out/gui_export/ (+ zip).
+"""Export package for the front-end team and the data API: results/gui/ (tracked in git).
 
 Run after the pipeline (README.md "Run everything", then models/m1_origin.py, m4_leadtime.py, m3_daily.py,
 gui_outputs.py, gui_api.py). Files:
@@ -25,7 +25,7 @@ from m3_daily import GAMMA, pull_pattern
 sys.path.insert(0, str(ROOT / "data"))
 from build_origin_panel import school_daily  # noqa: E402
 
-OUT = ROOT / "out" / "gui_export"
+OUT = ROOT / "results" / "gui"  # tracked in git: used by the front end and the data API
 
 
 def main():
@@ -86,8 +86,10 @@ def main():
                           ("Paznaun-Ischgl", "25", "2027-02-01", "2027-03-07"), ("Salzburg", "DE", "2027-01-01", "2027-01-31")):
         q = query(dest, o, a, b)
         (OUT / "examples" / f"{dest}_{o}_{a}_{b}.json").write_text(json.dumps(q, indent=1, ensure_ascii=False, default=str))
+    from export_reasons import main as reasons
+    reasons(OUT)
     shutil.copy(ROOT / "docs" / "challenge-04" / "GUI-EXPORT-README.md", OUT / "README.md")
-    zp = shutil.make_archive(str(OUT), "zip", OUT)
+    zp = OUT
     for f in sorted(OUT.rglob("*")):
         if f.is_file():
             print(f"{f.relative_to(OUT)}: {f.stat().st_size / 1e6:.2f} MB")
