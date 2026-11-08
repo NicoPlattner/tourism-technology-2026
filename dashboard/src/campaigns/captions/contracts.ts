@@ -122,7 +122,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     result.tone = value.tone.normalize("NFKC").trim().replace(/\s+/g, " ");
   }
   if (value.generationMode !== undefined || value.candidateAssets !== undefined || value.travelDates !== undefined || value.travelPeriod !== undefined) {
-    if (value.generationMode !== "creative" || typeof value.travelPeriod !== "string" || !/^(q[1-4]-2027|winter-2026-27)$/.test(value.travelPeriod) ||
+    if (value.generationMode !== "creative" || typeof value.travelPeriod !== "string" || !/^(q[1-4]-2027|winter-2026-27|custom)$/.test(value.travelPeriod) ||
         !object(value.travelDates) || Object.keys(value.travelDates).sort().join(",") !== "end,start" ||
         ![value.travelDates.start,value.travelDates.end].every(date => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date) ||
         (value.travelDates.start as string) > (value.travelDates.end as string) || !value.platform || !value.tone || !value.targetCaptionLength)

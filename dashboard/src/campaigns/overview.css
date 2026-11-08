@@ -1104,3 +1104,20 @@
 .cp-social-image { object-fit: contain; background: #eef1f2; }
 
 .cp-social-copy > p.cp-creative-reason { font-size: 9px; line-height: 1.5; color: var(--muted); margin: 3px 0; }
+
+.cp-travel-dates { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.cp-travel-dates legend { padding: 0; margin-bottom: 5px; font-size: 11px; font-weight: 700; color: var(--slate); }
+.cp-date-fields { display: flex; gap: 10px; }
+.cp-date-fields label { position: relative; display: flex; flex-direction: column; gap: 3px; }
+.cp-date-fields label > span { font-size: 10px; color: var(--muted); }
+.cp-date-fields input { box-sizing: border-box; min-width: 145px; min-height: 40px; padding: 8px 10px; font: 600 13px var(--sans); color: var(--ink); border: 1px solid var(--line); border-radius: 0; background: var(--surface); color-scheme: light; cursor: pointer; }
+.cp-date-fields input:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+.cp-travel-dates > span { font-size: 10px; color: var(--muted); }
+.cp-travel-dates > .cp-date-error { color: var(--red); }
+@media (max-width: 600px) { .cp-travel-dates { width: 100%; } .cp-date-fields label { flex: 1; min-width: 0; } .cp-date-fields input { width: 100%; min-width: 0; } }
+
+.cp-date-fields label { flex-direction: row; align-items: center; gap: 0; border: 1px solid var(--line); background: var(--surface); }
+.cp-date-fields label > span { padding-left: 9px; }
+.cp-date-fields input { min-width: 130px; width: 134px; border: 0; }
+.cp-date-fields label:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
+.cp-date-fields input:focus-visible { outline: none; }

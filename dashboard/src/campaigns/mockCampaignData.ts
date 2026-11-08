@@ -1,3 +1,6 @@
+import { validTravelDates, viennaOffset } from "./travelDates";
+import { seasonFromTravelDate } from "./assetCatalog";
+import type { TravelDates } from "./types";
 import { seasonalAsset, seasonForPeriod } from "./seasonalAssets";
 import { socialProfile, demoCaption } from "./socialProfile";
 import { DEFAULT_TARGET_AUDIENCE, TARGET_AGES, type TargetAudience } from "./types";
@@ -128,24 +131,27 @@ export const displayPublishingDate = (date: string) =>
     timeZone: "Europe/Vienna",
   }).format(new Date(date));
 export class MockCampaignDataProvider implements CampaignDataProvider {
-  async getRecommendation(market: SourceMarket, period: TravelPeriod, targetAudience = DEFAULT_TARGET_AUDIENCE): Promise<CampaignRecommendation> {
-    return this.getImmediateRecommendation(market, period, targetAudience);
+  async getRecommendation(market: SourceMarket, period: TravelPeriod, targetAudience = DEFAULT_TARGET_AUDIENCE, travelDates?: TravelDates): Promise<CampaignRecommendation> {
+    return this.getImmediateRecommendation(market, period, targetAudience, travelDates);
   }
   getImmediateRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
     targetAudience: TargetAudience = DEFAULT_TARGET_AUDIENCE,
+    travelDates?: TravelDates,
   ): CampaignRecommendation {
     const scenario = SCENARIOS[market];
-    if (!scenario || !["q1-2027", "q2-2027", "q3-2027", "q4-2027", "winter-2026-27"].includes(period))
+    if (!scenario || !["q1-2027", "q2-2027", "q3-2027", "q4-2027", "winter-2026-27", "custom"].includes(period))
       throw new Error("Choose a supported source market and travel period.");
     if (!TARGET_AGES.some(age => age.ageMin === targetAudience.ageMin && age.ageMax === targetAudience.ageMax))
       throw new Error("Choose a supported adult target audience.");
     const ageGroup = `${targetAudience.ageMin}–${targetAudience.ageMax}`;
-    const season = seasonForPeriod(period);
+    if ((period === "custom" && !travelDates) || (travelDates && !validTravelDates(travelDates)))
+      throw new Error("Choose a valid start and end date.");
+    const season = travelDates ? seasonFromTravelDate(travelDates.start) : seasonForPeriod(period);
     const spring = season === "spring";
     const travel = {
-      ...(season === "summer" ? { start: "2027-07-12", end: "2027-07-18", label: "July 2027 · summer" } : season === "autumn" ? { start: "2027-10-11", end: "2027-10-17", label: "October 2027 · autumn" } : spring
+      ...(travelDates ? {...travelDates,label:"Selected travel dates"} : season === "summer" ? { start: "2027-07-12", end: "2027-07-18", label: "July 2027 · summer" } : season === "autumn" ? { start: "2027-10-11", end: "2027-10-17", label: "October 2027 · autumn" } : spring
         ? scenario.springTravel
         : period === "winter-2026-27"
           ? scenario.winterTravel
@@ -153,11 +159,11 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
     };
     const start = shiftDate(travel.start, -scenario.lead);
     const end = shiftDate(start, 7);
-    // Three fictional publishing slots, 18:00 Europe/Vienna. Offset is +01 in winter and +02 in April/May.
-    const offset = start >= "2027-03-28" ? "+02:00" : "+01:00";
-    const publishingDates = [0, 3, 6].map(
-      (days) => `${shiftDate(start, days)}T18:00:00${offset}`,
-    );
+    // Resolve Vienna daylight saving for each actual publishing date, including transitions.
+    const publishingDates = [0, 3, 6].map(days => {
+      const date = shiftDate(start,days);
+      return `${date}T18:00:00${viennaOffset(date)}`;
+    });
     const visual = seasonalAsset(targetAudience.ageMin, season);
     const asset: CampaignAsset = {
       id: visual.id, src: visual.path, alt: visual.visualDescription,
@@ -168,13 +174,13 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
     const profile = socialProfile(targetAudience.ageMin);
     const genericCaption = demoCaption(scenario.language, targetAudience.ageMin);
     const recommendation: CampaignRecommendation = {
-      id: `campaign-${market}-${period}-${targetAudience.ageMin}-${targetAudience.ageMax}-v1`,
+      id: `campaign-${market}-${period}${travelDates ? `-${travelDates.start}-${travelDates.end}` : ""}-${targetAudience.ageMin}-${targetAudience.ageMax}-v1`,
       market,
       country: scenario.country,
       period,
       title: `${scenario.country}: a ${season} Alpine escape`,
       ageGroup,
-      marketingPreferences: { country: scenario.country, travelPeriod: period, targetAudience: {...targetAudience} },
+      marketingPreferences: { country: scenario.country, travelPeriod: period, travelDates: travelDates ? {...travelDates} : undefined, targetAudience: {...targetAudience} },
       assumedLeadDays: scenario.lead,
       travel,
       campaign: { start, end, label: "Recommended promotion window" },
@@ -226,7 +232,8 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       fictional: true,
       variation: season !== "winter",
     };
-    const stored = (savedCaptions as Record<string, { metadataKey: string; caption: CampaignCaption }>)[recommendation.id];
+    const entries = savedCaptions as Record<string, { metadataKey: string; caption: CampaignCaption }>;
+    const stored = entries[recommendation.id] || (travelDates ? Object.values(entries).find(entry => entry.metadataKey === metadataKey(recommendation.captionMetadata)) : undefined);
     if (stored?.metadataKey === metadataKey(recommendation.captionMetadata)) {
       recommendation.captionContent = structuredClone(stored.caption);
       recommendation.caption = stored.caption.text;

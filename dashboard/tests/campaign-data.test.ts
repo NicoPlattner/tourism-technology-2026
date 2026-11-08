@@ -171,3 +171,22 @@ test("all sixteen seasonal WebP assets exist, have distinct identities and feed 
     assert.notEqual(metadataKey(c.captionMetadata),metadataKey({...c.captionMetadata,assetId:"changed-visual"}));
   }
 });
+test("custom calendar dates drive travel, season, timing, preferences and independent campaign identities",async()=>{
+  const {creativeRequest}=await import("../src/campaigns/captions/creativeRequest.ts");
+  const {normalizeMetadata}=await import("../src/campaigns/captions/contracts.ts");
+  const dates={start:"2028-07-15",end:"2028-07-22"};
+  const c=provider.getImmediateRecommendation("DE","custom",{ageMin:18,ageMax:24},dates);
+  assert.equal(c.travel.start,dates.start);assert.equal(c.travel.end,dates.end);
+  assert.equal(c.asset.id,"summer-18-24");assert.equal(c.campaign.start,"2028-05-16");
+  assert.deepEqual(c.marketingPreferences.travelDates,dates);
+  assert.deepEqual(normalizeMetadata(creativeRequest(c)).travelDates,dates);
+  const next=provider.getImmediateRecommendation("DE","custom",{ageMin:18,ageMax:24},{...dates,end:"2028-07-23"});
+  assert.notEqual(c.id,next.id);assert.notEqual(metadataKey(creativeRequest(c)),metadataKey(creativeRequest(next)));
+  assert.equal(provider.getImmediateRecommendation("NL","custom",{ageMin:18,ageMax:24},dates).travel.start,dates.start);
+  assert.throws(()=>provider.getImmediateRecommendation("DE","custom",undefined,{start:"2028-07-22",end:"2028-07-15"}));
+  assert.throws(()=>provider.getImmediateRecommendation("DE","custom",undefined,{start:"2027-02-30",end:"2027-03-10"}));
+});
+test("calendar-based publishing dates resolve Vienna daylight saving for each slot",()=>{
+ const c=provider.getImmediateRecommendation("DE","custom",undefined,{start:"2027-05-26",end:"2027-06-02"});
+ assert.deepEqual(c.publishingDates,["2027-03-27T18:00:00+01:00","2027-03-30T18:00:00+02:00","2027-04-02T18:00:00+02:00"]);
+});
