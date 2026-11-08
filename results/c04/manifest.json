@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-11-08T08:25Z",
+ "generated_at": "2026-11-08T08:52Z",
  "sources": {
   "Statistik Austria, last observed month": "2026-09",
   "TVB overnight stays, last actual day": "2026-10-31",
   "TVB available beds, last day": "2026-11-07",
-  "weather forecast (Open-Meteo), first forecast day": "2026-11-07",
+  "weather forecast (Open-Meteo), first forecast day": "2026-11-08",
   "snow depth (GeoSphere SNOWGRID), last observed day": "2026-11-06",
   "school and public holidays (OpenHolidays), fetched": "2026-11-08",
-  "official forecast (Nächtigungsprognose), fetched": "2026-11-07"
+  "official forecast (Nächtigungsprognose), fetched": "2026-11-08"
  }
 }

@@ -192,7 +192,7 @@ def validate(stage: Path, previous: Path | None):
     p = subprocess.run([PY, "-m", "pytest", "-q", "-p", "no:cacheprovider", str(ROOT / "api" / "c04" / "tests")],
                        env=env, capture_output=True, text=True, cwd="/tmp")
     log("tests:", (p.stdout.strip().splitlines() or ["?"])[-1])
-    assert p.returncode == 0, "API tests failed on the new tables:\n" + p.stdout[-2000:]
+    assert p.returncode == 0, "API tests failed on the new tables:\n" + (p.stdout + p.stderr)[-2000:]
 
 
 def publish(mode: str, ran: list[str]) -> str:

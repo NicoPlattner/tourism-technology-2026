@@ -1,10 +1,10 @@
 kind,from,to,days,forecast_nights,capacity_est,spare_beds,mean_utilisation,days_until_start,meaning,grade
-spare_capacity,2027-01-12,2027-01-12,1,15539,19486,3947,0.797,65,"in season, forecast below 80 % of beds: demand to win",B
-spare_capacity,2027-03-15,2027-03-24,9,135975,184271,48296,0.737,127,"in season, forecast below 80 % of beds: demand to win",B
-spare_capacity,2027-04-01,2027-04-29,28,181003,389280,208277,0.455,144,"in season, forecast below 80 % of beds: demand to win",B
-tight,2027-01-01,2027-01-01,1,21065,21687,622,0.971,54,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
-tight,2027-02-04,2027-02-13,8,162467,169190,6723,0.96,88,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
-tight,2027-02-19,2027-02-21,3,62154,64156,2002,0.969,103,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
-tvb_forecast_outside_our_80pct_band,2026-11-01,2026-11-05,5,3399,6943,3544,0.5,-7,TVB forecast outside our 80 % band: check bookings on hand,C
-tvb_forecast_outside_our_80pct_band,2026-11-10,2026-11-10,1,434,1588,1154,0.273,2,TVB forecast outside our 80 % band: check bookings on hand,C
-tvb_forecast_outside_our_80pct_band,2026-11-15,2026-11-25,9,4984,24342,19358,0.219,7,TVB forecast outside our 80 % band: check bookings on hand,C
+spare_capacity,2027-01-11,2027-01-12,2,31211,39145,7934,0.798,64,"in season, forecast below 80 % of beds: demand to win",B
+spare_capacity,2027-03-15,2027-03-24,9,136197,184271,48074,0.738,127,"in season, forecast below 80 % of beds: demand to win",B
+spare_capacity,2027-04-01,2027-04-29,28,181040,389280,208240,0.454,144,"in season, forecast below 80 % of beds: demand to win",B
+tight,2027-01-01,2027-01-02,2,41702,43293,1591,0.964,54,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
+tight,2027-02-04,2027-02-13,8,162696,169190,6494,0.962,88,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
+tight,2027-02-19,2027-02-21,3,62208,64156,1948,0.97,103,"forecast at or above 95 % of beds: no discounts, steer to shoulder days",B
+tvb_forecast_outside_our_80pct_band,2026-11-01,2026-11-05,5,3395,6943,3548,0.5,-7,TVB forecast outside our 80 % band: check bookings on hand,C
+tvb_forecast_outside_our_80pct_band,2026-11-10,2026-11-10,1,436,1588,1152,0.275,2,TVB forecast outside our 80 % band: check bookings on hand,C
+tvb_forecast_outside_our_80pct_band,2026-11-15,2026-11-25,9,4988,24342,19354,0.219,7,TVB forecast outside our 80 % band: check bookings on hand,C
