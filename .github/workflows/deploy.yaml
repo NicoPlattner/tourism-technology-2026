@@ -275,6 +275,19 @@ jobs:
             --set-string "c04Pipeline.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-pipeline:latest" \
             --wait --timeout 3m
 
+      - name: c04 refresh jobs (status and log tail)
+        if: always() && inputs.c04_api
+        continue-on-error: true
+        run: |
+          ns=tourism-technology-2026
+          kubectl --request-timeout=15s -n "$ns" get jobs,cronjobs,pvc -l "app=$RELEASE_NAME-c04-refresh" 2>/dev/null || true
+          kubectl --request-timeout=15s -n "$ns" get jobs,cronjobs,pvc 2>/dev/null | grep "$RELEASE_NAME-c04" || true
+          for pod in $(kubectl --request-timeout=15s -n "$ns" get pods -l "app=$RELEASE_NAME-c04-refresh" -o name 2>/dev/null); do
+            echo "=== $pod"
+            kubectl --request-timeout=15s -n "$ns" get "$pod" -o jsonpath='{.status.phase} {.status.containerStatuses[0].state}{"\n"}' || true
+            kubectl --request-timeout=15s -n "$ns" logs "$pod" --tail=40 || true
+          done
+
       - name: Verify dashboard through service
         run: |
           health_path="${DEPLOY_PATH%/}/healthz"

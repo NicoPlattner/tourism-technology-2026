@@ -346,6 +346,7 @@ def freshness() -> dict:
     _, c, v = source()
     p = c / "manifest.json"
     man = _json(str(p), v) if p.exists() else {}
+    man = {k: v2 for k, v2 in man.items() if k not in ("snapshot", "today", "refresh")}  # reserved for the API
     out = {**man, "snapshot": v, "today": today().strftime("%Y-%m-%d")}
     if SNAPSHOTS and (SNAPSHOTS / "status.json").exists():
         try:
