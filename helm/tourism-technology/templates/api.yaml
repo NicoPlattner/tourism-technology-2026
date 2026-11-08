@@ -12,6 +12,8 @@ metadata:
 data:
   server.mjs: |
 {{ .Files.Get "api/server.mjs" | required "api/server.mjs is missing: run npm run build in dashboard/" | indent 4 }}
+  analytics.mjs: |
+{{ .Files.Get "api/analytics.mjs" | required "api/analytics.mjs is missing: run npm run build in dashboard/" | indent 4 }}
 ---
 {{- if $persist }}
 apiVersion: v1
@@ -48,7 +50,7 @@ spec:
       labels:
         app: {{ .Release.Name }}-api
       annotations:
-        checksum/server: {{ .Files.Get "api/server.mjs" | sha256sum }}
+        checksum/server: {{ print (.Files.Get "api/server.mjs") (.Files.Get "api/analytics.mjs") | sha256sum }}
         checksum/google: {{ .Values.googleSecretChecksum | quote }}
     spec:
       automountServiceAccountToken: false
@@ -81,6 +83,14 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-google
                   key: GOOGLE_CLIENT_SECRET
+                  optional: true
+            # Bearer token for the analytics API (/api/v1); from the
+            # ANALYTICS_API_TOKEN Actions secret.
+            - name: ANALYTICS_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-google
+                  key: ANALYTICS_API_TOKEN
                   optional: true
           ports:
             - name: http

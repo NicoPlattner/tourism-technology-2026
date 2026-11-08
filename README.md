@@ -55,6 +55,30 @@ Kubernetes secret for the API. Local dev: `npm run server` (with
 `npm run dev`, which proxies `/api` (data in `dashboard/data/`).
 `npm run test:server` tests the API against a fake Google.
 
+**Analytics API (`/api/v1`).** Other tools can read the connected GA4
+properties through `https://hackathon.daria-and-nico.com/<path>/api/v1/…` with
+`Authorization: Bearer <ANALYTICS_API_TOKEN>`. It is switched on and off for
+everyone under *Integrations → Google Analytics → Analytics API* (off by
+default). `GET /api/v1` (public) lists the endpoints; use `default` or a
+property id from `/api/v1/properties`:
+
+| Endpoint | Data |
+| --- | --- |
+| `GET properties/{id}/realtime` | Last 30 min: active users (30 and 5 min), per-minute trend, country, city, device, platform, pages, events, audiences |
+| `GET properties/{id}/history?days=7` | The realtime data, recorded by the server every 10 min while the API is on (kept 180 days): daily, hourly, by country, city, device, platform, page, event |
+| `GET properties/{id}/insights?startDate=28daysAgo&endDate=today` | Standard reports: overview, daily trend, demographics (age, gender, age×gender, interests, language, new vs returning), geography (country, region, city), device/OS/browser, acquisition (channel, source/medium, campaign, first-user channel), landing pages, pages, events, weekday/hour/weekday×hour, `highlights` and `nextSteps` |
+| `GET properties/{id}/metadata` | Every dimension and metric the property supports, incl. custom ones |
+| `POST properties/{id}/report`, `POST properties/{id}/realtime` | Any GA4 query, e.g. `{"dimensions":["country","userAgeBracket"],"metrics":["activeUsers"],"startDate":"7daysAgo"}` |
+
+Rows are flat objects (`{"country":"Netherlands","activeUsers":12,"share":0.4}`);
+each section has a `status` (`ok`, `empty`, `error`) and a `note` saying why
+data is missing. On a new property the standard reports fill in after 24–48 h,
+so `realtime` and `history` carry the data until then. Demographics (age, gender,
+interests) need **Google signals** on (GA Admin → Data collection; not
+retroactive) and are withheld below GA's privacy thresholds (`thresholded: true`).
+Responses are cached (realtime 30 s, insights 10 min; `?fresh=1` skips it), and
+the API allows cross-origin requests, as it needs the token.
+
 **Adding a source.** Sources are adapters in `dashboard/src/data/sources.ts`
 that fill one day-by-day model (`Day`); analyses in `src/analysis/insights.ts`
 read only that model. Mobile-network presence, guest nationality, prices and
@@ -90,6 +114,7 @@ Set these repository secrets under **Settings → Secrets and variables → Acti
 | `PANGOLIN_SECRET` | That machine client's secret |
 | `PANGOLIN_ENDPOINT` | Pangolin dashboard URL |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret, used by the API service |
+| `ANALYTICS_API_TOKEN` | Bearer token for the analytics API (`/api/v1`); without it the API answers 503 |
 
 The workflow selects its `microk8s` context, and `id-token: write` lets the helper
 request short-lived credentials. The namespace and its RBAC must already exist;
