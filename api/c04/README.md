@@ -30,12 +30,10 @@ docker build -f api/c04/Dockerfile -t c04-api .
 docker run -p 8080:8080 c04-api
 ```
 
-Image: `.github/workflows/c04-api-image.yaml` builds and pushes
-`ghcr.io/nicoplattner/c04-api:latest` (and `:<sha>`) on every push to `main`
-that touches `api/c04/` or `results/gui/`.
-
-Run it: container port 8080; set `BASE_PATH` to the URL prefix it is served
-under (default `/c04-api`, e.g. `/<branch>/c04-api` behind the ingress; the app
-serves the full prefix itself, no rewrite needed). Health check:
-`GET $BASE_PATH/health`. Runs as user 1000, works with a read-only root
-filesystem (mount an emptyDir at `/tmp`), ~300 MB memory.
+Deployment: `.github/workflows/c04-api-image.yaml` builds and pushes
+`ghcr.io/<owner>/c04-api` on every push to `main` that touches `api/c04/` or
+`results/gui/`. The Helm chart runs it when `c04Api.enabled=true`
+(`helm/tourism-technology/templates/c04-api.yaml`, on by default), under `<ingress.path>/c04-api`.
+The "Deploy to Kubernetes" workflow deploys it next to the dashboard (input
+`c04_api`, default on). The GHCR package is public; for a private one set
+`c04Api.imagePullSecret`.

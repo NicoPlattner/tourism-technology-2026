@@ -117,6 +117,16 @@ spec:
                 name: {{ .Release.Name }}-api
                 port:
                   number: 80
+          {{- if .Values.c04Api.enabled }}
+          # Challenge 04 data API; it serves under the full prefix itself.
+          - path: {{ printf "%s/c04-api" (trimSuffix "/" .Values.ingress.path) | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-c04-api
+                port:
+                  number: 80
+          {{- end }}
           # nginx in the pod resolves assets by file name, so no rewrite is needed.
           - path: {{ .Values.ingress.path | quote }}
             pathType: Prefix
