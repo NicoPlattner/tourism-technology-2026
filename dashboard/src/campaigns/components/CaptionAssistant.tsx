@@ -57,7 +57,6 @@ export default function CaptionAssistant({
           Copy caption
         </button>
       </div>
-      {result?.creativeReason && <p className="cp-creative-reason">{result.creativeReason}</p>}
       {assistant.error && (
         <p className="cp-caption-error" role="status">
           {assistant.error}
