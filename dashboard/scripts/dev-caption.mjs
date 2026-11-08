@@ -14,11 +14,13 @@ const api = spawn(
     stdio: "inherit",
     env: {
       ...process.env,
+      CAPTION_PORT: "8788",
       CAPTION_ALLOWED_ORIGINS:
         "http://localhost:5174,http://127.0.0.1:5174,http://localhost:5173,http://127.0.0.1:5173",
     },
   },
 );
+const analytics = spawn(process.execPath, ["server/server.mjs"], { stdio: "inherit" });
 const web = spawn("npm", ["run", "dev:web", "--", ...process.argv.slice(2)], {
   stdio: "inherit",
 });
@@ -27,9 +29,11 @@ function stop(code = 0) {
   if (stopping) return;
   stopping = true;
   api.kill("SIGTERM");
+  analytics.kill("SIGTERM");
   web.kill("SIGTERM");
   process.exitCode = code;
 }
+analytics.on("exit", (code) => stop(code || 0));
 api.on("exit", (code) => stop(code || 0));
 web.on("exit", (code) => stop(code || 0));
 process.on("SIGINT", () => stop());

@@ -1,0 +1,85 @@
+origin_code,origin_name,calendar_country,kind
+56,Arab countries in Asia,,Statistik Austria origin
+60,Australia,AU,Statistik Austria origin
+AT,Austria,AT,country total (sum of regions/states)
+81,Baden Württemberg,DE,Statistik Austria origin
+80,Bavaria,DE,Statistik Austria origin
+62,Belgium,BE,Statistik Austria origin
+53,Berlin,DE,Statistik Austria origin
+DE-BB,Brandenburg,DE,German state (estimate: region split by population)
+DE-HB,Bremen,DE,German state (estimate: region split by population)
+08,Bulgaria,BG,Statistik Austria origin
+70,Burgenland,AT,Statistik Austria origin
+23,Canada,CA,Statistik Austria origin
+71,Carinthia,AT,Statistik Austria origin
+83,Central Germany,DE,Statistik Austria origin
+67,China,CN,Statistik Austria origin
+51,Croatia,HR,Statistik Austria origin
+93,Cyprus,CY,Statistik Austria origin
+09,Czech Rep.,CZ,Statistik Austria origin
+11,Denmark,DK,Statistik Austria origin
+85,Eastern Germany,DE,Statistik Austria origin
+86,Estonia,EE,Statistik Austria origin
+13,Finland,FI,Statistik Austria origin
+14,France,FR,Statistik Austria origin
+DE,Germany,DE,country total (sum of regions/states)
+15,Greece,GR,Statistik Austria origin
+DE-HH,Hamburg,DE,German state (estimate: region split by population)
+DE-HE,Hesse,DE,German state (estimate: region split by population)
+38,Hungary,HU,Statistik Austria origin
+49,Iceland,IS,Statistik Austria origin
+17,India and Pakistan,IN,Statistik Austria origin
+18,"Ireland, Rep.",IE,Statistik Austria origin
+19,Israel,IL,Statistik Austria origin
+20,Italy,IT,Statistik Austria origin
+21,Japan,JP,Statistik Austria origin
+88,Latvia,LV,Statistik Austria origin
+89,Lithuania,LT,Statistik Austria origin
+72,Lower Austria,AT,Statistik Austria origin
+DE-NI,Lower Saxony,DE,German state (estimate: region split by population)
+63,Luxembourg,LU,Statistik Austria origin
+90,Malta,MT,Statistik Austria origin
+DE-MV,Mecklenburg-Vorpommern,DE,German state (estimate: region split by population)
+25,Netherlands,NL,Statistik Austria origin
+61,New Zealand,NZ,Statistik Austria origin
+82,Nordrhein-Westfalen,DE,Statistik Austria origin
+84,Northern Germany,DE,Statistik Austria origin
+26,Norway,NO,Statistik Austria origin
+94,Other (code 94),,Statistik Austria origin
+95,Other (code 95),,Statistik Austria origin
+96,Other (code 96),,Statistik Austria origin
+57,Other African countries,,Statistik Austria origin
+58,Other Asian countries,,Statistik Austria origin
+87,Other GUS countries,,Statistik Austria origin
+37,Other Latin American countries,,Statistik Austria origin
+40,Other foreign countries,,Statistik Austria origin
+27,Poland,PL,Statistik Austria origin
+28,Portugal,PT,Statistik Austria origin
+DE-RP,Rhineland-Palatinate,DE,German state (estimate: region split by population)
+29,Romania,RO,Statistik Austria origin
+91,Russia,RU,Statistik Austria origin
+DE-SL,Saarland,DE,German state (estimate: region split by population)
+74,Salzburg,AT,Statistik Austria origin
+DE-SN,Saxony,DE,German state (estimate: region split by population)
+DE-ST,Saxony-Anhalt,DE,German state (estimate: region split by population)
+DE-SH,Schleswig-Holstein,DE,German state (estimate: region split by population)
+10,Slovakia,SK,Statistik Austria origin
+52,Slovenia,SI,Statistik Austria origin
+34,South Africa,ZA,Statistik Austria origin
+64,South Korea,KR,Statistik Austria origin
+59,South-eastern Asia,,Statistik Austria origin
+33,Spain,ES,Statistik Austria origin
+75,Styria,AT,Statistik Austria origin
+31,Sweden,SE,Statistik Austria origin
+32,Switzerland and Liechtenstein,CH,Statistik Austria origin
+65,Taiwan,TW,Statistik Austria origin
+DE-TH,Thuringia,DE,German state (estimate: region split by population)
+36,Turkey,TR,Statistik Austria origin
+76,Tyrol,AT,Statistik Austria origin
+39,USA,US,Statistik Austria origin
+92,Ukraine,UA,Statistik Austria origin
+16,United Kingdom,GB,Statistik Austria origin
+73,Upper Austria,AT,Statistik Austria origin
+01,Vienna,AT,Statistik Austria origin
+77,Vorarlberg,AT,Statistik Austria origin
+22,other South East Europe,,Statistik Austria origin

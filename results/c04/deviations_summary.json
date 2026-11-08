@@ -1,0 +1,35 @@
+{
+ "winter 25/26": {
+  "r2": 0.273,
+  "theil": {
+   "rmse": 995.972,
+   "bias_share": 0.141,
+   "variance_share": 0.06,
+   "covariance_share": 0.799,
+   "mean_error": 374.62
+  },
+  "unexplained_stays": 549,
+  "level_shift_stays": -100686,
+  "forecast_zero_days": 6,
+  "actual_on_forecast_zero_days": 371,
+  "actual_total": 2350535,
+  "forecast_total": 2416513
+ },
+ "summer 26": {
+  "r2": 0.084,
+  "theil": {
+   "rmse": 501.758,
+   "bias_share": 0.291,
+   "variance_share": 0.065,
+   "covariance_share": 0.644,
+   "mean_error": 270.807
+  },
+  "unexplained_stays": 10759,
+  "level_shift_stays": -78646,
+  "forecast_zero_days": 5,
+  "actual_on_forecast_zero_days": 383,
+  "actual_total": 404517,
+  "forecast_total": 451796
+ },
+ "method": "log(actual/forecast) per day regressed on 0..1 drivers (ridge); contributions in stays; LightGBM SHAP sign check; 200x week-block bootstrap; grade A = interval excludes 0 and SHAP agrees, B = one of the two, C = neither. Theil: bias / variance / covariance shares of the squared error. Tracking signal |TS| > 4 = systematic bias in that month."
+}

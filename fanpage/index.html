@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google tag: the GTM script is only loaded after the visitor accepts in
+         the consent banner (see app.js), so consent is "granted" whenever it runs.
+         Declining later switches consent back to "denied". -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.loadGoogleTag = function () {
+        if (window.googleTagLoaded) return;
+        window.googleTagLoaded = true;
+        gtag('consent', 'default', {
+          ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted'
+        });
+        gtag('js', new Date());
+        dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-KGRF25T3';
+        document.head.appendChild(s);
+      };
+      try { if (localStorage.getItem('fanpage-consent') === 'granted') window.loadGoogleTag(); } catch (e) {}
+    </script>
+    <title>Paznaun-Ischgl Fan Page · unofficial</title>
+    <meta name="description" content="An unofficial fan page for Ischgl and the Paznaun valley in Tyrol: what to do in winter and summer, sorted by interest, plus a small blog. Demo project." />
+    <meta name="theme-color" content="#bb1c3f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23bb1c3f'/%3E%3Cpath d='M12 46 L26 24 L34 34 L40 27 L52 46 Z' fill='white'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Saira:wght@700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-season="winter">
+    <header class="top">
+      <a class="brand" href="#top" aria-label="Paznaun-Ischgl fan page, home">
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><path d="M10 48 L26 22 L35 35 L41 27 L54 48 Z" /></svg>
+        </span>
+        <span class="wordmark">Paznaun<span>·</span>Ischgl</span>
+        <span class="tag">Unofficial fan page</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="#explore">Things to do</a>
+        <a href="#villages">Villages</a>
+        <a href="#blog">Blog</a>
+      </nav>
+    </header>
+
+    <main id="home">
+      <section class="hero" id="top">
+        <img class="hero-img" id="hero-img" src="" alt="" />
+        <div class="hero-shade"></div>
+        <div class="hero-text">
+          <p class="eyebrow light">Tyrol, Austria · made by fans</p>
+          <h1>Ischgl &amp; the Paznaun valley</h1>
+          <p class="hero-lead" id="hero-lead"></p>
+          <div class="seasons" role="group" aria-label="Season">
+            <button type="button" data-season="winter">Winter</button>
+            <button type="button" data-season="summer">Summer</button>
+          </div>
+        </div>
+        <div class="circle" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <defs><path id="ring" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0" /></defs>
+            <g class="spin">
+              <text><textPath href="#ring" textLength="500" lengthAdjust="spacing">ISCHGL • GALTÜR • KAPPL • SEE • PAZNAUN • </textPath></text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="facts" aria-label="The valley in numbers">
+        <div><strong>4</strong><span>villages in one valley</span></div>
+        <div><strong>239 km</strong><span>of slopes, Ischgl ⇄ Samnaun</span></div>
+        <div><strong>1,377 m</strong><span>Ischgl village</span></div>
+        <div><strong>2,872 m</strong><span>highest lift point</span></div>
+      </section>
+
+      <section class="section" id="explore">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Things to do</p>
+            <h2 id="explore-title"></h2>
+          </div>
+          <div class="seasons dark" role="group" aria-label="Season">
+            <button type="button" data-season="winter">Winter</button>
+            <button type="button" data-season="summer">Summer</button>
+          </div>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Filter by interest"></div>
+        <div class="grid" id="cards"></div>
+      </section>
+
+      <section class="section" id="villages">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">The valley</p>
+            <h2>Four villages, four moods</h2>
+          </div>
+        </div>
+        <div class="villages">
+          <article>
+            <h3>Ischgl <small>1,377 m</small></h3>
+            <p>The famous one. Big ski area, big concerts, lively evenings — and very good food.</p>
+          </article>
+          <article>
+            <h3>Galtür <small>1,584 m</small></h3>
+            <p>Highest and quietest. Wide valley floor, hiking, ski touring and the Alpinarium.</p>
+          </article>
+          <article>
+            <h3>Kappl <small>1,258 m</small></h3>
+            <p>Sunny terraces and a relaxed, family-friendly ski area of its own.</p>
+          </article>
+          <article>
+            <h3>See <small>≈ 1,050 m</small></h3>
+            <p>The gateway to the valley. Small and friendly, with its own ski area and a 6 km toboggan run.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="blog">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Fan blog</p>
+            <h2>Notes from the valley</h2>
+          </div>
+        </div>
+        <div class="posts" id="posts"></div>
+      </section>
+    </main>
+
+    <main id="article" hidden></main>
+
+    <footer class="foot">
+      <div class="foot-inner">
+        <p><strong>Unofficial fan page — demo only.</strong> Not affiliated with the Paznaun-Ischgl tourist board or any lift company. Dates and details can change; check <a href="https://www.ischgl.com" rel="noopener">ischgl.com</a> before you travel. Blog entries are sample texts.</p>
+        <p><button type="button" class="linkish" id="consent-open">Cookie settings</button></p>
+        <details>
+          <summary>Photo credits</summary>
+          <p class="small">All photos are from <a href="https://commons.wikimedia.org" rel="noopener">Wikimedia Commons</a> under the licences listed. Click a title for the original.</p>
+          <ul id="credits" class="credits"></ul>
+        </details>
+      </div>
+    </footer>
+
+    <div class="consent" id="consent" role="dialog" aria-labelledby="consent-title" aria-describedby="consent-text" hidden>
+      <p class="consent-title" id="consent-title">Cookies &amp; analytics</p>
+      <p id="consent-text">We’d like to use Google Tag Manager to measure how this demo page is used. Nothing is loaded unless you accept. You can change your choice any time under “Cookie settings” at the bottom of the page.</p>
+      <div class="consent-actions">
+        <button type="button" class="btn ghost" data-consent="denied">Decline</button>
+        <button type="button" class="btn" data-consent="granted">Accept</button>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

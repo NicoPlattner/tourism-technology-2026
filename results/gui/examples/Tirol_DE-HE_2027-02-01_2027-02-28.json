@@ -1,0 +1,103 @@
+{
+ "destination": "Tirol",
+ "origin": "DE-HE",
+ "origin_name": "Hesse",
+ "from": "2027-02-01",
+ "to": "2027-02-28",
+ "guests": {
+  "value": 41566,
+  "is_estimate": true,
+  "method": "Statistik Austria region 83 split by population (55%)",
+  "grade": "C"
+ },
+ "nights": {
+  "value": 186020,
+  "is_estimate": true,
+  "method": "Statistik Austria region 83 split by population (55%)",
+  "grade": "C"
+ },
+ "nights_80pct_range": {
+  "value": [
+   145376,
+   238026
+  ],
+  "is_estimate": true,
+  "method": "conformal band of M1 (estimate rows: rough band)",
+  "grade": "C"
+ },
+ "length_of_stay": {
+  "value": 4.48,
+  "is_estimate": true,
+  "method": "nights / guests",
+  "grade": "C"
+ },
+ "daily_distribution": {
+  "value": {
+   "2027-02-07": 46535,
+   "2027-02-14": 42686,
+   "2027-02-21": 47900,
+   "2027-02-28": 48898
+  },
+  "is_estimate": false,
+  "method": "destination pattern x origin school-holiday push",
+  "grade": "B"
+ },
+ "booking_lead_time": {
+  "value": {
+   "share_by_days_ahead": {
+    "0d": 0.099,
+    "8d": 0.144,
+    "31d": 0.146,
+    "61d": 0.109,
+    "90d": 0.343,
+    "180d": 0.16
+   },
+   "median_days_ahead": 135,
+   "book_by_for_half_of_first_arrivals": "2026-09-19"
+  },
+  "is_estimate": true,
+  "method": "TVB Paznaun lead time per arrival month (proxy for the destination)",
+  "grade": "B"
+ },
+ "booking_lead_time_this_market": {
+  "value": {
+   "share_by_days_ahead": {
+    "0d": 0.221,
+    "8d": 0.252,
+    "31d": 0.172,
+    "61d": 0.152,
+    "90d": 0.13,
+    "180d": 0.072
+   },
+   "median_days_ahead": 45
+  },
+  "is_estimate": true,
+  "method": "indicative profile for market group DE (derived)",
+  "grade": "C",
+  "note": "lost a validation test against the monthly average; direction only"
+ },
+ "age_profile": {
+  "value": {
+   "age_0-5": 0.049,
+   "age_6-14": 0.231,
+   "age_15-24": 0.121,
+   "age_25-34": 0.102,
+   "age_35-44": 0.189,
+   "age_45-54": 0.17,
+   "age_55-64": 0.09,
+   "age_65+": 0.048,
+   "median_age_band": "25-34"
+  },
+  "is_estimate": false,
+  "method": "Salzburger Sportwelt guest cards (comparable ski region)",
+  "grade": "C"
+ },
+ "sources": [
+  "Statistik Austria (CC BY 4.0)",
+  "Landesstatistik Tirol",
+  "Österreich Werbung / Nächtigungsprognose (CC BY 4.0)",
+  "OpenHolidays (ODbL)",
+  "TVB Paznaun-Ischgl (TTF 2026 data licence)",
+  "Salzburger Sportwelt (TTF licence, aggregates only)"
+ ]
+}
