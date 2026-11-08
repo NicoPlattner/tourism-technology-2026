@@ -1,0 +1,34 @@
+season,driver_key,driver,stays_total,ci80_low,ci80_high,shap_sign_agrees,grade,kind,direction
+winter 25/26,low_snow,snow depth < 30 cm (ski area),47861.3,28611.6,59677.2,True,A,pull (destination),more stays than forecast
+winter 25/26,weekend_night,Fri/Sat night,-21790.7,-30141.0,-12769.3,True,A,pull (destination),fewer stays than forecast
+winter 25/26,early_season,first 3 weeks of season,12285.6,2322.1,15651.4,False,B,pull (destination),more stays than forecast
+winter 25/26,hol_DE,German school holidays,11926.7,3820.2,17665.2,True,A,push (source-market free time),more stays than forecast
+winter 25/26,hol_EAST,Polish/Czech school holidays,8605.4,-3518.5,17158.6,True,B,push (source-market free time),more stays than forecast
+winter 25/26,ev_other,other event day (TVB calendar),-4970.6,-10642.7,-378.6,False,B,pull (destination),fewer stays than forecast
+winter 25/26,longwe_weighted,long weekend with public holiday (source markets),-4068.4,-14763.7,2529.9,False,C,push (source-market free time),fewer stays than forecast
+winter 25/26,hol_NEIGHBOURS,Swiss/Austrian school holidays,-2379.7,-8303.8,9635.3,True,B,push (source-market free time),fewer stays than forecast
+winter 25/26,late_season,last 2 weeks of season,1762.7,763.5,2599.3,False,B,pull (destination),more stays than forecast
+winter 25/26,xmas_newyear,Christmas / New Year window,-1610.2,-5066.7,4392.5,False,C,pull (destination),fewer stays than forecast
+winter 25/26,hol_BENELUX,Dutch/Belgian school holidays,-1435.3,-9592.8,10225.8,True,B,push (source-market free time),fewer stays than forecast
+winter 25/26,ev_concert,concert day (TVB calendar),-1393.7,-2568.9,59.0,False,C,pull (destination),fewer stays than forecast
+winter 25/26,closing_weekend,season closing weekend,-1310.9,-2078.9,0.0,False,C,pull (destination),fewer stays than forecast
+winter 25/26,longwe_bridge_weighted,bridge-day long weekend (source markets),-947.0,-1187.6,37.7,False,C,push (source-market free time),fewer stays than forecast
+winter 25/26,opening_weekend,season opening weekend,-944.9,-1536.8,0.0,False,C,pull (destination),fewer stays than forecast
+winter 25/26,pre_xmas,pre-Christmas weeks,-535.2,-2129.6,1458.1,False,C,pull (destination),fewer stays than forecast
+winter 25/26,ev_sport,sports / freeride event (TVB calendar),-426.0,-1039.6,250.8,False,C,pull (destination),fewer stays than forecast
+winter 25/26,hol_NORTH_UK,Danish/UK school holidays,-348.8,-10618.2,4507.2,False,C,push (source-market free time),fewer stays than forecast
+winter 25/26,carnival_week,carnival week,332.1,-786.0,1095.3,False,C,pull (destination),more stays than forecast
+winter 25/26,fresh_snow,> 20 cm new snow in 3 days,221.3,-27.4,303.7,False,C,pull (destination),more stays than forecast
+winter 25/26,easter_window,Easter window,113.9,-2602.5,1695.1,True,B,pull (destination),more stays than forecast
+summer 26,hol_EAST,Polish/Czech school holidays,41769.9,9685.4,61771.9,True,A,push (source-market free time),more stays than forecast
+summer 26,low_snow,snow depth < 30 cm (ski area),-16030.3,-95168.3,39177.3,False,C,pull (destination),fewer stays than forecast
+summer 26,hol_NEIGHBOURS,Swiss/Austrian school holidays,-8639.8,-57209.3,28734.9,True,B,push (source-market free time),fewer stays than forecast
+summer 26,weekend_night,Fri/Sat night,-8147.8,-21135.9,7872.0,True,B,pull (destination),fewer stays than forecast
+summer 26,hol_DE,German school holidays,4854.4,-14544.5,22509.9,True,B,push (source-market free time),more stays than forecast
+summer 26,ev_other,other event day (TVB calendar),3899.8,-2490.7,7962.9,False,C,pull (destination),more stays than forecast
+summer 26,hol_BENELUX,Dutch/Belgian school holidays,2545.7,-31187.3,27511.2,False,C,push (source-market free time),more stays than forecast
+summer 26,longwe_bridge_weighted,bridge-day long weekend (source markets),-1615.9,-2633.8,-30.2,False,B,push (source-market free time),fewer stays than forecast
+summer 26,hol_NORTH_UK,Danish/UK school holidays,905.4,-46144.7,69139.4,False,C,push (source-market free time),more stays than forecast
+summer 26,ev_concert,concert day (TVB calendar),652.8,-37.1,1440.5,False,C,pull (destination),more stays than forecast
+summer 26,longwe_weighted,long weekend with public holiday (source markets),15.9,-36.5,61.8,False,C,push (source-market free time),more stays than forecast
+summer 26,ev_sport,sports / freeride event (TVB calendar),14.8,-14.0,51.6,False,C,pull (destination),more stays than forecast

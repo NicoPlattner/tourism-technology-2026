@@ -16,6 +16,9 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}-c04-api
+      annotations:
+        # Restart on every deploy so the pod pulls the current :latest image.
+        c04-api/release-revision: {{ .Release.Revision | quote }}
     spec:
       automountServiceAccountToken: false
       {{- with .Values.c04Api.imagePullSecret }}
