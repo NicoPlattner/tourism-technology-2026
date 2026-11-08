@@ -25,7 +25,8 @@ from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-DATA = Path(os.environ.get("DATA_DIR", Path(__file__).resolve().parents[2] / "results" / "gui"))
+DATA = Path(os.environ["DATA_DIR"]) if os.environ.get("DATA_DIR") else \
+    Path(__file__).resolve().parent.parent.parent / "results" / "gui"  # repo layout when run locally
 BASE = "/" + os.environ.get("BASE_PATH", "/c04-api").strip("/")
 CLASSES = ["0d", "8d", "31d", "61d", "90d", "180d"]
 MID = np.array([3, 19, 45, 75, 135, 240])
