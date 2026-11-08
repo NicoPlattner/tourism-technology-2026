@@ -1,0 +1,6 @@
+.dr-data { gap:28px; }
+.dr-data-links { display:flex; gap:10px; flex-wrap:wrap; }
+.dr-data-links a { text-decoration:none; }
+.dr-data-section { min-width:0; scroll-margin-top:115px; }
+.dr-data-section > h2 { margin:0 0 16px; font-size:24px; }
+@media(max-width:640px) { .dr-data-section { scroll-margin-top:135px; } }

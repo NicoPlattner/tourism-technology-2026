@@ -10,6 +10,8 @@ export default function CampaignReasoning({
       <h3 id="cp-reasoning-heading">
         <span aria-hidden="true">✦</span> Why this campaign?
       </h3>
+      {campaign.reasoningSource && <small className="cp-reason-source">{campaign.reasoningSource === "ai" ? "AI reasoning" : "Data summary"}</small>}
+      {campaign.windowRecommendation?.explanation && <p className="cp-window-reason">{campaign.windowRecommendation.explanation}</p>}
       <p>{campaign.reasoning}</p>
       <details key={campaign.id}>
         <summary>

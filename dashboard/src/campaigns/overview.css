@@ -1145,3 +1145,23 @@
 @media (max-width: 600px) { .cp-calendar { width: min(300px,100%); } .cp-date-fields input { width: 100%; } }
 
 .cp-plan-action + .cp-reasoning { margin-top: 14px; margin-bottom: 0; }
+
+/* Demand shading is independent of the selected-origin outline. */
+.cp-country.selected { stroke:#303943; stroke-width:3; }
+.cp-heat-key { padding:18px; display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); }
+.cp-heat-key strong { color:var(--slate); }
+.cp-heat-key > div { display:flex; gap:12px; flex-wrap:wrap; width:100%; }
+.cp-heat-key > div span { display:inline-flex; align-items:center; gap:5px; font-size:11px; }
+.cp-heat-key i { width:15px; height:12px; display:inline-block; }
+.cp-heat-key > small { display:block; width:100%; font-size:11px; }
+.cp-market-demand { display:block; margin-top:5px; font-size:11px; font-weight:400; }
+.cp-plan-action > button:disabled { opacity:.45; cursor:not-allowed; }
+
+.cp-window-status { font-size:12px; line-height:1.6; color:var(--muted); margin:-4px 0 14px; }
+.cp-window-reason { font-weight:600; }
+
+.cp-social-media { position:relative; min-height:170px; background:#e0edf2; }
+.cp-image-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:20px; color:var(--muted); text-align:center; font-size:12px; }
+.cp-image-spinner { width:26px; height:26px; border:2px solid #d3dce2; border-top-color:var(--red); border-radius:50%; animation:cp-image-turn .8s linear infinite; }
+@keyframes cp-image-turn { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .cp-image-spinner { animation:none; } }
