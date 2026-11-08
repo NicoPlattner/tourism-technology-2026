@@ -59,7 +59,7 @@ Kubernetes secret for the API. Local dev: `npm run server` (with
 properties through `https://hackathon.daria-and-nico.com/<path>/api/v1/…` with
 `Authorization: Bearer <ANALYTICS_API_TOKEN>`. It is switched on and off for
 everyone under *Integrations → Google Analytics → Analytics API* (off by
-default). `GET /api/v1` (public) lists the endpoints; use `default` or a
+default). `GET /api/v1` (public) lists the endpoints, `GET /api/v1/openapi.json` is the OpenAPI 3.1 description and `GET /api/v1/docs` a Swagger UI to try them (both public, no data); use `default` or a
 property id from `/api/v1/properties`:
 
 | Endpoint | Data |
