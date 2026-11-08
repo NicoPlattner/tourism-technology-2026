@@ -1121,3 +1121,26 @@
 .cp-date-fields input { min-width: 130px; width: 134px; border: 0; }
 .cp-date-fields label:focus-within { outline: 2px solid var(--red); outline-offset: 2px; }
 .cp-date-fields input:focus-visible { outline: none; }
+
+.cp-calendar-control { position: relative; }
+.cp-date-fields input { min-width: 0; width: 104px; padding-right: 2px; }
+.cp-calendar-trigger { display: grid; place-items: center; width: 30px; height: 38px; border: 0; background: transparent; color: var(--slate); cursor: pointer; }
+.cp-calendar-trigger:hover, .cp-calendar-trigger[aria-expanded="true"] { color: var(--red); }
+.cp-calendar { position: absolute; z-index: 50; top: calc(100% + 8px); left: 0; width: 300px; padding: 14px; box-sizing: border-box; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 10px 30px #17232c20; color: var(--ink); }
+.cp-calendar-heading { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.cp-calendar-heading button { width: 28px; height: 28px; border: 0; background: transparent; color: var(--slate); font-size: 23px; cursor: pointer; }
+.cp-calendar-heading select, .cp-calendar-heading input { min-width: 0; border: 0; background: transparent; color: var(--ink); font: 600 12px var(--sans); padding: 5px 2px; }
+.cp-calendar-heading select { flex: 1; width: 120px; }
+.cp-calendar-heading input { width: 55px; }
+.cp-calendar-grid > div { display: grid; grid-template-columns: repeat(7,1fr); }
+.cp-calendar-weekdays span { text-align: center; color: var(--muted); font-size: 10px; padding-bottom: 7px; font-weight: 600; }
+.cp-calendar-day { border: 0; border-radius: 0; background: transparent; color: var(--ink); min-width: 0; height: 34px; padding: 0; font: 500 12px var(--sans); cursor: pointer; }
+.cp-calendar-day.outside { color: var(--muted); opacity: .55; }
+.cp-calendar-day.in-range { background: #bb1c3f0d; }
+.cp-calendar-day.selected { background: var(--red); color: white; opacity: 1; font-weight: 700; }
+.cp-calendar-day:hover { box-shadow: inset 0 0 0 1px var(--red); }
+.cp-calendar button:focus-visible, .cp-calendar select:focus-visible, .cp-calendar input:focus-visible, .cp-calendar-trigger:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+.cp-calendar-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.cp-calendar-footer span { color: var(--muted); font-size: 10px; }
+.cp-calendar-footer button { border: 0; background: transparent; color: var(--red); font: 600 11px var(--sans); padding: 4px; cursor: pointer; }
+@media (max-width: 600px) { .cp-calendar { width: min(300px,100%); } .cp-date-fields input { width: 100%; } }
