@@ -276,15 +276,18 @@ jobs:
             --set "c04Api.enabled=${{ inputs.c04_api }}" \
             --set-string "c04Api.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api:latest" \
             --set-string "c04Pipeline.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-pipeline:latest" \
+            --set "c04Pipeline.enabled=${{ inputs.c04_api && github.ref_name == 'demand-api' }}" \
             --wait --timeout 3m
 
       - name: c04 refresh jobs (status and log tail)
-        if: always() && inputs.c04_api
+        if: always()
         continue-on-error: true
         run: |
           ns=tourism-technology-2026
           kubectl --request-timeout=15s -n "$ns" get jobs,cronjobs,pvc -l "app=$RELEASE_NAME-c04-refresh" 2>/dev/null || true
           kubectl --request-timeout=15s -n "$ns" get jobs,cronjobs,pvc 2>/dev/null | grep "$RELEASE_NAME-c04" || true
+          echo "--- c04 refresh objects in all releases (should only be the demand-api release):"
+          kubectl --request-timeout=15s -n "$ns" get cronjobs,jobs,pvc 2>/dev/null | grep -E "c04-(fast|full|refresh|data)" || true
           for pod in $(kubectl --request-timeout=15s -n "$ns" get pods -l "app=$RELEASE_NAME-c04-refresh" -o name 2>/dev/null); do
             echo "=== $pod"
             kubectl --request-timeout=15s -n "$ns" get "$pod" -o jsonpath='{.status.phase} {.status.containerStatuses[0].state}{"\n"}' || true
