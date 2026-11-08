@@ -324,7 +324,13 @@ export function createApp() {
     try {
       const route = routes.find(([method, re]) => method === req.method && re.test(path));
       if (!route) return send(404, { error: 'Not found.' });
-      send(200, await route[2](path.match(route[1]), await readJson(req), req));
+      const out = await route[2](path.match(route[1]), await readJson(req), req);
+      // A page (e.g. the Swagger UI) instead of JSON.
+      if (out?.rawBody !== undefined) {
+        res.writeHead(200, { 'Content-Type': out.type, 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', ...cors });
+        return res.end(out.rawBody);
+      }
+      send(200, out);
     } catch (e) {
       const status = e instanceof HttpError ? e.status : 500;
       if (status >= 500) console.error(req.method, path, e.message);
