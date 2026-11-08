@@ -38,7 +38,10 @@ c04Pipeline:
   image: ghcr.io/nicoplattner/c04-pipeline:latest
   size: 2Gi
   storageClass: microk8s-retain-hostpath
-  fastSchedule: "23 5,11,17,23 * * *"   # Europe/Vienna: weather, snow, official forecast, re-dated actions
-  fullSchedule: "41 3 * * *"            # all sources; models re-run only when their inputs changed
+  schedule:            # regular runs: off unless switched on
+    fast: false        # snow and weather only (no model fit)
+    full: false        # all sources; re-runs models whose inputs changed (training)
+  fastSchedule: "23 5,11,17,23 * * *"   # Europe/Vienna
+  fullSchedule: "41 3 * * *"
 # Set by the deploy workflow so the API restarts when the Google secret changes.
 googleSecretChecksum: ""

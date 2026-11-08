@@ -8,6 +8,12 @@ on:
         type: boolean
         default: false
         required: true
+      c04_refresh:
+        description: "demand-api only: run the c04 data refresh once (fast = snow and weather, no training; full = all sources, retrains changed models)"
+        type: choice
+        options: [none, fast, full]
+        default: none
+        required: true
       c04_api:
         description: Deploy the Challenge 04 data API (image ghcr.io/<owner>/c04-api)
         type: boolean
@@ -278,6 +284,16 @@ jobs:
             --set-string "c04Pipeline.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-pipeline:latest" \
             --set "c04Pipeline.enabled=${{ inputs.c04_api && github.ref_name == 'demand-api' }}" \
             --wait --timeout 3m
+
+      - name: Start a c04 refresh (manual)
+        if: github.ref_name == 'demand-api' && inputs.c04_api && inputs.c04_refresh != 'none'
+        env:
+          MODE: ${{ inputs.c04_refresh }}
+        run: |
+          set -euo pipefail
+          kubectl -n tourism-technology-2026 create job "$RELEASE_NAME-c04-manual-$MODE-$GITHUB_RUN_ID" \
+            --from="cronjob/$RELEASE_NAME-c04-$MODE"
+          echo "Started a $MODE refresh; progress in /meta -> freshness.refresh" >> "$GITHUB_STEP_SUMMARY"
 
       - name: c04 refresh jobs (status and log tail)
         if: always()

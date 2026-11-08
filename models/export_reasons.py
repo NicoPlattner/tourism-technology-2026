@@ -210,6 +210,34 @@ def driver_effects(pp) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def update_weather(out_dir):
+    """Data-only refresh (no model fit, no partner data): replace the snow and weather columns of
+    pull_reasons.csv with the latest SNOWGRID values and the Open-Meteo forecast; keep everything else."""
+    p = out_dir / "pull_reasons.csv"
+    t = pd.read_csv(p, keep_default_na=False, na_values=[""])
+    snow = snow_series()
+    last = snow.index.max()
+    clim = snow[(snow.index >= "2000-01-01") & (snow.index < "2026-01-01")]
+    clim = clim.groupby([clim.index.month, clim.index.day]).median()
+    fc = json.loads((RAW / "openmeteo_forecast_idalpe.json").read_text())["daily"]
+    fc = pd.DataFrame(fc).assign(time=lambda d: pd.to_datetime(d.time)).set_index("time")
+    new3 = {dest: snow[dest].diff().clip(lower=0).rolling(3).sum() for dest in snow.columns}
+    depth, typical, n3, fsn, ftx = [], [], [], [], []
+    for dest, ds in zip(t.destination, t.date):
+        d = pd.Timestamp(ds)
+        obs = bool(d <= last and d in snow.index and pd.notna(snow.at[d, dest]))
+        v = snow.at[d, dest] if obs else clim[dest].get((d.month, d.day), np.nan)
+        depth.append(None if pd.isna(v) else round(float(v)))
+        typical.append(not obs)
+        n3.append(round(float(new3[dest].get(d, np.nan))) if obs and pd.notna(new3[dest].get(d, np.nan)) else None)
+        fsn.append(round(float(fc.snowfall_sum.get(d)), 1) if d in fc.index and pd.notna(fc.snowfall_sum.get(d)) else None)
+        ftx.append(round(float(fc.temperature_2m_max.get(d)), 1) if d in fc.index and pd.notna(fc.temperature_2m_max.get(d)) else None)
+    t["snow_depth_cm"], t["snow_depth_is_typical_not_observed"], t["new_snow_3d_cm"] = depth, typical, n3
+    t["forecast_snowfall_cm"], t["forecast_temp_max_c"] = fsn, ftx
+    t.to_csv(p, index=False)
+    return t
+
+
 def main(out_dir):
     origins = pd.read_csv(out_dir / "origins.csv")[["origin_code", "origin_name"]]
     push = push_reasons(origins)

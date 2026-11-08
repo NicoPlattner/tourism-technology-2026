@@ -118,3 +118,14 @@ new tables. Otherwise the last good snapshot stays.
   2026-08. Make them relative to today before summer 2027.
 - The challenge outputs cover winter 26/27; extend the horizon to the next season.
 - API tests use fixed expectations (e.g. Bavarian holidays in Jan–Mar 2027): make them date-relative.
+
+## Change (8 Nov, 11:00 CET): no automatic training
+
+After the refresh jobs loaded the shared server, refreshes are opt-in:
+- Nothing runs on deploy (no bootstrap job). The API serves the published tables (baked into the image, or the
+  last snapshot) until someone asks for a refresh.
+- Manual run: deploy workflow on `demand-api` with input `c04_refresh` = `fast` or `full` (one job, no retry).
+- Regular runs only when switched on: Helm values `c04Pipeline.schedule.fast` / `.full` (both `false`).
+- `fast` = snow and weather only (about 10 s, no model fit, no new forecast); `full` = all sources and
+  re-training of the models whose inputs changed (several minutes, 1 CPU / 3 GiB limit).
+- The pipeline objects exist only in the `demand-api` release (`c04Pipeline.enabled`, set by the deploy workflow).

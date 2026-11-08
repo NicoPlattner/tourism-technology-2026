@@ -1,18 +1,21 @@
-"""Live refresh of the Challenge 04 data product: fetch, rebuild what changed, validate, publish a snapshot.
+"""Refresh of the Challenge 04 data product: fetch, (re)build, validate, publish a snapshot.
 
-    python3 models/refresh.py fast    # weather, snow, official forecast, Paznaun forecast, reasons, actions
-    python3 models/refresh.py full    # also holidays, Statistik Austria, Landesstatistik Tirol, TVB and guest
-                                      # cards from the TTF Data Space; models re-run only when their inputs changed
-    python3 models/refresh.py auto    # full when there is no snapshot or no state yet, else fast
+Nothing runs by itself: a run is started manually (deploy workflow input c04_refresh) or by a CronJob that is
+switched on explicitly (Helm values c04Pipeline.schedule.fast / .full; both off by default).
+
+    python3 models/refresh.py fast    # data only: snow (GeoSphere SNOWGRID) and weather forecast (Open-Meteo)
+                                      # -> pull reasons + freshness; no model fit, no new forecast
+    python3 models/refresh.py full    # all sources incl. TVB and guest cards (TTF Data Space); re-runs only the
+                                      # models whose inputs changed, then the Paznaun forecast and actions
 
 Layout (WORK, default /work, a persistent volume in the cluster):
   WORK/raw, WORK/processed, WORK/out      caches of the scripts (data/raw, data/processed, out), never served
-  WORK/results/{gui,c04}                  working copy written by the export scripts
+  WORK/results/{gui,c04}                  working copy (seeded with the tables baked into the image)
   WORK/snapshots/<UTC timestamp>/         published, validated copies; WORK/snapshots/current -> newest good one
-  WORK/state.json                         input hashes of each model step (change detection)
-The API reads WORK/snapshots/current (read-only mount). A failed fetch keeps the cached data; a failed
-step or validation keeps the last good snapshot, so consumers never see a broken state.
-TTF_SPACE_API_KEY (environment) is needed for the TVB and guest-card data; without it those stay cached.
+  WORK/snapshots/status.json              current / last run, last success, last failure (shown in /meta)
+  WORK/state.json                         input hashes of each model step (change detection, full mode)
+The API reads WORK/snapshots/current (read-only mount). A failed step or validation keeps the last good snapshot.
+TTF_SPACE_API_KEY (environment) is needed for the TVB and guest-card data; without it those parts stay as they are.
 """
 from __future__ import annotations
 
@@ -143,15 +146,14 @@ MODELS = [
 
 
 def fetch(mode: str, has_key: bool):
-    # fast sources: snow (SNOWGRID), weather forecast (Open-Meteo), official forecast for Paznaun
+    # snow (SNOWGRID, Paznaun and Tirol points) and weather forecast (Open-Meteo)
     run("data/fetch_drivers.py", "--skip-repo", "--skip-holidays", required=False)
-    run("data/fetch_open_data.py", "TR53", required=False)
     pts = ROOT / "data" / "raw" / "open" / "snow" / "snowgrid_tirol_points.csv"
     if pts.exists() and time.time() - pts.stat().st_mtime > 20 * 3600:
         pts.unlink()  # observed snow at the Tirol points: refetched at most once a day
     if mode != "full":
         return
-    run("data/fetch_open_data.py", required=False)
+    run("data/fetch_open_data.py", required=False)  # official forecast (Nächtigungsprognose)
     run("data/fetch_drivers.py", "--skip-snow", required=False)       # repo data and current holidays
     run("data/fetch_holidays_history.py", required=False)
     run("data/fetch_tirol_stats.py", required=False)
@@ -260,7 +262,7 @@ def publish(mode: str, ran: list[str]) -> str:
 
 def main():
     import fcntl
-    mode = (sys.argv[1] if len(sys.argv) > 1 else "auto").lower()
+    mode = (sys.argv[1] if len(sys.argv) > 1 else "fast").lower()
     WORK.mkdir(parents=True, exist_ok=True)
     lock = open(WORK / ".lock", "w")
     try:
@@ -271,8 +273,9 @@ def main():
     setup()
     state_p = WORK / "state.json"
     state = json.loads(state_p.read_text()) if state_p.exists() else {}
-    if mode == "auto":
-        mode = "full" if not state or not (WORK / "snapshots" / "current").exists() else "fast"
+    if mode not in ("fast", "full"):
+        log(f"unknown mode {mode!r}: use fast or full")
+        sys.exit(2)
     has_key = bool(os.environ.get("TTF_SPACE_API_KEY"))
     log(f"refresh {mode}; key {'present' if has_key else 'missing'}; work {WORK}")
     started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
@@ -282,8 +285,14 @@ def main():
     status_p.write_text(json.dumps({**old, "current_run": status}, indent=1))
     try:
         fetch(mode, has_key)
-        prepare(mode)
-        ran = models(state)
+        if mode == "full":
+            prepare(mode)
+            ran = models(state)
+        else:  # data only: no model fit, no new forecast
+            ran = []
+            run_py("from pathlib import Path; import export_reasons as e; e.update_weather(Path('../results/gui'))",
+                   "pull reasons: snow and weather")
+            run_py("import export_challenge as e; e.write_manifest()", "manifest", required=False)
         ts = publish(mode, ran)
     except Exception as e:  # keep the last good snapshot
         log("FAILED:", e)

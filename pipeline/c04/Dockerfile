@@ -19,4 +19,4 @@ COPY pipeline/c04/seed/ pipeline/c04/seed/
 RUN chown -R 1000:1000 /app
 USER 1000:1000
 ENTRYPOINT ["python", "/app/models/refresh.py"]
-CMD ["auto"]
+CMD ["fast"]
