@@ -1,0 +1,13 @@
+,driver,stays_total,ci80_low,ci80_high,shap_sign_agrees,grade
+hol_EAST,Polish/Czech school holidays,41769.889684183756,9685.444267648742,61771.86175204969,True,A
+low_snow,snow depth < 30 cm (ski area),-16030.285259633654,-95168.314778635,39177.33996105034,False,C
+hol_NEIGHBOURS,Swiss/Austrian school holidays,-8639.77271603538,-57209.33541340255,28734.89064218794,True,B
+weekend_night,Fri/Sat night,-8147.828896233283,-21135.89225459674,7872.032351710562,True,B
+hol_DE,German school holidays,4854.439960861551,-14544.450810572389,22509.87673097904,True,B
+ev_other,other event day (TVB calendar),3899.8151064190242,-2490.6918671407066,7962.86106501545,False,C
+hol_BENELUX,Dutch/Belgian school holidays,2545.7101335953166,-31187.29993363793,27511.209761676986,False,C
+longwe_bridge_weighted,bridge-day long weekend (source markets),-1615.9410578765708,-2633.8031506359116,-30.235290594063997,False,B
+hol_NORTH_UK,Danish/UK school holidays,905.4391916042846,-46144.7319462343,69139.40392035525,False,C
+ev_concert,concert day (TVB calendar),652.8118221299923,-37.06893592949901,1440.4758906961513,False,C
+longwe_weighted,long weekend with public holiday (source markets),15.93933244515835,-36.51477614224842,61.774148874273884,False,C
+ev_sport,sports / freeride event (TVB calendar),14.849083150454234,-14.005072357967405,51.59552914861943,False,C

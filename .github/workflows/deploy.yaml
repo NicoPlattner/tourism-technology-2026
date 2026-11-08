@@ -8,6 +8,11 @@ on:
         type: boolean
         default: false
         required: true
+      c04_api:
+        description: Also deploy the Challenge 04 data API (image ghcr.io/<owner>/c04-api must exist)
+        type: boolean
+        default: false
+        required: true
 
 concurrency:
   group: pangolin-ci
@@ -187,6 +192,8 @@ jobs:
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \
+            --set "c04Api.enabled=${{ inputs.c04_api }}" \
+            --set-string "c04Api.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api:latest" \
             --wait --timeout 3m
 
       - name: Verify dashboard through service
