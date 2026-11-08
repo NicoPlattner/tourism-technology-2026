@@ -5,39 +5,39 @@
  "from": "2027-02-01",
  "to": "2027-03-07",
  "guests": {
-  "value": 28252,
+  "value": 26987,
   "is_estimate": true,
   "method": "M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol)",
   "grade": "C"
  },
  "nights": {
-  "value": 162617,
+  "value": 154350,
   "is_estimate": true,
   "method": "M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol)",
   "grade": "C"
  },
  "nights_80pct_range": {
   "value": [
-   126210,
-   209594
+   119970,
+   198635
   ],
   "is_estimate": true,
   "method": "conformal band of M1 (estimate rows: rough band)",
   "grade": "C"
  },
  "length_of_stay": {
-  "value": 5.76,
+  "value": 5.72,
   "is_estimate": true,
   "method": "nights / guests",
   "grade": "C"
  },
  "daily_distribution": {
   "value": {
-   "2027-02-07": 24559,
-   "2027-02-14": 26289,
-   "2027-02-21": 41208,
-   "2027-02-28": 49032,
-   "2027-03-07": 21528
+   "2027-02-07": 25293,
+   "2027-02-14": 27074,
+   "2027-02-21": 42438,
+   "2027-02-28": 43433,
+   "2027-03-07": 16112
   },
   "is_estimate": false,
   "method": "destination pattern x origin school-holiday push",
@@ -46,12 +46,12 @@
  "booking_lead_time": {
   "value": {
    "share_by_days_ahead": {
-    "0d": 0.116,
-    "8d": 0.152,
+    "0d": 0.112,
+    "8d": 0.15,
     "31d": 0.148,
     "61d": 0.109,
-    "90d": 0.322,
-    "180d": 0.153
+    "90d": 0.327,
+    "180d": 0.155
    },
    "median_days_ahead": 75,
    "book_by_for_half_of_first_arrivals": "2026-11-18"

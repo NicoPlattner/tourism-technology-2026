@@ -90,6 +90,12 @@ def test_actions(client):
     be = get(client, "/actions", market="62", kind="win demand", limit=5)
     assert be and all(x["market"] == "Belgium" for x in be)
     assert get(client, "/actions", market="belgium", limit=5) == get(client, "/actions", market="62", limit=5)
+    win = get(client, "/actions", kind="win demand", limit=500)
+    assert all(x["reason_type"] in ("holiday-driven", "share-driven") for x in win)
+    assert all(x["holiday_part_nights"] <= x["expected_nights"] for x in win)
+    assert all(x["base_part_nights"] <= .15 * x["expected_nights"] + 1 for x in win)
+    top = [x["reason_type"] for x in win[:5]]
+    assert top.count("holiday-driven") >= 3, "holiday-driven actions should lead the list"
     feb = get(client, "/actions", start="2027-02-01", end="2027-02-28", limit=500)
     assert all(x["to"] >= "2027-02-01" and x["from"] <= "2027-02-28" for x in feb)
 
