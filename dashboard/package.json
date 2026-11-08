@@ -11,7 +11,7 @@
     "data:open": "node scripts/fetch-open-data.mjs",
     "data:sample": "node scripts/make-sample-data.mjs",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test tests/campaign-data.test.ts tests/caption-*.test.ts",
+    "test:unit": "tsx --test tests/campaign-data.test.ts tests/campaign-management.test.ts tests/caption-*.test.ts",
     "test": "playwright test",
     "dev:web": "vite",
     "dev:api": "node --env-file-if-exists=.env --use-env-proxy --import tsx --watch server/index.ts",

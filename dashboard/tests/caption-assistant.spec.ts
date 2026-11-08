@@ -30,7 +30,7 @@ test("all markets and periods are ready without AI calls", async ({page}) => {
   }
   expect(calls).toBe(0);
 });
-test("explicit regeneration preserves caption while pending, prevents duplicate requests, copies and invalidates approval", async ({page,context}) => {
+test("explicit regeneration preserves caption while pending, prevents duplicate requests, copies and transfers the regenerated creative", async ({page,context}) => {
   await context.grantPermissions(["clipboard-read","clipboard-write"]);
   let release!:()=>void;
   const gate=new Promise<void>(resolve=>release=resolve);
@@ -43,10 +43,6 @@ test("explicit regeneration preserves caption while pending, prevents duplicate 
   });
   await page.goto("./");
   const previous=await page.locator(".cp-caption-text").innerText();
-  await page.getByRole("button",{name:"Review & Schedule"}).click();
-  await page.getByRole("button",{name:"Approve mock campaign",exact:true}).click();
-  await page.keyboard.press("Escape");
-  await expect(page.locator(".cp-plan-action")).toContainText("Approved locally");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.getByRole("button",{name:"Regenerating caption"})).toBeDisabled();
   await expect(page.locator(".cp-caption-text")).toHaveText(previous);
@@ -55,9 +51,13 @@ test("explicit regeneration preserves caption while pending, prevents duplicate 
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Eine neue Alpenidee."));
   expect(calls).toBe(1);
   await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
-  await expect(page.locator(".cp-plan-action")).not.toContainText("Approved locally");
   await page.getByRole("button",{name:"Copy caption"}).click();
   expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(captionText("Eine neue Alpenidee.")+"\n\n#Ischgl #Alpen");
+  const image = await page.locator(".cp-social-image").getAttribute("src");
+  await page.getByRole("button",{name:"Review & Schedule"}).click();
+  await expect(page.locator(".am-campaign.is-open .am-creative img")).toHaveAttribute("src",image!);
+  await expect(page.locator(".am-campaign.is-open .am-creative .am-caption")).toHaveText(captionText("Eine neue Alpenidee."));
+  expect(calls).toBe(1);
 });
 test("late response stays with its country and switching back restores it without requests",async({page})=>{
   let release!:()=>void; const gate=new Promise<void>(resolve=>release=resolve); let calls=0;
