@@ -44,7 +44,7 @@ export default function CaptionAssistant({
         <button
           className="link"
           onClick={assistant.regenerate}
-          disabled={assistant.pending}
+          disabled={assistant.pending || assistant.unavailable}
           title="Select a library image and generate its caption with AI"
           aria-label={assistant.pending ? "Regenerating caption" : assistant.error ? "Retry" : "Regenerate"}
         >

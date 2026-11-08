@@ -23,8 +23,9 @@ export function useCaptionAssistant(
   const pending = useRef(new Set<string>());
   const cached = campaign ? client.getCached(requestMetadata!, campaign.id) : undefined;
   const visible = states[key] || { result: cached, pending: false, error: "" };
+  const unavailable = (!!campaign?.dataStatus && campaign.dataStatus !== "ready") || campaign?.windowRecommendation?.status === "loading" || campaign?.windowRecommendation?.timingAvailable === false;
   const regenerate = useCallback(() => {
-    if (!campaign || !requestMetadata || pending.current.has(key)) return;
+    if (unavailable || !campaign || !requestMetadata || pending.current.has(key)) return;
     pending.current.add(key);
     const previous = client.getCached(requestMetadata!, campaign.id);
     const update = (state: State) => setStates(old => ({ ...old, [key]: state }));
@@ -34,8 +35,8 @@ export function useCaptionAssistant(
       .catch(error => update({ result: previous, pending: false,
         error: error instanceof Error ? error.message : "Regeneration failed. Please retry." }))
       .finally(() => pending.current.delete(key));
-  }, [key, campaign, client]);
-  return { ...visible, regenerate,
+  }, [key, campaign, client, unavailable]);
+  return { ...visible, regenerate, unavailable,
     source: visible.result ? "live_ai" as const : campaign?.captionContent.source || "demo_fallback" as const,
   };
 }

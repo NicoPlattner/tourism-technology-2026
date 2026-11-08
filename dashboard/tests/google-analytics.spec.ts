@@ -140,11 +140,12 @@ test("a server without permanent storage says the connection is temporary", asyn
   await expect(page.getByText(/no permanent storage yet/)).toBeVisible();
 });
 
-test("the old #data address opens the Integrations tab", async ({ page }) => {
+test("Data now opens the combined analytics page and Integrations remains separate", async ({page}) => {
   await mockServer(page);
   await page.goto("./#data");
-  await expect(page.getByRole("link", { name: "Integrations", exact: true })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("heading", { name: "Google Analytics", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Data",exact:true})).toBeVisible();
+  await page.getByRole("link",{name:"Integrations",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"Google Analytics",exact:true})).toBeVisible();
 });
 
 test("without a server-side client secret the button is disabled and says why", async ({ page }) => {

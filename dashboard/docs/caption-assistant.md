@@ -38,7 +38,7 @@ CAPTION_MODEL=gpt-4.1-mini
 CAPTION_BASE_URL=https://api.openai.com/v1
 ```
 
-`CAPTION_API_KEY` can be used instead of `OPENAI_API_KEY`. For an explicitly configured compatible endpoint, set `CAPTION_PROVIDER=openai-compatible` and `OPENAI_BASE_URL` (or the overriding `CAPTION_BASE_URL`) to its HTTPS API base (without `/chat/completions`). Choose a compatible model and `CAPTION_JSON_MODE=json_schema` or `json_object`. The endpoint must support the Chat Completions request and `max_completion_tokens` used by this adapter. There is one request per generation, no automatic retry and no external research.
+`CAPTION_API_KEY` can be used instead of `OPENAI_API_KEY`. For an explicitly configured compatible endpoint, set `CAPTION_PROVIDER=openai-compatible` and `OPENAI_BASE_URL` (or the overriding `CAPTION_BASE_URL`) to its HTTPS API base (without `/chat/completions`). Choose a compatible model and `CAPTION_JSON_MODE=json_schema` or `json_object`. The endpoint must support the Chat Completions request and `max_completion_tokens` used by this adapter. A valid response uses one request. A complete but invalid OpenAI-compatible response gets at most one correction request with explicit length feedback, within the original timeout. Authentication, rate-limit and refusal errors are not retried. There is no external research.
 
 ## Local setup
 

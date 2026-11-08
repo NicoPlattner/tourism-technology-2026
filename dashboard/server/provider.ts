@@ -5,7 +5,7 @@ import {
   type AiCaption,
   type CaptionMetadata,
 } from "../src/campaigns/captions/contracts";
-import { buildMessages, captionJsonSchema } from "./prompt";
+import { buildMessages, captionJsonSchema, captionRepairMessage } from "./prompt";
 export interface CaptionProvider {
   generate(metadata: CaptionMetadata): Promise<AiCaption>;
 }
@@ -141,81 +141,88 @@ export class OpenAICompatibleCaptionProvider implements CaptionProvider {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
     try {
-      const response = await this.request(
-        `${this.config.baseUrl}/chat/completions`,
-        {
-          method: "POST",
-          redirect: "error",
-          headers: {
-            Authorization: `Bearer ${this.config.apiKey}`,
-            "Content-Type": "application/json",
+      let messages: {role: "system" | "user" | "assistant"; content: string}[] = buildMessages(metadata);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const response = await this.request(
+          `${this.config.baseUrl}/chat/completions`,
+          {
+            method: "POST",
+            redirect: "error",
+            headers: {
+              Authorization: `Bearer ${this.config.apiKey}`,
+              "Content-Type": "application/json",
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              model: this.config.model,
+              messages,
+              max_completion_tokens: metadata.tourismContext ? Math.max(this.config.maxOutputTokens, 650) : this.config.maxOutputTokens,
+              response_format:
+                this.config.jsonMode === "json_schema"
+                  ? {
+                      type: "json_schema",
+                      json_schema: {
+                        name: "social_caption",
+                        strict: true,
+                        schema: captionJsonSchema(metadata),
+                      },
+                    }
+                  : { type: "json_object" },
+            }),
           },
-          signal: controller.signal,
-          body: JSON.stringify({
-            model: this.config.model,
-            messages: buildMessages(metadata),
-            max_completion_tokens: this.config.maxOutputTokens,
-            response_format:
-              this.config.jsonMode === "json_schema"
-                ? {
-                    type: "json_schema",
-                    json_schema: {
-                      name: "social_caption",
-                      strict: true,
-                      schema: captionJsonSchema(metadata),
-                    },
-                  }
-                : { type: "json_object" },
-          }),
-        },
-      );
-      if (!response.ok) {
-        if (response.status === 429)
+        );
+        if (!response.ok) {
+          if (response.status === 429)
+            throw new CaptionError(
+              "The AI provider is busy or has reached its limit. Please retry shortly.",
+              "PROVIDER_RATE_LIMIT",
+              429,
+            );
+          if (response.status === 401 || response.status === 403)
+            throw new CaptionError(
+              "The AI provider credentials need attention. The demo caption is still available.",
+              "PROVIDER_AUTH",
+              503,
+            );
           throw new CaptionError(
-            "The AI provider is busy or has reached its limit. Please retry shortly.",
-            "PROVIDER_RATE_LIMIT",
-            429,
+            "The AI provider could not generate a caption. Please retry.",
+            "PROVIDER_ERROR",
+            502,
           );
-        if (response.status === 401 || response.status === 403)
+        }
+        const data = (await response.json()) as {
+          choices?: {
+            finish_reason?: string;
+            message?: { content?: string | null; refusal?: string };
+          }[];
+        };
+        const choice = data.choices?.[0];
+        if (
+          choice?.finish_reason !== "stop" ||
+          choice.message?.refusal ||
+          typeof choice.message?.content !== "string"
+        )
           throw new CaptionError(
-            "The AI provider credentials need attention. The demo caption is still available.",
-            "PROVIDER_AUTH",
-            503,
+            "The AI could not return a complete caption. Please retry.",
+            "INVALID_AI_RESPONSE",
+            502,
           );
-        throw new CaptionError(
-          "The AI provider could not generate a caption. Please retry.",
-          "PROVIDER_ERROR",
-          502,
-        );
+        let result: unknown;
+        try {
+          try { result = JSON.parse(choice.message.content); }
+          catch { throw new CaptionError("The AI returned an invalid caption format. Please retry.", "INVALID_AI_RESPONSE", 502); }
+          return { ...validateProviderResult(result, metadata), source: "ai" };
+        } catch (error) {
+          if (attempt === 0 && error instanceof CaptionError && error.code === "INVALID_AI_RESPONSE") {
+            messages = [...buildMessages(metadata),
+              {role: "assistant", content: choice.message.content.slice(0, 8000)},
+              {role: "user", content: captionRepairMessage(metadata, result)}];
+            continue;
+          }
+          throw error;
+        }
       }
-      const data = (await response.json()) as {
-        choices?: {
-          finish_reason?: string;
-          message?: { content?: string | null; refusal?: string };
-        }[];
-      };
-      const choice = data.choices?.[0];
-      if (
-        choice?.finish_reason !== "stop" ||
-        choice.message?.refusal ||
-        typeof choice.message?.content !== "string"
-      )
-        throw new CaptionError(
-          "The AI could not return a complete caption. Please retry.",
-          "INVALID_AI_RESPONSE",
-          502,
-        );
-      let result: unknown;
-      try {
-        result = JSON.parse(choice.message.content);
-      } catch {
-        throw new CaptionError(
-          "The AI returned an invalid caption format. Please retry.",
-          "INVALID_AI_RESPONSE",
-          502,
-        );
-      }
-      return { ...validateProviderResult(result, metadata), source: "ai" };
+      throw new CaptionError("The AI response could not be corrected. Please retry.", "INVALID_AI_RESPONSE", 502);
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(
@@ -259,7 +266,7 @@ export class N8nCaptionProvider implements CaptionProvider {
           model: this.config.model,
           messages: buildMessages(metadata),
           responseSchema: captionJsonSchema(metadata),
-          maxOutputTokens: this.config.maxOutputTokens,
+          maxOutputTokens: metadata.tourismContext ? Math.max(this.config.maxOutputTokens, 650) : this.config.maxOutputTokens,
         }),
       });
       if (!response.ok)
