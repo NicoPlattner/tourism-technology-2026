@@ -4,7 +4,8 @@ Serves the precomputed tables in results/gui/ (built by models/export_gui.py); n
 training at runtime. All routes live under BASE_PATH (default "/c04-api"), so the service works behind an
 ingress prefix such as https://<host>/<branch>/c04-api.
 
-GET {BASE}/health                         {"ok": true}
+GET {BASE}/                               landing page; {BASE}/docs and {BASE}/openapi.json
+GET {BASE}/health                         {"ok": true, "version": snapshot}
 GET {BASE}/meta                           destinations, origins, months, grades, sources
 GET {BASE}/query?destination=Tirol&origin=80&start=2027-01-15&end=2027-03-15
                                           guests, nights, range, length of stay, weekly nights, lead time,
@@ -19,20 +20,24 @@ GET {BASE}/tables/{name}                  one table as CSV (e.g. monthly_origin.
 """
 from __future__ import annotations
 
+import html
 import json
 import os
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
 from fastapi import APIRouter, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
-DATA = Path(os.environ["DATA_DIR"]) if os.environ.get("DATA_DIR") else \
+BAKED_DATA = Path(os.environ["DATA_DIR"]) if os.environ.get("DATA_DIR") else \
     Path(__file__).resolve().parent.parent.parent / "results" / "gui"  # repo layout when run locally
-C04 = Path(os.environ["C04_DIR"]) if os.environ.get("C04_DIR") else DATA.parent / "c04"  # challenge answers
+BAKED_C04 = Path(os.environ["C04_DIR"]) if os.environ.get("C04_DIR") else BAKED_DATA.parent / "c04"
+SNAPSHOTS = Path(os.environ["SNAPSHOT_DIR"]) if os.environ.get("SNAPSHOT_DIR") else None  # live refresh volume
 BASE = "/" + os.environ.get("BASE_PATH", "/c04-api").strip("/")
 CLASSES = ["0d", "8d", "31d", "61d", "90d", "180d"]
 MID = np.array([3, 19, 45, 75, 135, 240])
@@ -45,28 +50,100 @@ SOURCES = ["Statistik Austria (CC BY 4.0)", "Landesstatistik Tirol", "Österreic
            "GeoSphere Austria SNOWGRID (CC BY 4.0)", "Open-Meteo (CC BY 4.0)"]
 
 
-@lru_cache(maxsize=None)
+def source() -> tuple[Path, Path, str]:
+    """(gui dir, c04 dir, version): the live snapshot SNAPSHOT_DIR/current when present, else the baked tables."""
+    if SNAPSHOTS:
+        try:
+            cur = (SNAPSHOTS / "current").resolve(strict=True)
+            if (cur / "gui").is_dir() and (cur / "c04").is_dir():
+                return cur / "gui", cur / "c04", cur.name
+        except OSError:
+            pass
+    return BAKED_DATA, BAKED_C04, "baked"
+
+
+def today() -> pd.Timestamp:
+    """Reference date for launch dates and bookability (TODAY overrides, e.g. in tests)."""
+    t = os.environ.get("TODAY")
+    return pd.Timestamp(t) if t else pd.Timestamp(datetime.now(ZoneInfo("Europe/Vienna")).date())
+
+
+@lru_cache(maxsize=256)
+def _csv(path: str, version: str) -> pd.DataFrame:
+    return pd.read_csv(path, dtype={"origin_code": str, "destination_code": str, "origin_country": str,
+                                    "market_code": str}, keep_default_na=True)
+
+
+@lru_cache(maxsize=64)
+def _json(path: str, version: str) -> dict:
+    return json.loads(Path(path).read_text())
+
+
 def table(name: str) -> pd.DataFrame:
-    p = DATA / f"{name}.csv"
+    d, _, v = source()
+    p = d / f"{name}.csv"
     if not p.exists():
         raise HTTPException(404, f"table {name} not found")
-    return pd.read_csv(p, dtype={"origin_code": str, "destination_code": str, "origin_country": str}, keep_default_na=True)
+    return _csv(str(p), v)
 
 
-@lru_cache(maxsize=None)
 def c04(name: str) -> pd.DataFrame:
-    p = C04 / f"{name}.csv"
+    _, c, v = source()
+    p = c / f"{name}.csv"
     if not p.exists():
         raise HTTPException(404, f"table c04/{name} not found")
-    return pd.read_csv(p, dtype={"market_code": str})
+    return _csv(str(p), v)
 
 
-@lru_cache(maxsize=None)
 def c04_json(name: str) -> dict:
-    p = C04 / f"{name}.json"
+    _, c, v = source()
+    p = c / f"{name}.json"
     if not p.exists():
         raise HTTPException(404, f"c04/{name} not found")
-    return json.loads(p.read_text())
+    return _json(str(p), v)
+
+
+def still_bookable(days_ahead: int, month: int) -> float:
+    """Share of a month's arrivals usually booked less than days_ahead days before arrival (TVB lead times)."""
+    lt = table("lead_time_by_arrival_month").set_index("arrival_month")
+    r = lt.loc[month, [f"share_{c}" for c in CLASSES]].astype(float).values
+    lower = np.array([0, 8, 31, 61, 90, 180])
+    upper = np.r_[lower[1:], 10_000]
+    return float((r * np.clip((days_ahead - lower) / (upper - lower), 0, 1)).sum())
+
+
+def live_actions(a: pd.DataFrame) -> pd.DataFrame:
+    """Re-date the ranked actions to today: drop finished windows, move launch dates, rescale the score
+    by the share of bookings still to come, re-rank."""
+    t = today()
+    a = a[pd.to_datetime(a["to"]) >= t].copy()
+    if a.empty:
+        return a
+    start = pd.to_datetime(a["from"])
+    win = a.kind == "win demand"
+    med = pd.to_numeric(a.get("median_lead_days"), errors="coerce").fillna(0)
+    ideal = start - pd.to_timedelta(med, unit="D")
+    a["launch_overdue"] = win & (ideal < t)
+    a["launch_by"] = np.where(win, np.maximum(ideal, t).dt.strftime("%Y-%m-%d"), t.strftime("%Y-%m-%d"))
+    new = [still_bookable(max((s - t).days, 0), s.month) for s in start]
+    old = pd.to_numeric(a.get("share_still_bookable"), errors="coerce")
+    factor = np.where(win & (old > 0), np.array(new) / old.where(old > 0, 1), 1.0)
+    a["share_still_bookable"] = np.where(win, np.round(new, 3), old)
+    a["score"] = np.round(a.score * factor).astype(int)
+    a = a.sort_values("score", ascending=False)
+    a["rank"] = range(1, len(a) + 1)
+    a["as_of"] = t.strftime("%Y-%m-%d")
+    return a
+
+
+def live_warnings(w: pd.DataFrame) -> pd.DataFrame:
+    t = today()
+    w = w.copy()
+    f, e = pd.to_datetime(w["from"]), pd.to_datetime(w["to"])
+    w["days_until_start"] = (f - t).dt.days
+    w["status"] = np.where(e < t, "past", np.where(f <= t, "ongoing", "upcoming"))
+    w["as_of"] = t.strftime("%Y-%m-%d")
+    return w
 
 
 def records(df: pd.DataFrame) -> list[dict]:
@@ -205,30 +282,80 @@ def answer(destination: str, origin: str, start: str, end: str) -> dict:
     }
 
 
+TAG_A = "Austria & Tirol demand by origin"
+TAG_B = "Paznaun-Ischgl outlook & actions"
+TAG_T = "Tables"
+DESCRIPTION = """Live, read-only data API. Every value carries `is_estimate`, `method` and `grade` (A observed /
+well-tested ... D rough). Refreshed automatically: weather, snow and the official forecast several times a day;
+holidays, Statistik Austria and TVB data when a new release appears (models are re-run only then).
+`/meta` shows when each source was last updated.
+
+Sources: Statistik Austria (CC BY 4.0), Österreich Werbung / Nächtigungsprognose (CC BY 4.0), OpenHolidays (ODbL),
+GeoSphere Austria (CC BY 4.0), Open-Meteo (CC BY 4.0), Landesstatistik Tirol, TVB Paznaun-Ischgl with feratel and
+Salzburger Sportwelt (TTF 2026 data licences: derived data, attribution, non-commercial)."""
+
+LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Alpine demand API</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:860px;margin:0 auto;padding:16px;color:#1d2433;background:#fff}
+h1{font-size:1.5em}code{background:#f1f3f7;padding:1px 4px;border-radius:3px}table{border-collapse:collapse;width:100%}
+td{border-bottom:1px solid #e4e7ee;padding:4px 6px;vertical-align:top}a{color:#0b5cad}
+@media (prefers-color-scheme:dark){body{background:#12161f;color:#e6e9f0}code{background:#232a38}td{border-color:#2c3446}a{color:#7db7ff}}</style>
+</head><body>
+<h1>Alpine demand by origin: live data API</h1>
+<p>Who comes to Tirol and Paznaun-Ischgl, when, why, and what to do about it. Read-only, no key needed.
+<a href="{BASE}/docs">Interactive docs</a> · <a href="{BASE}/openapi.json">OpenAPI</a> · <a href="{BASE}/meta">/meta</a></p>
+<h2>1. Austria &amp; Tirol demand by origin</h2>
+<p>Any Austrian state or Paznaun-Ischgl × origin market × time frame: guests, nights (with 80 % range), length of stay,
+weekly distribution, booking lead time, age profile, and the reasons: holidays and long weekends at the origin;
+season, events, snow and weather at the destination.<br>
+<code>{BASE}/query?destination=Tirol&amp;origin=80&amp;start=2027-01-15&amp;end=2027-03-15</code></p>
+<h2>2. Paznaun-Ischgl outlook &amp; actions</h2>
+<p>Daily winter forecast with capacity, why actual stays differed from the TVB forecast, warning windows, and ranked
+marketing actions (market, window, launch date, addressable nights, confidence).<br>
+<code>{BASE}/actions?limit=10</code> · <code>{BASE}/forecast</code> · <code>{BASE}/deviations</code> ·
+<code>{BASE}/warnings</code></p>
+<h2>Freshness</h2><p>Snapshot <code>{SNAPSHOT}</code>, built {GENERATED}.</p><table>{ROWS}</table>
+<h2>Licences and attribution</h2>
+<p>Open part: Statistik Austria, Österreich Werbung / Nächtigungsprognose, GeoSphere Austria, Open-Meteo (CC BY 4.0),
+OpenHolidays (ODbL 1.0). Paznaun outlook: derived from data of TVB Paznaun-Ischgl with feratel (TTF 2026 data licence:
+attribution, non-commercial use). Age profiles: derived from guest cards of Salzburger Sportwelt (TTF licence).
+Values are model estimates: check <code>grade</code> and <code>is_estimate</code>.</p>
+</body></html>"""
+
 router = APIRouter(prefix=BASE if BASE != "/" else "")
 
 
 @router.get("/health")
 def health():
-    return {"ok": True, "service": "c04-data-api", "tables": len(list(DATA.glob("*.csv"))),
-            "c04_tables": len(list(C04.glob("*.csv")))}
+    d, c, v = source()
+    return {"ok": True, "service": "c04-data-api", "version": v, "tables": len(list(d.glob("*.csv"))),
+            "c04_tables": len(list(c.glob("*.csv")))}
 
 
-@router.get("/meta")
+@router.get("/meta", tags=[TAG_A])
 def meta():
     m = table("monthly_origin")
     return {"destinations": table("destinations").to_dict("records"),
             "origins": table("origins").fillna("").to_dict("records"),
-            "months": [m.month.min(), m.month.max()], "grades": GRADE_TEXT, "sources": SOURCES}
+            "months": [m.month.min(), m.month.max()], "grades": GRADE_TEXT, "sources": SOURCES,
+            "freshness": freshness()}
 
 
-@router.get("/query")
+def freshness() -> dict:
+    """When each source was last updated, from the snapshot's manifest (written by the pipeline)."""
+    _, c, v = source()
+    p = c / "manifest.json"
+    man = _json(str(p), v) if p.exists() else {}
+    return {"snapshot": v, "today": today().strftime("%Y-%m-%d"), **man}
+
+
+@router.get("/query", tags=[TAG_A])
 def query(destination: str = Query("Tirol"), origin: str = Query(..., description="origin code, see /meta"),
           start: str = Query(..., description="YYYY-MM-DD"), end: str = Query(..., description="YYYY-MM-DD")):
     return answer(destination, origin, start, end)
 
 
-@router.get("/forecast")
+@router.get("/forecast", tags=[TAG_B])
 def forecast(start: str | None = Query(None, description="YYYY-MM-DD"),
              end: str | None = Query(None, description="YYYY-MM-DD")):
     d = c04("forecast_daily")
@@ -239,7 +366,7 @@ def forecast(start: str | None = Query(None, description="YYYY-MM-DD"),
     return {"meta": c04_json("forecast_meta"), "monthly": records(c04("forecast_monthly")), "daily": records(d)}
 
 
-@router.get("/deviations")
+@router.get("/deviations", tags=[TAG_B])
 def deviations(season: str | None = Query(None, description='"winter 25/26" or "summer 26"')):
     m, dr, sm = c04("deviations_monthly"), c04("deviations_drivers"), c04_json("deviations_summary")
     if season:
@@ -250,21 +377,21 @@ def deviations(season: str | None = Query(None, description='"winter 25/26" or "
     return {"summary": sm, "monthly": records(m), "drivers": records(dr)}
 
 
-@router.get("/warnings")
+@router.get("/warnings", tags=[TAG_B])
 def warnings(kind: str | None = Query(None, description="spare_capacity, tight, tvb_forecast_outside_our_80pct_band")):
-    w = c04("warnings")
+    w = live_warnings(c04("warnings"))
     if kind:
         w = w[w.kind == kind]
     return records(w)
 
 
-@router.get("/actions")
+@router.get("/actions", tags=[TAG_B])
 def actions(kind: str | None = Query(None, description='"win demand" or "protect yield"'),
             market: str | None = Query(None, description="market name or code, e.g. Belgium or 62"),
             start: str | None = Query(None, description="windows ending on or after YYYY-MM-DD"),
             end: str | None = Query(None, description="windows starting on or before YYYY-MM-DD"),
             limit: int = Query(20, ge=1, le=500)):
-    a = c04("actions")
+    a = live_actions(c04("actions"))
     if kind:
         a = a[a.kind == kind]
     if market:
@@ -276,20 +403,48 @@ def actions(kind: str | None = Query(None, description='"win demand" or "protect
     return records(a.head(limit))
 
 
-@router.get("/tables")
+@router.get("/tables", tags=[TAG_T])
 def tables():
-    return sorted(p.name for p in DATA.glob("*.csv")) + sorted(f"c04/{p.name}" for p in C04.glob("*.csv"))
+    d, c, _ = source()
+    return sorted(p.name for p in d.glob("*.csv")) + sorted(f"c04/{p.name}" for p in c.glob("*.csv"))
 
 
-@router.get("/tables/{name:path}")
+@router.get("/tables/{name:path}", tags=[TAG_T])
 def get_table(name: str):
-    root, file = (C04, name[4:]) if name.startswith("c04/") else (DATA, name)
+    d, c, _ = source()
+    root, file = (c, name[4:]) if name.startswith("c04/") else (d, name)
     p = root / file
     if p.suffix != ".csv" or "/" in file or not p.exists():
         raise HTTPException(404, "unknown table")
     return FileResponse(p, media_type="text/csv", filename=p.name)
 
 
-app = FastAPI(title="Challenge 04 data API", version="1.1")
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
+def landing():
+    f = freshness()
+    rows = "".join(f"<tr><td>{html.escape(k)}</td><td>{html.escape(str(v))}</td></tr>"
+                   for k, v in (f.get("sources") or {}).items())
+    page = LANDING.replace("{BASE}", BASE).replace("{SNAPSHOT}", html.escape(str(f["snapshot"]))) \
+        .replace("{GENERATED}", html.escape(str(f.get("generated_at", "–")))).replace("{ROWS}", rows or
+                                                                                    "<tr><td colspan=2>–</td></tr>")
+    return HTMLResponse(page)
+
+
+TAG_INFO = [
+    {"name": TAG_A, "description": "Guests, nights, length of stay, daily distribution, booking lead time, age "
+     "profile and the reasons (holidays at the origin; season, events, snow, weather at the destination) for any "
+     "Austrian state or Paznaun-Ischgl x origin market x time frame. Open sources; licence ODbL 1.0 (holiday data) "
+     "/ CC BY 4.0."},
+    {"name": TAG_B, "description": "Paznaun-Ischgl winter outlook: daily forecast with 80 % band and capacity, why "
+     "actual stays differed from the TVB forecast, warning windows and ranked marketing actions with launch "
+     "dates. Derived from TVB Paznaun-Ischgl data (TTF 2026 data licence: attribution, non-commercial)."},
+    {"name": TAG_T, "description": "All tables as CSV."},
+]
+app = FastAPI(title="Alpine demand by origin: live data API (TTF 2026, challenge 04)", version="1.2",
+              description=DESCRIPTION, openapi_tags=TAG_INFO, openapi_url=f"{BASE.rstrip('/')}/openapi.json",
+              docs_url=f"{BASE.rstrip('/')}/docs", redoc_url=None,
+              license_info={"name": "ODbL 1.0 / CC BY 4.0 (open part); TVB Paznaun-Ischgl TTF 2026 data licence "
+                                    "(Paznaun outlook)", "url": "https://opendatacommons.org/licenses/odbl/1-0/"},
+              contact={"name": "Team c04 data models, TTF 2026"})
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
 app.include_router(router)

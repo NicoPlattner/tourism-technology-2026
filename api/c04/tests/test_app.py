@@ -14,7 +14,9 @@ B = "/t/c04-api"
 
 @pytest.fixture(scope="module")
 def client():
-    os.environ.update(DATA_DIR=str(ROOT / "results" / "gui"), C04_DIR=str(ROOT / "results" / "c04"), BASE_PATH=B)
+    os.environ.update(DATA_DIR=str(ROOT / "results" / "gui"), C04_DIR=str(ROOT / "results" / "c04"), BASE_PATH=B,
+                      TODAY="2026-11-08")
+    os.environ.pop("SNAPSHOT_DIR", None)
     sys.path.insert(0, str(ROOT / "api" / "c04"))
     app = importlib.import_module("app")
     return TestClient(app.app)
@@ -112,3 +114,41 @@ def test_tables(client):
 def test_json_is_strict(client):
     for path in ("/forecast", "/deviations", "/warnings", "/actions"):
         json.loads(client.get(B + path).text, parse_constant=lambda c: pytest.fail(f"{path}: {c} in JSON"))
+
+
+def test_docs_and_landing(client):
+    spec = get(client, "/openapi.json")
+    assert B + "/actions" in spec["paths"] and B + "/query" in spec["paths"]
+    assert client.get(B + "/docs").status_code == 200
+    page = get(client, "/")
+    assert "Alpine demand by origin" in page and B + "/docs" in page
+
+
+def test_freshness(client):
+    f = get(client, "/meta")["freshness"]
+    assert f["snapshot"] == "baked" and f["today"] == "2026-11-08"
+    assert f["generated_at"] and "Statistik Austria, last observed month" in f["sources"]
+
+
+def test_actions_follow_today(client, monkeypatch):
+    monkeypatch.setenv("TODAY", "2027-03-20")
+    a = get(client, "/actions", limit=500)
+    assert a and all(x["to"] >= "2027-03-20" and x["launch_by"] >= "2027-03-20" for x in a)
+    assert [x["rank"] for x in a] == list(range(1, len(a) + 1))
+    assert all(x["as_of"] == "2027-03-20" for x in a)
+    w = get(client, "/warnings")
+    assert {x["status"] for x in w} <= {"past", "ongoing", "upcoming"} and any(x["status"] == "past" for x in w)
+
+
+def test_snapshot_switch(client, monkeypatch, tmp_path):
+    import shutil
+    import app
+    snap = tmp_path / "snapshots" / "20270101T0000Z"
+    shutil.copytree(ROOT / "results" / "gui", snap / "gui")
+    shutil.copytree(ROOT / "results" / "c04", snap / "c04")
+    (tmp_path / "snapshots" / "current").symlink_to(snap.name)
+    monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "snapshots")
+    assert get(client, "/health")["version"] == "20270101T0000Z"
+    assert get(client, "/meta")["freshness"]["snapshot"] == "20270101T0000Z"
+    monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "missing")
+    assert get(client, "/health")["version"] == "baked"
