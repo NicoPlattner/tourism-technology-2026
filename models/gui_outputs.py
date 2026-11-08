@@ -98,6 +98,7 @@ def paznaun_view():
     paz = o.groupby("season")[cols].sum(min_count=1)
     paz.columns = [DE_NAMES.get(c.replace("Übernachtungen ", ""), c) for c in paz.columns]
     t = pd.read_parquet(ROOT / "data" / "processed" / "origin_panel.parquet")
+    t = t[t.dest == "W96-7"].copy()
     t["c"] = t.origin.map(lambda x: ORIGIN[x][0])
     kv = pd.read_csv(ROOT / "data" / "processed" / "tirol_paznaun_keyfig.csv")
     rows = {}
@@ -113,6 +114,7 @@ def paznaun_view():
         rest = (pd.to_numeric(paz_total[ncol], errors="coerce").sum() - paz.loc[lab].sum()) / (tir.sum() - tir.reindex(share.index).sum())
         rows[kind] = (share, float(rest), lab)
     m1 = pd.read_parquet(GUI / "m1_origin_month.parquet")
+    m1 = m1[m1.dest == "W96-7"].copy()
     kind = np.where(m1.month.dt.month.isin([11, 12, 1, 2, 3, 4]), "winter", "summer")
     f = [rows[k][0].get(ORIGIN[o_][0], rows[k][1]) for k, o_ in zip(kind, m1.origin)]
     out = m1.copy()

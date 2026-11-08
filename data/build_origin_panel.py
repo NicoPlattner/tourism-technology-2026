@@ -51,10 +51,14 @@ ORIGIN = {
     "31": ("SE", None), "19": ("IL", None), "38": ("HU", None), "63": ("LU", None), "29": ("RO", None),
     "10": ("SK", None), "18": ("IE", None), "33": ("ES", None), "67": ("CN", None), "60": ("AU", None),
     "13": ("FI", None), "17": ("IN", None), "92": ("UA", None), "26": ("NO", None), "52": ("SI", None),
-    "23": ("CA", None), "12": ("FI", None), "15": ("GR", None), "21": ("JP", None), "34": ("TR", None),
-    "37": ("ZA", None), "40": ("BR", None), "41": ("KR", None), "50": ("HR", None), "54": ("RS", None),
-    "55": ("BG", None), "58": ("LT", None), "59": ("EE", None), "57": ("LV", None), "61": ("NZ", None),
-    "28": ("PT", None), "64": ("MT", None), "65": ("CY", None), "66": ("IS", None),
+    "23": ("CA", None), "04": ("AR", None), "07": ("BR", None), "08": ("BG", None), "12": ("DE", None),
+    "15": ("GR", None), "21": ("JP", None), "24": ("MX", None), "28": ("PT", None), "30": ("RU", None),
+    "91": ("RU", None), "34": ("ZA", None), "36": ("TR", None), "49": ("IS", None), "51": ("HR", None),
+    "61": ("NZ", None), "64": ("KR", None), "65": ("TW", None), "86": ("EE", None), "88": ("LV", None),
+    "89": ("LT", None), "90": ("MT", None), "93": ("CY", None),
+    # groups without one calendar (checked against the official code list OGD_touextsai_Tour_HKL_1_C-C93-2)
+    "56": (None, None), "59": (None, None), "57": (None, None), "58": (None, None), "37": (None, None),
+    "40": (None, None), "87": (None, None), "22": (None, None),
 }
 POP = {"CH": {"ZH": 1.58, "BE": 1.05, "LU": .42, "UR": .04, "SZ": .17, "OW": .04, "NW": .04, "GL": .04, "ZG": .13,
               "FR": .33, "SO": .28, "BS": .2, "BL": .29, "SH": .08, "AR": .06, "AI": .02, "SG": .52, "GR": .2,
@@ -87,8 +91,10 @@ def school_daily(country: str, subs: list | None, days: pd.DatetimeIndex) -> pd.
     recs = json.loads(p.read_text())
     if not recs:
         return out
+    if country is None:
+        return out
     if country == "DE":
-        w = {f"DE-{k}": DE_POP[k] for k in subs}
+        w = {f"DE-{k}": DE_POP[k] for k in (subs or DE_POP)}
     elif country == "AT":
         w = {f"AT-{k}": 1.0 for k in subs}
     elif country in POP:
@@ -116,8 +122,10 @@ def school_daily(country: str, subs: list | None, days: pd.DatetimeIndex) -> pd.
 def public_daily(country: str, subs: list | None, days: pd.DatetimeIndex) -> pd.DataFrame:
     """Population-weighted public holiday, long-weekend and bridge-day shares per day (any year)."""
     years = range(days.min().year, days.max().year + 1)
+    if country is None:
+        return pd.DataFrame(np.nan, index=days, columns=["pub", "longwe", "bridge"])
     if country == "DE":
-        regs = {s: (DE_POP[s], s) for s in subs}
+        regs = {s: (DE_POP[s], s) for s in (subs or DE_POP)}
     elif country == "AT":
         regs = {s: (1.0, AT_HOL[s]) for s in subs}
     else:

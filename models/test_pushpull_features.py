@@ -44,11 +44,16 @@ for lab, (o, a, b) in WINDOWS.items():
     py = sc(rb.py_holiday(h, idx).fillna(0))
     y = real[idx]
     pk = peak_mask(idx, f.loc[idx])
+    preds = {}
     for name, Xv in variants.items():
         g = sc(pd.Series(gbm(Xv.loc[tr_all], h[tr_all], SW[tr_all]).predict(Xv.loc[idx]), index=idx))
+        preds[name] = g
         ens = (g + py) / 2
         rows.append({"window": lab, "features": name, "lgbm": wmape(y, g), "ensemble": wmape(y, ens),
                      "ensemble peak days": wmape(y[pk], ens[pk]) if pk.any() else np.nan})
+    e3 = (py + preds["base"] + preds["+ market groups + pull"]) / 3
+    rows.append({"window": lab, "features": "3-member: py + lgbm + lgbm(push-pull)", "lgbm": np.nan,
+                 "ensemble": wmape(y, e3), "ensemble peak days": wmape(y[pk], e3[pk]) if pk.any() else np.nan})
 res = pd.DataFrame(rows)
 res.to_csv(ROOT / "models" / "results_pushpull_features.csv", index=False)
-print(res.pivot_table(index="features", columns="window", values=["lgbm", "ensemble"]).round(3).to_string())
+print(res[res.window != "summer 2026"].pivot_table(index="features", columns="window", values=["ensemble", "ensemble peak days"]).round(3).to_string())
