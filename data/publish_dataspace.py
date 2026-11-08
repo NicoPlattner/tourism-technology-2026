@@ -2,6 +2,7 @@
 
     python3 data/publish_dataspace.py draft      # team licences, product drafts, description, sources, contact, coverage
     python3 data/publish_dataspace.py publish    # connect the API source, set access, publish, list in the catalogue
+    python3 data/publish_dataspace.py update     # catalogue texts of published products (data/dataspace_texts.py)
     python3 data/publish_dataspace.py status     # products, checklists, API sources
 
 Needs a TTF Space key with products:write (injected by the proxy in the cloud session, or TTF_SPACE_API_KEY).
@@ -181,6 +182,29 @@ def publish(s: Space):
         print(p["title"], "catalogue:", s.call("list_in_catalogue", productId=pid, idempotencyKey=key("list", p["slug"])))
 
 
+def update(s: Space):
+    """Catalogue texts (dataspace_texts.py) for the published products: about, provenance, schema, coverage."""
+    import dataspace_texts as T
+    opts = s.call("get_product_options")
+    srcs = {x["title"]: x["product"] for x in opts["sources"]}
+    plan = [(PRODUCTS[0], "demand", T.DESC_DEMAND, T.SCHEMA_DEMAND), (PRODUCTS[1], "outlook", T.DESC_OUTLOOK, T.SCHEMA_OUTLOOK)]
+    for p, k, desc, schema in plan:
+        prod = find_product(s, p["title"], p["slug"])
+        pid = prod["productId"]
+        sources = [{"url": srcs[t], "title": f"{t} (TTF Space, TVB / Sportwelt licence)"} for t in T.SOURCES[k]["ttf"] if t in srcs]
+        sources += [{"url": T.OPEN[o][0], "title": T.OPEN[o][1]} for o in T.SOURCES[k]["open"]]
+        cov = dict(places=p["places"], start=p["start"], end=p["end"], **T.COVERAGE[k])
+        for section, args in (("about", dict(title=p["title"], description=desc)),
+                              ("provenance", dict(sources=sources, outputKind="result")),
+                              ("schema", dict(schema=schema)),
+                              ("coverage", cov)):
+            body = json.dumps(args, sort_keys=True, ensure_ascii=False)
+            s.call("update_product", productId=pid, section=section, idempotencyKey=key("upd", section, p["slug"], body), **args)
+            print(p["title"], section, "ok")
+        q = s.call("check_product_quality", productId=pid)
+        print("  quality", q.get("score"), "/", q.get("total"), "missing:", q.get("missing"))
+
+
 def status(s: Space):
     for p in s.call("list_products").get("items", []):
         print(p["productId"], p["state"], p.get("contentPath"), p.get("accessOption"), p.get("checklist"), p["title"])
@@ -189,4 +213,4 @@ def status(s: Space):
 
 
 if __name__ == "__main__":
-    {"draft": draft, "publish": publish, "status": status}[sys.argv[1] if len(sys.argv) > 1 else "status"](Space())
+    {"draft": draft, "publish": publish, "update": update, "status": status}[sys.argv[1] if len(sys.argv) > 1 else "status"](Space())
