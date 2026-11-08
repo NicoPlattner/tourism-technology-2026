@@ -10,10 +10,10 @@ export interface AssetCandidate {
 }
 interface CatalogAsset extends AssetCandidate { source: "ai_generated"; activityFamily: string; }
 export const ASSET_CATALOG = catalog as CatalogAsset[];
-// Alpine winter/ski campaigns run through March; April/May are spring.
+// Calendar-season defaults follow the selected arrival date, not the promotion dates.
 export function seasonFromTravelDate(start: string): CampaignSeason {
   const month = Number(start.slice(5,7));
-  return month <= 3 || month === 12 ? "winter" : month <= 5 ? "spring" : month <= 8 ? "summer" : "autumn";
+  return month <= 2 || month === 12 ? "winter" : month <= 5 ? "spring" : month <= 8 ? "summer" : "autumn";
 }
 export function creativeCandidates(ageMin: number, season: CampaignSeason): AssetCandidate[] {
   const primary = ASSET_CATALOG.find(asset => asset.season === season && asset.ageGroup.startsWith(`${ageMin}–`));

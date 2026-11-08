@@ -190,3 +190,12 @@ test("calendar-based publishing dates resolve Vienna daylight saving for each sl
  const c=provider.getImmediateRecommendation("DE","custom",undefined,{start:"2027-05-26",end:"2027-06-02"});
  assert.deepEqual(c.publishingDates,["2027-03-27T18:00:00+01:00","2027-03-30T18:00:00+02:00","2027-04-02T18:00:00+02:00"]);
 });
+test("selected March–April travel dates switch imagery and AI candidates to spring despite winter promotion dates",async()=>{
+ const {creativeRequest}=await import("../src/campaigns/captions/creativeRequest.ts");
+ const {normalizeMetadata}=await import("../src/campaigns/captions/contracts.ts");
+ const c=provider.getImmediateRecommendation("DE","custom",{ageMin:18,ageMax:24},{start:"2027-03-18",end:"2027-04-20"});
+ assert.equal(c.campaign.start,"2027-01-17");assert.equal(c.asset.id,"spring-18-24");
+ assert.equal(c.captionMetadata.season,"spring");assert.ok(!c.caption.includes("Winter"));
+ const m=normalizeMetadata(creativeRequest(c));assert.equal(m.season,"spring");assert.equal(m.assetId,"spring-18-24");
+ assert.ok(m.candidateAssets!.every(asset=>asset.season==="spring"));
+});
