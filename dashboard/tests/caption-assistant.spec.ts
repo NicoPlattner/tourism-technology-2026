@@ -125,7 +125,6 @@ test("age choices update targeting immediately, use generic preview and reach re
   await expect(page.locator(".cp-summary")).toContainText("45–60 years");
   await expect(page.locator(".cp-reasoning")).toContainText("45–60");
   await expect(page.locator(".cp-caption-source")).toHaveText("Demo preview");
-  await expect(page.getByText("Demo voice for ages 45–60 · Facebook. Regenerate for AI personalization.")).toBeVisible();
   expect(payloads).toHaveLength(0);
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 45–60.",180));
