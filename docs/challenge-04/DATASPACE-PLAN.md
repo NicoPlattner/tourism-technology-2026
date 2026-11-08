@@ -1,4 +1,4 @@
-# Plan: live data product on the TTF Data Space
+# Live data product on the TTF Data Space: plan and state
 
 Goal: offer our data as a **live API product** on TTF Space (side prize "Best
 Data Product"), refreshed by our own server instead of a one-off upload.
@@ -83,3 +83,38 @@ fallback when the volume is empty.
 2. **Stable URL:** the product endpoint should not change. Option: keep `/c04-data-models/c04-api`, or a dedicated path (a root deploy only on explicit request).
 3. **One or two products:** recommended two: (a) Austria and Tirol demand by origin (open sources, Open, ODbL/CC BY), (b) Paznaun answers with TVB-derived data (Members, TVB attribution, non-commercial).
 4. **Registration:** a team member with a TTF Space login fills in the form; I prepare all texts and links.
+
+## State (8 Nov, 09:40 CET)
+
+- P1 done: API at `https://hackathon.daria-and-nico.com/demand-api/c04-api/` (release branch `demand-api`,
+  deployed from `main`), with `/docs`, `/openapi.json`, landing page, `/meta` freshness, actions and warnings
+  re-dated to today on every request. Form texts: `DATASPACE-PRODUCTS.md`.
+- P2 + P3 built together: `models/refresh.py` (fast / full / auto), image `pipeline/c04/Dockerfile`
+  (`ghcr.io/<owner>/c04-pipeline`), Helm `templates/c04-pipeline.yaml` (volume `c04-data`, bootstrap Job per
+  deploy, CronJobs fast 05:23/11:23/17:23/23:23 and full 03:41 Europe/Vienna), API reads
+  `/work/snapshots/current` read-only. The deploy workflow stores `TTF_SPACE_API_KEY` as Kubernetes secret
+  `<release>-ttf`, mounted only into the pipeline.
+
+### Change detection
+
+| Step | Runs when |
+|---|---|
+| fetch snow, weather, official forecast | every run |
+| fetch holidays, Statistik Austria, Landesstatistik Tirol, TVB, guest cards | full runs |
+| build_features, forecast_winter, export_gui (reasons), export_challenge | every run (daily inputs) |
+| M1 (origin x month) | origin panel changed (new Statistik Austria month or holidays) |
+| M3 (daily shares) | Tirol daily pattern, holiday history or M1 changed |
+| market split, M4 (lead time) | TVB data changed |
+| M5 (age), GUI table | their inputs changed |
+
+A run publishes a new snapshot only after validation: required tables present and non-empty, no columns
+lost against the previous snapshot, no empty cells in `monthly_origin`, the API test suite passing on the
+new tables. Otherwise the last good snapshot stays.
+
+### Follow-ups (after the hackathon)
+
+- Fixed date windows in fetch scripts end 2027-08 (`fetch_drivers.py`, `build_features.py`) and 2027-12
+  (`build_origin_panel.py`, `fetch_holidays_history.py`); `build_tirol_daily.py` uses months up to
+  2026-08. Make them relative to today before summer 2027.
+- The challenge outputs cover winter 26/27; extend the horizon to the next season.
+- API tests use fixed expectations (e.g. Bavarian holidays in Jan–Mar 2027): make them date-relative.

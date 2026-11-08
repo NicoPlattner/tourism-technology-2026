@@ -14,8 +14,9 @@ B = "/t/c04-api"
 
 @pytest.fixture(scope="module")
 def client():
-    os.environ.update(DATA_DIR=str(ROOT / "results" / "gui"), C04_DIR=str(ROOT / "results" / "c04"), BASE_PATH=B,
-                      TODAY="2026-11-08")
+    os.environ.setdefault("DATA_DIR", str(ROOT / "results" / "gui"))  # the pipeline points these at new tables
+    os.environ.setdefault("C04_DIR", str(ROOT / "results" / "c04"))
+    os.environ.update(BASE_PATH=B, TODAY="2026-11-08")
     os.environ.pop("SNAPSHOT_DIR", None)
     sys.path.insert(0, str(ROOT / "api" / "c04"))
     app = importlib.import_module("app")
@@ -144,8 +145,8 @@ def test_snapshot_switch(client, monkeypatch, tmp_path):
     import shutil
     import app
     snap = tmp_path / "snapshots" / "20270101T0000Z"
-    shutil.copytree(ROOT / "results" / "gui", snap / "gui")
-    shutil.copytree(ROOT / "results" / "c04", snap / "c04")
+    shutil.copytree(os.environ["DATA_DIR"], snap / "gui")
+    shutil.copytree(os.environ["C04_DIR"], snap / "c04")
     (tmp_path / "snapshots" / "current").symlink_to(snap.name)
     monkeypatch.setattr(app, "SNAPSHOTS", tmp_path / "snapshots")
     assert get(client, "/health")["version"] == "20270101T0000Z"
