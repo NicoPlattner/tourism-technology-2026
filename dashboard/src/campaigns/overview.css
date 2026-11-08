@@ -1100,3 +1100,5 @@
 .cp-age-options button:hover, .cp-age-options button:focus-visible { background: var(--bg); }
 .cp-age-options button[aria-selected="true"] { background: #bb1c3f0d; color: var(--red); }
 @media (max-width: 600px) { .cp-age-selector { width: 100%; } }
+
+.cp-social-image { object-fit: contain; background: #eef1f2; }

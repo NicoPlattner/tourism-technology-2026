@@ -23,18 +23,18 @@ export function demoCaption(language: string, ageMin: number) {
   const copy = language === "nl" ? [
     "POV: je hoofd zit al in de Alpen. Tijd voor een bergidee? 🏔️",
     "Nog één tabblad open, maar in gedachten al in de Alpen. Bewaar dit bergidee voor je volgende trip met je favoriete reisgenoot. 🏔️",
-    "Een reis begint soms met een klein idee. Laat deze speelse illustratie je inspireren om de Alpen op je eigen tempo te ontdekken en een moment voor jezelf te plannen.",
-    "Even afstand nemen van de dagelijkse drukte begint met ruimte voor een nieuw reisidee. Deze speelse illustratie nodigt uit om over de Alpen te dromen: het landschap, de kleine momenten en het plezier van samen op pad gaan. Ontdek welk bergverhaal bij jouw volgende reis past. 🏔️",
+    "Een reis begint soms met een klein idee. Laat dit speelse beeld je inspireren om de Alpen op je eigen tempo te ontdekken en een moment voor jezelf te plannen.",
+    "Even afstand nemen van de dagelijkse drukte begint met ruimte voor een nieuw reisidee. Dit speelse beeld nodigt uit om over de Alpen te dromen: het landschap, de kleine momenten en het plezier van samen op pad gaan. Ontdek welk bergverhaal bij jouw volgende reis past. 🏔️",
   ] : language === "fr" ? [
     "POV : ton esprit est déjà dans les Alpes. On rêve au prochain départ ? 🏔️",
     "Encore un onglet ouvert, mais l’esprit déjà dans les Alpes. Garde cette idée pour une prochaine escapade avec ta personne préférée. 🏔️",
-    "Un voyage commence parfois par une simple idée. Cette illustration pleine d’humour invite à imaginer les Alpes à votre rythme, entre découverte et moments à partager.",
-    "Prendre un peu de recul sur le quotidien commence parfois par une nouvelle idée de voyage. Cette illustration malicieuse invite à rêver aux Alpes, à leurs paysages et au plaisir des moments partagés. Laissez-vous inspirer et imaginez l’escapade qui vous ressemble. 🏔️",
+    "Un voyage commence parfois par une simple idée. Cette image pleine d’humour invite à imaginer les Alpes à votre rythme, entre découverte et moments à partager.",
+    "Prendre un peu de recul sur le quotidien commence parfois par une nouvelle idée de voyage. Cette image malicieuse invite à rêver aux Alpes, à leurs paysages et au plaisir des moments partagés. Laissez-vous inspirer et imaginez l’escapade qui vous ressemble. 🏔️",
   ] : [
     "POV: Kopf noch im Alltag, Gedanken schon in den Alpen. Wer kommt mit? 🏔️",
     "Noch ein Tab offen, aber gedanklich schon in den Alpen. Speichere dir diese Bergidee für den nächsten Trip mit deinem Lieblingsmenschen. 🏔️",
-    "Eine Reise beginnt manchmal mit einer kleinen Idee. Diese augenzwinkernde Illustration lädt dazu ein, die Alpen im eigenen Tempo zu entdecken und gemeinsame Erlebnisse zu planen.",
-    "Manchmal beginnt die Vorfreude auf eine Reise mit einem kleinen Schmunzeln. Diese Illustration lädt dazu ein, den Alltag gedanklich hinter sich zu lassen und von den Alpen zu träumen: von Landschaften, neuen Eindrücken und gemeinsamen Momenten. Entdecken Sie, welche Berggeschichte zu Ihrer nächsten Auszeit passt. 🏔️",
+    "Eine Reise beginnt manchmal mit einer kleinen Idee. Dieses augenzwinkernde Bild lädt dazu ein, die Alpen im eigenen Tempo zu entdecken und gemeinsame Erlebnisse zu planen.",
+    "Manchmal beginnt die Vorfreude auf eine Reise mit einem kleinen Schmunzeln. Dieses Bild lädt dazu ein, den Alltag gedanklich hinter sich zu lassen und von den Alpen zu träumen: von Landschaften, neuen Eindrücken und gemeinsamen Momenten. Entdecken Sie, welche Berggeschichte zu Ihrer nächsten Auszeit passt. 🏔️",
   ];
   const index = [18,25,35,45].indexOf(ageMin);
   return copy[Math.max(0,index)];

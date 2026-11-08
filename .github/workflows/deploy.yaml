@@ -157,6 +157,12 @@ jobs:
           done
           kubectl get deployments -n tourism-technology-2026
 
+      - name: Upload static campaign images
+        run: |
+          python dashboard/scripts/deploy-static-assets.py \
+            --release "$RELEASE_NAME" --namespace tourism-technology-2026 \
+            --site helm/tourism-technology/site --values "$RUNNER_TEMP/static-assets-values.json"
+
       - name: Configure caption API credentials
         env:
           CAPTION_API_KEY: ${{ secrets.CAPTION_API_KEY }}
@@ -194,6 +200,7 @@ jobs:
           CAPTION_SECRET_KEY: ${{ vars.CAPTION_SECRET_KEY || 'api-key' }}
         run: |
           helm upgrade --install "$RELEASE_NAME" helm/tourism-technology \
+            --values "$RUNNER_TEMP/static-assets-values.json" \
             --namespace tourism-technology-2026 --set-string "ingress.path=$DEPLOY_PATH" \
             --set-string "caption.provider=$CAPTION_PROVIDER" --set-string "caption.model=$CAPTION_MODEL" \
             --set-string "caption.baseUrl=$CAPTION_BASE_URL" --set-string "caption.jsonMode=$CAPTION_JSON_MODE" \

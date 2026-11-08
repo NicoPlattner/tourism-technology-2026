@@ -1,0 +1,112 @@
+import type { TravelPeriod } from "./types";
+export type CampaignSeason = "winter" | "spring" | "summer" | "autumn";
+export interface SeasonalCampaignAsset {
+  id: string; path: string; ageGroup: string; season: CampaignSeason;
+  activity: string; creativeTheme: string; visualDescription: string; source: "ai_generated";
+}
+export const SEASONAL_ASSETS: SeasonalCampaignAsset[] = [
+  {
+    id: "winter-18-24", path: new URL("./assets/seasonal/winter-18-24.webp", import.meta.url).href,
+    ageGroup: "18–24", season: "winter",
+    activity: "skiing", creativeTheme: "Happy cat skiing meme",
+    visualDescription: "AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.", source: "ai_generated",
+  },
+  {
+    id: "winter-25-34", path: new URL("./assets/seasonal/winter-25-34.webp", import.meta.url).href,
+    ageGroup: "25–34", season: "winter",
+    activity: "beginner skiing", creativeTheme: "Lighthearted skiing mishap",
+    visualDescription: "AI-generated candid-style image of a helmeted adult sitting and laughing in soft snow with skis crossed while a friend stands nearby on a gentle snowy slope.", source: "ai_generated",
+  },
+  {
+    id: "winter-35-44", path: new URL("./assets/seasonal/winter-35-44.webp", import.meta.url).href,
+    ageGroup: "35–44", season: "winter",
+    activity: "mountain-hut social break after skiing", creativeTheme: "Friends sharing an apr\u00e8s-ski moment",
+    visualDescription: "AI-generated photographic concept of three adult friends in winter jackets laughing together with mugs on a wooden hut terrace, with snowy mountains behind them.", source: "ai_generated",
+  },
+  {
+    id: "winter-45-60", path: new URL("./assets/seasonal/winter-45-60.webp", import.meta.url).href,
+    ageGroup: "45–60", season: "winter",
+    activity: "winter mountain sightseeing", creativeTheme: "Quiet snowy Alpine panorama",
+    visualDescription: "AI-generated landscape of snow-covered Alpine peaks and a snowy valley, with dark evergreen trees in the foreground under pale winter daylight.", source: "ai_generated",
+  },
+  {
+    id: "spring-18-24", path: new URL("./assets/seasonal/spring-18-24.webp", import.meta.url).href,
+    ageGroup: "18–24", season: "spring",
+    activity: "spring hiking", creativeTheme: "Cute cat among alpine flowers",
+    visualDescription: "AI-generated meme composite of the cream-and-white wide-angle cute cat with huge glossy eyes and a large pink nose, wearing a small backpack on a flower-lined green Alpine trail.", source: "ai_generated",
+  },
+  {
+    id: "spring-25-34", path: new URL("./assets/seasonal/spring-25-34.webp", import.meta.url).href,
+    ageGroup: "25–34", season: "spring",
+    activity: "spring hiking", creativeTheme: "A comically high trail step",
+    visualDescription: "AI-generated candid-style image of a smiling adult hiker climbing a large stone step while a friend offers a hand on a green spring mountain trail.", source: "ai_generated",
+  },
+  {
+    id: "spring-35-44", path: new URL("./assets/seasonal/spring-35-44.webp", import.meta.url).href,
+    ageGroup: "35–44", season: "spring",
+    activity: "spring hiking and mountain views", creativeTheme: "A shared spring mountain moment",
+    visualDescription: "AI-generated photographic concept of two adult friends with backpacks standing together in a spring meadow, smiling toward a green valley and distant snow-tipped peaks.", source: "ai_generated",
+  },
+  {
+    id: "spring-45-60", path: new URL("./assets/seasonal/spring-45-60.webp", import.meta.url).href,
+    ageGroup: "45–60", season: "spring",
+    activity: "spring valley sightseeing", creativeTheme: "Blooming Alpine valley",
+    visualDescription: "AI-generated landscape of yellow and white wildflowers, a green Alpine meadow and a winding stream leading toward rugged peaks with lingering high-altitude snow.", source: "ai_generated",
+  },
+  {
+    id: "summer-18-24", path: new URL("./assets/seasonal/summer-18-24.webp", import.meta.url).href,
+    ageGroup: "18–24", season: "summer",
+    activity: "summer lake hiking", creativeTheme: "Round-faced cat on a summer adventure",
+    visualDescription: "AI-generated meme composite of the round white-and-gray cat with glossy wide eyes and a pink nose, its large head above a tiny hiking body, backpack and poles beside a turquoise Alpine lake.", source: "ai_generated",
+  },
+  {
+    id: "summer-25-34", path: new URL("./assets/seasonal/summer-25-34.webp", import.meta.url).href,
+    ageGroup: "25–34", season: "summer",
+    activity: "summer mountain biking", creativeTheme: "Harmless trailside cycling mishap",
+    visualDescription: "AI-generated candid-style image of one helmeted adult sitting and laughing in grass beside a bike lying on its side, while a friend stands with another bike on a green summer mountain trail.", source: "ai_generated",
+  },
+  {
+    id: "summer-35-44", path: new URL("./assets/seasonal/summer-35-44.webp", import.meta.url).href,
+    ageGroup: "35–44", season: "summer",
+    activity: "summer hiking and lakeside break", creativeTheme: "Friends by an Alpine lake",
+    visualDescription: "AI-generated photographic concept of three adult friends in summer hiking clothes sitting together on rocks beside a clear mountain lake, smiling in conversation with backpacks nearby.", source: "ai_generated",
+  },
+  {
+    id: "summer-45-60", path: new URL("./assets/seasonal/summer-45-60.webp", import.meta.url).href,
+    ageGroup: "45–60", season: "summer",
+    activity: "panoramic summer hiking", creativeTheme: "Green Alpine panoramic trail",
+    visualDescription: "AI-generated landscape of a footpath winding through green Alpine meadows toward layered mountain ridges and a deep valley under a blue summer sky.", source: "ai_generated",
+  },
+  {
+    id: "autumn-18-24", path: new URL("./assets/seasonal/autumn-18-24.webp", import.meta.url).href,
+    ageGroup: "18–24", season: "autumn",
+    activity: "autumn mountain hiking", creativeTheme: "Surprised cat in golden autumn mountains",
+    visualDescription: "AI-generated meme composite of the squat round white-and-gray surprised cat with wide uneven eyes and a tiny open mouth, wearing a scarf and backpack on a leaf-covered path among golden larches.", source: "ai_generated",
+  },
+  {
+    id: "autumn-25-34", path: new URL("./assets/seasonal/autumn-25-34.webp", import.meta.url).href,
+    ageGroup: "25–34", season: "autumn",
+    activity: "autumn hiking in light rain", creativeTheme: "An unruly autumn rain poncho",
+    visualDescription: "AI-generated candid-style image of two adult hikers laughing on a damp leaf-strewn trail, one holding a hood while the other’s bright yellow rain poncho flaps beside golden autumn trees.", source: "ai_generated",
+  },
+  {
+    id: "autumn-35-44", path: new URL("./assets/seasonal/autumn-35-44.webp", import.meta.url).href,
+    ageGroup: "35–44", season: "autumn",
+    activity: "autumn mountain-hut getaway", creativeTheme: "A cozy shared autumn escape",
+    visualDescription: "AI-generated photographic concept of three adult friends in knitwear and outdoor layers talking over mugs on a wooden hut terrace, with golden trees and mountain ridges behind them.", source: "ai_generated",
+  },
+  {
+    id: "autumn-45-60", path: new URL("./assets/seasonal/autumn-45-60.webp", import.meta.url).href,
+    ageGroup: "45–60", season: "autumn",
+    activity: "autumn landscape sightseeing", creativeTheme: "Golden Alpine landscape",
+    visualDescription: "AI-generated landscape of golden larch trees, a tawny meadow and a winding footpath overlooking layered rugged Alpine ridges under soft autumn light.", source: "ai_generated",
+  },
+ ];
+export function seasonForPeriod(period: TravelPeriod): CampaignSeason {
+  return period === "q2-2027" ? "spring" : period === "q3-2027" ? "summer" : period === "q4-2027" ? "autumn" : "winter";
+}
+export function seasonalAsset(ageMin: number, season: CampaignSeason): SeasonalCampaignAsset {
+  const asset = SEASONAL_ASSETS.find(asset => asset.season === season && asset.ageGroup.startsWith(`${ageMin}–`));
+  if (!asset) throw new Error("No campaign visual exists for this audience and season.");
+  return structuredClone(asset);
+}

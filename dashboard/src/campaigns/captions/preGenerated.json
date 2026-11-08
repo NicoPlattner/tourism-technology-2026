@@ -1,170 +1,290 @@
 {
-  "campaign-DE-q1-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
-    "caption": {
-      "text": "Der Katze sein Ski-Tag 🐱⛷️ Paznaun-Ischgl ruft!",
-      "hashtags": [
-        "#PaznaunIschgl",
-        "#SkiVibes",
-        "#WinterMeme"
-      ],
-      "language": "de",
-      "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:19.700Z"
-    }
-  },
   "campaign-NL-q1-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Netherlands\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
     "caption": {
-      "text": "Deze kat is meer ready voor de piste dan jij. 🏂❄️",
+      "text": "Happy cat op skis? Paznaun-Ischgl roept! 🎿😼",
       "hashtags": [
         "#PaznaunIschgl",
-        "#SkiVibes",
-        "#WinterMeme"
+        "#SkiVakantie",
+        "#HappyCat",
+        "#WinterFun"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:21.780Z"
+      "generatedAt": "2026-11-08T00:39:28.835Z"
     }
   },
   "campaign-BE-q1-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Absurdist Gen Z humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow\"}",
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Belgium\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
     "caption": {
-      "text": "Le nugget qui dévale mieux que toi en ski 🍗⛷️",
+      "text": "Le chat skie mieux que toi. Viens tester ! 🎿😼",
       "hashtags": [
         "#PaznaunIschgl",
         "#SkiVibes",
-        "#NuggetLife"
+        "#MemeSki"
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:23.098Z"
+      "generatedAt": "2026-11-08T00:41:17.105Z"
     }
   },
   "campaign-AT-q1-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Austria\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
     "caption": {
-      "text": "Murmeltier auf Skiern? Paznaun-Ischgl macht’s möglich. 🎿🐿️",
+      "text": "Happy Cat auf Skiern? Paznaun-Ischgl ruft! 🎿😼",
       "hashtags": [
         "#PaznaunIschgl",
-        "#WinterSpaß",
-        "#MurmeltierPower"
+        "#SkiSpaß",
+        "#HappyCat"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:24.476Z"
+      "generatedAt": "2026-11-08T00:39:32.846Z"
     }
   },
   "campaign-DE-q2-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original playful white cat with a backpack on an illustrated spring Alpine trail\"}",
+    "metadataKey": "{\"activity\":\"spring hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"spring-18-24\",\"country\":\"Germany\",\"creativeTheme\":\"Cute cat among alpine flowers\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the cream-and-white wide-angle cute cat with huge glossy eyes and a large pink nose, wearing a small backpack on a flower-lined green Alpine trail.\"}",
     "caption": {
-      "text": "Der Berg ruft – und die Katze hat schon gepackt. 🐱⛰️",
+      "text": "Wanderkatze mit Rucksack – wer kommt mit? 🐱🌸",
       "hashtags": [
         "#PaznaunIschgl",
-        "#AlpenAbenteuer",
-        "#Frühlingsgefühle"
+        "#Wandern",
+        "#Alpen",
+        "#Katzen"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:26.362Z"
+      "generatedAt": "2026-11-08T00:39:34.513Z"
     }
   },
   "campaign-NL-q2-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original unimpressed beige cat taking a spring Alpine picnic break beside a backpack\"}",
+    "metadataKey": "{\"activity\":\"spring hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"spring-18-24\",\"country\":\"Netherlands\",\"creativeTheme\":\"Cute cat among alpine flowers\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the cream-and-white wide-angle cute cat with huge glossy eyes and a large pink nose, wearing a small backpack on a flower-lined green Alpine trail.\"}",
     "caption": {
-      "text": "Alpenpicknick met een kat die er niks van snapt. 🏔️🐱",
+      "text": "Deze kat heeft meer backpacking skills dan jij. Kom kijken! 😼🌸",
       "hashtags": [
         "#PaznaunIschgl",
-        "#AlpenVibes",
-        "#SpringEscape"
+        "#Alpen",
+        "#Wandelen",
+        "#Katten"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:27.822Z"
+      "generatedAt": "2026-11-08T00:41:18.448Z"
     }
   },
   "campaign-BE-q2-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original golden cartoon nugget with sunglasses and a backpack on a green spring Alpine lookout\"}",
+    "metadataKey": "{\"activity\":\"spring hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"spring-18-24\",\"country\":\"Belgium\",\"creativeTheme\":\"Cute cat among alpine flowers\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the cream-and-white wide-angle cute cat with huge glossy eyes and a large pink nose, wearing a small backpack on a flower-lined green Alpine trail.\"}",
     "caption": {
-      "text": "Le nugget en or a posé ses valises en Autriche. Et toi ? 🏔️😎",
+      "text": "Rando alpine avec un chat trop mignon 🐱🌸",
       "hashtags": [
         "#PaznaunIschgl",
-        "#SpringEscape",
-        "#AlpineVibes"
+        "#RandoPrintemps",
+        "#ChatAventure"
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:29.360Z"
+      "generatedAt": "2026-11-08T00:40:42.608Z"
     }
   },
   "campaign-AT-q2-2027-18-24-v1": {
-    "metadataKey": "{\"activity\":\"Alpine mountain getaway\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Meme-inspired spring escape\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie hiking through a spring mountain meadow\"}",
+    "metadataKey": "{\"activity\":\"spring hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"spring-18-24\",\"country\":\"Austria\",\"creativeTheme\":\"Cute cat among alpine flowers\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"spring\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the cream-and-white wide-angle cute cat with huge glossy eyes and a large pink nose, wearing a small backpack on a flower-lined green Alpine trail.\"}",
     "caption": {
-      "text": "Murmeltier mit Style – dein Frühling kann kommen. 🧢🌸",
+      "text": "Wanderkatze mit Rucksack – wer braucht schon Menschen? 😼🌸",
       "hashtags": [
         "#PaznaunIschgl",
-        "#AlpenFrühling",
-        "#MurmeltierVibes"
+        "#Wanderlust",
+        "#Katzenpower"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:30.803Z"
+      "generatedAt": "2026-11-08T00:39:38.626Z"
     }
   },
-  "campaign-DE-winter-2026-27-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Germany\",\"creativeTheme\":\"Gen Z meme marketing\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape\"}",
+  "campaign-NL-q3-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"summer lake hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"summer-18-24\",\"country\":\"Netherlands\",\"creativeTheme\":\"Round-faced cat on a summer adventure\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"summer\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the round white-and-gray cat with glossy wide eyes and a pink nose, its large head above a tiny hiking body, backpack and poles beside a turquoise Alpine lake.\"}",
     "caption": {
-      "text": "Der Katze sein Ski-Tag 🐱⛷️ Paznaun-Ischgl ruft!",
+      "text": "Deze kat hikt harder dan jij. Kom kijken! 🐱⛰️",
       "hashtags": [
         "#PaznaunIschgl",
-        "#SkiVibes",
-        "#WinterMeme"
-      ],
-      "language": "de",
-      "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:19.700Z"
-    }
-  },
-  "campaign-NL-winter-2026-27-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Netherlands\",\"creativeTheme\":\"Nostalgic internet humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor\"}",
-    "caption": {
-      "text": "Deze kat is meer ready voor de piste dan jij. 🏂❄️",
-      "hashtags": [
-        "#PaznaunIschgl",
-        "#SkiVibes",
-        "#WinterMeme"
+        "#KattenAvontuur",
+        "#Alpen"
       ],
       "language": "nl",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:21.780Z"
+      "generatedAt": "2026-11-08T00:41:22.016Z"
     }
   },
-  "campaign-BE-winter-2026-27-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Belgium\",\"creativeTheme\":\"Absurdist Gen Z humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow\"}",
+  "campaign-BE-q3-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"summer lake hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"summer-18-24\",\"country\":\"Belgium\",\"creativeTheme\":\"Round-faced cat on a summer adventure\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"summer\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the round white-and-gray cat with glossy wide eyes and a pink nose, its large head above a tiny hiking body, backpack and poles beside a turquoise Alpine lake.\"}",
     "caption": {
-      "text": "Le nugget qui dévale mieux que toi en ski 🍗⛷️",
+      "text": "Randonnée alpine… ou chat en mode aventure ? 😼🏞️",
       "hashtags": [
         "#PaznaunIschgl",
-        "#SkiVibes",
-        "#NuggetLife"
+        "#RandoChat",
+        "#Alpes",
+        "#Aventure"
       ],
       "language": "fr",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:23.098Z"
+      "generatedAt": "2026-11-08T00:39:43.287Z"
     }
   },
-  "campaign-AT-winter-2026-27-18-24-v1": {
-    "metadataKey": "{\"activity\":\"skiing and winter sports\",\"ageMax\":24,\"ageMin\":18,\"country\":\"Austria\",\"creativeTheme\":\"Local winter humor\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope\"}",
+  "campaign-AT-q3-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"summer lake hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"summer-18-24\",\"country\":\"Austria\",\"creativeTheme\":\"Round-faced cat on a summer adventure\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"summer\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the round white-and-gray cat with glossy wide eyes and a pink nose, its large head above a tiny hiking body, backpack and poles beside a turquoise Alpine lake.\"}",
     "caption": {
-      "text": "Murmeltier auf Skiern? Paznaun-Ischgl macht’s möglich. 🎿🐿️",
+      "text": "Katz’ am See – Wanderlust mit Pfoten. 🐾🏞️",
       "hashtags": [
         "#PaznaunIschgl",
-        "#WinterSpaß",
-        "#MurmeltierPower"
+        "#Wanderlust",
+        "#KatzenAbenteuer"
       ],
       "language": "de",
       "source": "pre_generated",
-      "generatedAt": "2026-11-07T23:55:24.476Z"
+      "generatedAt": "2026-11-08T00:41:23.388Z"
+    }
+  },
+  "campaign-DE-q4-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"autumn mountain hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"autumn-18-24\",\"country\":\"Germany\",\"creativeTheme\":\"Surprised cat in golden autumn mountains\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"autumn\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the squat round white-and-gray surprised cat with wide uneven eyes and a tiny open mouth, wearing a scarf and backpack on a leaf-covered path among golden larches.\"}",
+    "caption": {
+      "text": "Der Kater ist bereit für die Lärchen. Und du? 🐱🍂",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#Herbstwandern",
+        "#Katzenmeme"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:41:25.415Z"
+    }
+  },
+  "campaign-NL-q4-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"autumn mountain hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"autumn-18-24\",\"country\":\"Netherlands\",\"creativeTheme\":\"Surprised cat in golden autumn mountains\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"autumn\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the squat round white-and-gray surprised cat with wide uneven eyes and a tiny open mouth, wearing a scarf and backpack on a leaf-covered path among golden larches.\"}",
+    "caption": {
+      "text": "Kijk, een kat op avontuur in Paznaun! 🐱🍂",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#HerfstAvontuur",
+        "#KattenOpReis"
+      ],
+      "language": "nl",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:39:47.841Z"
+    }
+  },
+  "campaign-BE-q4-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"autumn mountain hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"autumn-18-24\",\"country\":\"Belgium\",\"creativeTheme\":\"Surprised cat in golden autumn mountains\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"autumn\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the squat round white-and-gray surprised cat with wide uneven eyes and a tiny open mouth, wearing a scarf and backpack on a leaf-covered path among golden larches.\"}",
+    "caption": {
+      "text": "Le chat randonneur est choqué par l’automne. Viens voir !",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#RandoAutomne",
+        "#ChatSurpris"
+      ],
+      "language": "fr",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:41:26.760Z"
+    }
+  },
+  "campaign-AT-q4-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"autumn mountain hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"autumn-18-24\",\"country\":\"Austria\",\"creativeTheme\":\"Surprised cat in golden autumn mountains\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"autumn\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the squat round white-and-gray surprised cat with wide uneven eyes and a tiny open mouth, wearing a scarf and backpack on a leaf-covered path among golden larches.\"}",
+    "caption": {
+      "text": "Der Kater ist bereit für die Lärchen. Und du? 🐱🍂",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#Herbstwandern",
+        "#Katzenmeme"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:41:28.566Z"
+    }
+  },
+  "campaign-NL-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Netherlands\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"nl\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
+    "caption": {
+      "text": "Happy cat op skis? Paznaun-Ischgl roept! 🎿😼",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#SkiVakantie",
+        "#HappyCat",
+        "#WinterFun"
+      ],
+      "language": "nl",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:39:28.835Z"
+    }
+  },
+  "campaign-BE-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Belgium\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"fr\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
+    "caption": {
+      "text": "Le chat skie mieux que toi. Viens tester ! 🎿😼",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#SkiVibes",
+        "#MemeSki"
+      ],
+      "language": "fr",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:41:17.105Z"
+    }
+  },
+  "campaign-AT-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Austria\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
+    "caption": {
+      "text": "Happy Cat auf Skiern? Paznaun-Ischgl ruft! 🎿😼",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#SkiSpaß",
+        "#HappyCat"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:39:32.846Z"
+    }
+  },
+  "campaign-DE-q1-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Germany\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
+    "caption": {
+      "text": "Wenn die Katze Ski fährt, weißt du, der Winter wird legendär! 🐱❄️ Komm mit auf die Piste!",
+      "hashtags": [
+        "#Ischgl",
+        "#Paznaun",
+        "#SkiCat",
+        "#WinterVibes"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:43:16.258Z"
+    }
+  },
+  "campaign-DE-winter-2026-27-18-24-v1": {
+    "metadataKey": "{\"activity\":\"skiing\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"winter-18-24\",\"country\":\"Germany\",\"creativeTheme\":\"Happy cat skiing meme\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"winter\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the stretched gray-and-white happy cat with arms spread, red scarf and hat, standing on skis against a snowy Alpine slope.\"}",
+    "caption": {
+      "text": "Wenn die Katze Ski fährt, weißt du, der Winter wird legendär! 🐱❄️ Komm mit auf die Piste!",
+      "hashtags": [
+        "#Ischgl",
+        "#Paznaun",
+        "#SkiCat",
+        "#WinterVibes"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:43:16.258Z"
+    }
+  },
+  "campaign-DE-q3-2027-18-24-v1": {
+    "metadataKey": "{\"activity\":\"summer lake hiking\",\"ageMax\":24,\"ageMin\":18,\"assetId\":\"summer-18-24\",\"country\":\"Germany\",\"creativeTheme\":\"Round-faced cat on a summer adventure\",\"destination\":\"Paznaun-Ischgl\",\"language\":\"de\",\"objective\":\"inspire_travel\",\"platform\":\"TikTok\",\"season\":\"summer\",\"targetCaptionLength\":{\"min\":40,\"max\":100},\"tone\":\"Short, punchy, meme-friendly. Internet-native vocabulary, playful absurdist humor, short punchlines, a few natural emojis and a casual invitation. Avoid forced slang.\",\"visualDescription\":\"AI-generated meme composite of the round white-and-gray cat with glossy wide eyes and a pink nose, its large head above a tiny hiking body, backpack and poles beside a turquoise Alpine lake.\"}",
+    "caption": {
+      "text": "Wenn die Wanderlust miaut! 🐾 Komm mit an den See und verknot dir keine Pfoten. 🌊",
+      "hashtags": [
+        "#PaznaunIschgl",
+        "#SommerAbenteuer",
+        "#SeeSchnuppern",
+        "#Wanderkatze"
+      ],
+      "language": "de",
+      "source": "pre_generated",
+      "generatedAt": "2026-11-08T00:43:18.452Z"
     }
   }
 }

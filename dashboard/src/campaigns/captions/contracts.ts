@@ -9,6 +9,7 @@ export interface CaptionMetadata {
   destination: string;
   creativeTheme: string;
   objective: string;
+  assetId?: string;
   visualDescription?: string;
   platform?: SocialPlatform;
   targetCaptionLength?: CaptionLength;
@@ -51,6 +52,7 @@ const limits: Record<string, number> = {
   creativeTheme: 200,
   objective: 120,
   visualDescription: 600,
+  assetId: 120,
 };
 const object = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -59,14 +61,14 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "platform", "targetCaptionLength", "tone"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
   const result: Record<string, unknown> = {};
   for (const [key, max] of Object.entries(limits)) {
     const raw = value[key];
-    if (key === "visualDescription" && raw === undefined) continue;
+    if ((key === "visualDescription" || key === "assetId") && raw === undefined) continue;
     if (typeof raw !== "string") throw new CaptionError(`${key} must be text.`);
     const text = raw.normalize("NFKC").trim().replace(/\s+/g, " ");
     if (!text || text.length > max || /[\u0000-\u0008\u000e-\u001f]/.test(text))

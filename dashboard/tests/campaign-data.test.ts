@@ -25,12 +25,12 @@ test("Q1 campaigns use selected adult audiences, localized copy and distinct cre
     campaigns.map((c) => c.campaign.start.slice(0, 7)),
     ["2026-12", "2027-03", "2027-01", "2026-12"],
   );
-  assert.equal(new Set(campaigns.map((c) => c.asset.src)).size, 4);
+  assert.equal(new Set(campaigns.map((c) => c.asset.src)).size, 1);
   for (const c of campaigns) {
     assert.ok(Number(c.ageGroup.split("–")[0]) >= 18);
     assert.ok(c.caption.length > 20);
     assert.equal(c.fictional, true);
-    assert.equal(c.asset.source, "ORIGINAL_ILLUSTRATION");
+    assert.equal(c.asset.source, "AI_GENERATED");
   }
 });
 for (const period of TRAVEL_PERIODS)
@@ -55,7 +55,7 @@ for (const period of TRAVEL_PERIODS)
           c.travel.start >= "2027-04-01" && c.travel.end <= "2027-06-30",
         );
         assert.equal(c.variation, true);
-        assert.ok(c.asset.id.endsWith("spring"));
+        assert.ok(c.asset.id.startsWith("spring"));
         assert.ok(!c.travel.label.includes("February"));
       }
     }
@@ -93,11 +93,12 @@ test("unsupported requests reject without returning a mismatched campaign", asyn
   await assert.rejects(provider.getRecommendation("DE", "unknown" as never));
 });
 
-test("all 12 saved campaign captions have matching metadata, valid localized output and AI provenance", () => {
-  assert.equal(Object.keys(savedCaptions).length, 12);
+test("all saved campaign captions have matching metadata, valid localized output and AI provenance", () => {
+  assert.equal(Object.keys(savedCaptions).length, 20);
   for (const period of TRAVEL_PERIODS) for (const market of MARKETS) {
     const c = provider.getImmediateRecommendation(market.code, period.id);
     const saved = savedCaptions[c.id as keyof typeof savedCaptions];
+    assert.ok(saved);
     assert.equal(saved.metadataKey, metadataKey(c.captionMetadata));
     assert.equal(c.captionContent.source, "pre_generated");
     assert.ok(Number.isFinite(Date.parse(c.captionContent.generatedAt!)));
@@ -107,7 +108,7 @@ test("all 12 saved campaign captions have matching metadata, valid localized out
     assert.ok(!provider.getImmediateRecommendation(market.code, period.id).hashtags.includes("#LocalMutation"));
   }
 });
-test("user-selected audience is independent of market data and preserves image and booking dates", () => {
+test("user-selected audience is independent of market data and adapts images while preserving booking dates", () => {
   for (const market of MARKETS) for (const period of TRAVEL_PERIODS) {
     const initial = provider.getImmediateRecommendation(market.code, period.id);
     assert.equal(initial.ageGroup, "18–24");
@@ -116,8 +117,8 @@ test("user-selected audience is independent of market data and preserves image a
       assert.deepEqual(c.marketingPreferences.targetAudience, audience);
       assert.equal(c.captionMetadata.ageMin, audience.ageMin);
       assert.equal(c.captionMetadata.ageMax, audience.ageMax);
-      assert.equal(c.captionMetadata.visualDescription, initial.asset.alt);
-      assert.equal(c.asset.src, initial.asset.src);
+      assert.equal(c.captionMetadata.visualDescription, c.asset.alt);
+      assert.notEqual(c.asset.src, initial.asset.src);
       assert.deepEqual(c.travel, initial.travel);
       assert.equal(c.assumedLeadDays, initial.assumedLeadDays);
       assert.equal(c.captionContent.source, "demo_fallback");
@@ -142,5 +143,31 @@ test("all age/platform demo voices have the requested caption lengths and metada
       voices.add(c.caption);
     }
     assert.equal(voices.size,4);
+  }
+});
+test("all sixteen seasonal WebP assets exist, have distinct identities and feed the exact caption metadata", async () => {
+  const {SEASONAL_ASSETS, seasonForPeriod} = await import("../src/campaigns/seasonalAssets.ts");
+  const {TARGET_AGES} = await import("../src/campaigns/types.ts");
+  assert.equal(SEASONAL_ASSETS.length,16);
+  assert.equal(new Set(SEASONAL_ASSETS.map(a=>a.id)).size,16);
+  for(const asset of SEASONAL_ASSETS) {
+    const bytes=await readFile(new URL(asset.path));
+    assert.equal(bytes.subarray(0,4).toString(),"RIFF");
+    assert.equal(bytes.subarray(8,12).toString(),"WEBP");
+    assert.equal(asset.source,"ai_generated");
+    assert.ok(asset.visualDescription.length>60);
+  }
+  for(const period of TRAVEL_PERIODS) for(const age of TARGET_AGES) {
+    const c=provider.getImmediateRecommendation("DE",period.id,age);
+    const asset=SEASONAL_ASSETS.find(a=>a.id===c.asset.id)!;
+    assert.equal(asset.season,seasonForPeriod(period.id));
+    assert.equal(asset.ageGroup,c.ageGroup);
+    assert.equal(c.captionMetadata.assetId,asset.id);
+    assert.equal(c.captionMetadata.activity,asset.activity);
+    assert.equal(c.captionMetadata.creativeTheme,asset.creativeTheme);
+    assert.equal(c.captionMetadata.visualDescription,asset.visualDescription);
+    assert.equal(provider.getImmediateRecommendation("NL",period.id,age).asset.src,c.asset.src);
+    assert.equal(provider.getImmediateRecommendation("DE",period.id,age).asset.src,c.asset.src);
+    assert.notEqual(metadataKey(c.captionMetadata),metadataKey({...c.captionMetadata,assetId:"changed-visual"}));
   }
 });

@@ -1,3 +1,4 @@
+import { seasonalAsset, seasonForPeriod } from "./seasonalAssets";
 import { socialProfile, demoCaption } from "./socialProfile";
 import { DEFAULT_TARGET_AUDIENCE, TARGET_AGES, type TargetAudience } from "./types";
 import savedCaptions from "./captions/preGenerated.json";
@@ -12,42 +13,22 @@ import type {
   SourceMarket,
   TravelPeriod,
 } from "./types";
-const deWinter = new URL("./assets/de-winter.svg", import.meta.url).href;
-const nlWinter = new URL("./assets/nl-winter.svg", import.meta.url).href;
-const beWinter = new URL("./assets/be-winter.svg", import.meta.url).href;
-const atWinter = new URL("./assets/at-winter.svg", import.meta.url).href;
-const deSpring = new URL("./assets/de-spring.svg", import.meta.url).href;
-const nlSpring = new URL("./assets/nl-spring.svg", import.meta.url).href;
-const beSpring = new URL("./assets/be-spring.svg", import.meta.url).href;
-const atSpring = new URL("./assets/at-spring.svg", import.meta.url).href;
 interface MarketScenario {
   country: string;
-  title: string;
   lead: number;
   language: CampaignLanguage;
   languageLabel: string;
-  theme: string;
   travel: DateRange;
   winterTravel: DateRange;
   springTravel: DateRange;
-  caption: string;
-  springCaption: string;
-  hashtags: string[];
-  springHashtags: string[];
   holidayAssumption: string;
-  image: string;
-  springImage: string;
-  alt: string;
-  springAlt: string;
 }
 const SCENARIOS: Record<SourceMarket, MarketScenario> = {
   DE: {
     country: "Germany",
-    title: "Exams off. Alpine mode on.",
     lead: 60,
     language: "de",
     languageLabel: "German",
-    theme: "Gen Z meme marketing",
     travel: { start: "2027-02-15", end: "2027-02-21", label: "February 2027" },
     winterTravel: {
       start: "2027-02-15",
@@ -59,27 +40,14 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       end: "2027-04-18",
       label: "April 2027 · spring variation",
     },
-    caption:
-      "POV: Klausuren vorbei und direkt ab auf die Piste. ⛷️🐈❄️ Zeit für deinen Ischgl-Moment mit der Crew.",
-    springCaption:
-      "POV: Lernmodus aus, Alpenmodus an. 🐈🏔️ Frühlingsluft statt Bibliothek — wer kommt mit nach Ischgl?",
-    hashtags: ["#Ischgl", "#KlausurenVorbei", "#SkiMitDerCrew"],
-    springHashtags: ["#Ischgl", "#Alpenmodus", "#Frühlingsauszeit"],
     holidayAssumption:
       "Semester-break dates vary by university. A February opportunity is an illustrative planning assumption, not a verified holiday calendar.",
-    image: deWinter,
-    springImage: deSpring,
-    alt: "Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape",
-    springAlt:
-      "Original playful white cat with a backpack on an illustrated spring Alpine trail",
   },
   NL: {
     country: "Netherlands",
-    title: "Out of office. Into the Alps.",
     lead: 14,
     language: "nl",
     languageLabel: "Dutch",
-    theme: "Nostalgic internet humor",
     travel: {
       start: "2027-03-22",
       end: "2027-03-28",
@@ -95,27 +63,14 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       end: "2027-04-29",
       label: "Late April 2027 · spring variation",
     },
-    caption:
-      "Tijd om de bergen in te gaan! ⛷️❄️ Nog een meeting? Liever een berg. Verzamel je favoriete mensen voor een spontane trip naar Ischgl.",
-    springCaption:
-      "Nog een meeting? Liever een berg. 🐈🏔️ Tijd voor frisse Alpenlucht en een spontane lente-escape naar Ischgl met je favoriete mensen.",
-    hashtags: ["#Ischgl", "#EvenHelemaalWeg", "#Wintersport"],
-    springHashtags: ["#Ischgl", "#LenteInDeBergen", "#EvenHelemaalWeg"],
     holidayAssumption:
       "No Dutch holiday or event is treated as verified. The short booking window and audience preference are fictional historical-behavior assumptions.",
-    image: nlWinter,
-    springImage: nlSpring,
-    alt: "Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor",
-    springAlt:
-      "Original unimpressed beige cat taking a spring Alpine picnic break beside a backpack",
   },
   BE: {
     country: "Belgium",
-    title: "The mountains. But make it sigma.",
     lead: 35,
     language: "fr",
     languageLabel: "French",
-    theme: "Absurdist Gen Z humor",
     travel: { start: "2027-02-15", end: "2027-02-21", label: "February 2027" },
     winterTravel: {
       start: "2027-02-15",
@@ -127,27 +82,14 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       end: "2027-05-20",
       label: "May 2027 · spring variation",
     },
-    caption:
-      "Quand le ski devient un vrai moment sigma. 🏔️🍗❄️ La team, la neige et une escapade à Ischgl qui sort de l’ordinaire.",
-    springCaption:
-      "Mode pause alpine : activé. 🍗🏔️ La team, l’air frais et une escapade printanière à Ischgl qui sort de l’ordinaire.",
-    hashtags: ["#Ischgl", "#MomentSigma", "#EscapadeAuSki"],
-    springHashtags: ["#Ischgl", "#PauseAlpine", "#EscapadeDePrintemps"],
     holidayAssumption:
       "Belgian winter breaks differ by community. No exact break or event is verified; the February window is a fictional planning scenario. Dutch can be supplied as another language variant.",
-    image: beWinter,
-    springImage: beSpring,
-    alt: "Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow",
-    springAlt:
-      "Original golden cartoon nugget with sunglasses and a backpack on a green spring Alpine lookout",
   },
   AT: {
     country: "Austria",
-    title: "Less everyday. More mountain.",
     lead: 21,
     language: "de",
     languageLabel: "German",
-    theme: "Local winter humor",
     travel: { start: "2027-01-15", end: "2027-01-17", label: "January 2027" },
     winterTravel: {
       start: "2027-01-15",
@@ -159,19 +101,8 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       end: "2027-05-23",
       label: "May 2027 · spring variation",
     },
-    caption:
-      "Raus aus dem Alltag, rein in den Schnee. Dein nächster Wintertrip wartet! 🏔️ Ein Wochenende Alpenmodus in Ischgl — wer ist dabei?",
-    springCaption:
-      "Raus aus dem Alltag, rein in die Bergluft. 🏔️ Ein Frühlingswochenende Alpenmodus in Ischgl — wer ist dabei?",
-    hashtags: ["#Ischgl", "#KurzMalWeg", "#Alpenmodus"],
-    springHashtags: ["#Ischgl", "#Frühlingsauszeit", "#KurzMalWeg"],
     holidayAssumption:
       "The weekend timing is a demo assumption, not evidence of a confirmed public holiday, live event or offer.",
-    image: atWinter,
-    springImage: atSpring,
-    alt: "Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope",
-    springAlt:
-      "Original cheerful Alpine marmot in a red beanie hiking through a spring mountain meadow",
   },
 };
 export const shiftDate = (date: string, days: number) =>
@@ -206,14 +137,15 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
     targetAudience: TargetAudience = DEFAULT_TARGET_AUDIENCE,
   ): CampaignRecommendation {
     const scenario = SCENARIOS[market];
-    if (!scenario || !["q1-2027", "q2-2027", "winter-2026-27"].includes(period))
+    if (!scenario || !["q1-2027", "q2-2027", "q3-2027", "q4-2027", "winter-2026-27"].includes(period))
       throw new Error("Choose a supported source market and travel period.");
     if (!TARGET_AGES.some(age => age.ageMin === targetAudience.ageMin && age.ageMax === targetAudience.ageMax))
       throw new Error("Choose a supported adult target audience.");
     const ageGroup = `${targetAudience.ageMin}–${targetAudience.ageMax}`;
-    const spring = period === "q2-2027";
+    const season = seasonForPeriod(period);
+    const spring = season === "spring";
     const travel = {
-      ...(spring
+      ...(season === "summer" ? { start: "2027-07-12", end: "2027-07-18", label: "July 2027 · summer" } : season === "autumn" ? { start: "2027-10-11", end: "2027-10-17", label: "October 2027 · autumn" } : spring
         ? scenario.springTravel
         : period === "winter-2026-27"
           ? scenario.winterTravel
@@ -226,15 +158,12 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
     const publishingDates = [0, 3, 6].map(
       (days) => `${shiftDate(start, days)}T18:00:00${offset}`,
     );
+    const visual = seasonalAsset(targetAudience.ageMin, season);
     const asset: CampaignAsset = {
-      id: `${market.toLowerCase()}-${spring ? "spring" : "winter"}`,
-      src: spring ? scenario.springImage : scenario.image,
-      alt: spring ? scenario.springAlt : scenario.alt,
-      source: "ORIGINAL_ILLUSTRATION",
-      credit:
-        "Original artwork created for this prototype. No third-party meme photographs.",
-      description:
-        "Meme-inspired fictional illustration; not a photograph or a representation of verified resort conditions.",
+      id: visual.id, src: visual.path, alt: visual.visualDescription,
+      source: "AI_GENERATED",
+      credit: "AI-generated campaign concept; not a photograph of verified destination conditions, actual visitors or identifiable facilities.",
+      description: visual.visualDescription,
     };
     const profile = socialProfile(targetAudience.ageMin);
     const genericCaption = demoCaption(scenario.language, targetAudience.ageMin);
@@ -243,9 +172,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       market,
       country: scenario.country,
       period,
-      title: spring
-        ? `${scenario.country}: a spring Alpine escape`
-        : scenario.title,
+      title: `${scenario.country}: a ${season} Alpine escape`,
       ageGroup,
       marketingPreferences: { country: scenario.country, travelPeriod: period, targetAudience: {...targetAudience} },
       assumedLeadDays: scenario.lead,
@@ -254,14 +181,12 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       publishingDates,
       timezone: "Europe/Vienna",
       platform: profile.platform,
-      theme: spring
-        ? "Meme-inspired spring escape · mock variation"
-        : scenario.theme,
+      theme: visual.creativeTheme,
       language: scenario.language,
       languageLabel: scenario.languageLabel,
       caption: genericCaption,
-      hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
-      reasoning: `You’re targeting travelers aged ${ageGroup} from ${scenario.country}. The illustrative ${scenario.lead}-day booking lead time places promotion ahead of the selected ${spring ? "spring" : "winter"} travel period. Caption personalization uses your selected audience and the displayed illustration.`,
+      hashtags: ["#PaznaunIschgl", "#AlpineInspiration"],
+      reasoning: `You’re targeting travelers aged ${ageGroup} from ${scenario.country}. The illustrative ${scenario.lead}-day booking lead time places promotion ahead of the selected ${season} travel period. Caption personalization uses your selected audience and the displayed AI-generated concept.`,
       detailedReasoning: [
         `${profile.platform}, the writing voice and caption length are illustrative demo heuristics, not measured audience preferences.`,
         `Selected target audience: ages ${ageGroup}. This is your marketing preference, not a demographic finding from tourism data.`,
@@ -274,19 +199,13 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       assumptions: [
         "The audience is selected by the user. Booking lead time and behavior are illustrative mock assumptions, independent of tourism forecasts.",
         "Publishing at 18:00 Europe/Vienna is illustrative, not account engagement analysis.",
-        ...(spring
-          ? [
-              "Spring variation: weather, snow cover, lift operation and available experiences are not verified.",
-            ]
-          : [
-              "Snow cover, lift operation, availability and holiday calendars require checking before any real campaign.",
-            ]),
-        "Approval and scheduling are simulated locally; nothing is sent to Instagram.",
+        "Seasonal conditions, trail access, lift operation and availability require checking before a real campaign.",
+        "Approval and scheduling are simulated locally; nothing is sent to social media.",
       ],
       asset,
       captionContent: {
         text: genericCaption,
-        hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
+        hashtags: ["#PaznaunIschgl", "#AlpineInspiration"],
         language: scenario.language,
         source: "demo_fallback",
       },
@@ -296,17 +215,16 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
         language: scenario.language,
         ageMin: targetAudience.ageMin,
         ageMax: targetAudience.ageMax,
-        season: spring ? "spring" : "winter",
-        activity: spring
-          ? "Alpine mountain getaway"
-          : "skiing and winter sports",
+        season,
+        assetId: visual.id,
+        activity: visual.activity,
         destination: "Paznaun-Ischgl",
-        creativeTheme: spring ? "Meme-inspired spring escape" : scenario.theme,
+        creativeTheme: visual.creativeTheme,
         objective: "inspire_travel",
         visualDescription: asset.alt,
       },
       fictional: true,
-      variation: spring,
+      variation: season !== "winter",
     };
     const stored = (savedCaptions as Record<string, { metadataKey: string; caption: CampaignCaption }>)[recommendation.id];
     if (stored?.metadataKey === metadataKey(recommendation.captionMetadata)) {

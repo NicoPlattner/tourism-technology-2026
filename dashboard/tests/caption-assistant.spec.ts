@@ -15,7 +15,7 @@ test("all markets and periods are ready without AI calls", async ({page}) => {
   await page.goto("./");
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
   await expect(page.locator(".cp-caption-spinner")).toHaveCount(0);
-  for(const period of ["q1-2027","q2-2027","winter-2026-27"]) {
+  for(const period of ["q1-2027","q2-2027","q3-2027","q4-2027","winter-2026-27"]) {
     await page.getByRole("combobox",{name:"Target travel period"}).selectOption(period);
     for(const country of ["Germany","Netherlands","Belgium","Austria"]) {
       await page.getByRole("button",{name:`Select ${country}`,exact:true}).click();
@@ -115,7 +115,7 @@ test("age choices update targeting immediately, use generic preview and reach re
   await page.keyboard.press("Escape");
   const image = await page.locator(".cp-social-image").getAttribute("src");
   await selectAge(page,"45-60");
-  expect(await page.locator(".cp-social-image").getAttribute("src")).toBe(image);
+  expect(await page.locator(".cp-social-image").getAttribute("src")).not.toBe(image);
   await expect(page.locator(".cp-summary")).toContainText("Selected target audience");
   await expect(page.locator(".cp-summary")).toContainText("45–60 years");
   await expect(page.locator(".cp-reasoning")).toContainText("45–60");
@@ -125,7 +125,7 @@ test("age choices update targeting immediately, use generic preview and reach re
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 45–60.",180));
   expect(payloads[0].ageMin).toBe(45);expect(payloads[0].ageMax).toBe(60);
-  expect(payloads[0].visualDescription).toContain("cat");
+  expect(payloads[0].visualDescription).toContain("snow");
   await selectAge(page,"25-34");
   await expect(page.locator(".cp-caption-source")).toHaveText("Demo preview");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
@@ -185,4 +185,34 @@ test("age dropdown opens below its trigger and supports keyboard selection and d
   await expect(trigger).toBeFocused();await expect(menu).toHaveCount(0);
   await trigger.click();await page.getByRole("heading",{name:"Campaign overview",exact:true}).click();
   await expect(menu).toHaveCount(0);
+});
+test("all sixteen visual combinations load instantly, country preserves them and regeneration uses actual summer visual",async({page})=>{
+  let requests:Record<string,unknown>[]=[];
+  await page.route("**/api/marketing/generate-caption",route=>{
+    const m=route.request().postDataJSON();requests.push(m);
+    return route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine Sommeridee am See.",m.language,m.targetCaptionLength.min))});
+  });
+  await page.goto("./");const images=new Set<string>();
+  for(const period of ["q1-2027","q2-2027","q3-2027","q4-2027"]) {
+    await page.getByRole("combobox",{name:"Target travel period"}).selectOption(period);
+    for(const age of ["18-24","25-34","35-44","45-60"]) {
+      await selectAge(page,age);
+      const img=page.locator(".cp-social-image");
+      await expect.poll(()=>img.evaluate(node=>(node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+      images.add((await img.getAttribute("src"))!);
+      await expect(img).toHaveAttribute("alt",/AI-generated/);
+    }
+  }
+  expect(images.size).toBe(16);expect(requests).toHaveLength(0);
+  await page.getByRole("combobox",{name:"Target travel period"}).selectOption("q3-2027");
+  await selectAge(page,"18-24");
+  const source=await page.locator(".cp-social-image").getAttribute("src");
+  await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
+  await expect(page.locator(".cp-social-image")).toHaveAttribute("src",source!);
+  await page.getByRole("button",{name:"Regenerate",exact:true}).click();
+  await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
+  expect(requests[0].assetId).toBe("summer-18-24");expect(requests[0].season).toBe("summer");
+  expect(requests[0].activity).toBe("summer lake hiking");
+  expect(requests[0].visualDescription).toContain("turquoise Alpine lake");
+  await expect(page.locator(".cp-social-image")).toHaveAttribute("src",source!);
 });
