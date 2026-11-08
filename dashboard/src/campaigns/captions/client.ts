@@ -70,7 +70,7 @@ export class CaptionClient {
             : "AI caption generation failed. Please retry.";
         throw new CaptionError(message, code, response.status);
       }
-      return validateAiCaption(value, metadata.language);
+      return validateAiCaption(value, metadata.language, metadata.targetCaptionLength);
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(

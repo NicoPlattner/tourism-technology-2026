@@ -5,7 +5,7 @@ import {
   type AiCaption,
   type CaptionMetadata,
 } from "../src/campaigns/captions/contracts";
-import { buildMessages, CAPTION_JSON_SCHEMA } from "./prompt";
+import { buildMessages, captionJsonSchema } from "./prompt";
 export interface CaptionProvider {
   generate(metadata: CaptionMetadata): Promise<AiCaption>;
 }
@@ -160,9 +160,9 @@ export class OpenAICompatibleCaptionProvider implements CaptionProvider {
                 ? {
                     type: "json_schema",
                     json_schema: {
-                      name: "instagram_caption",
+                      name: "social_caption",
                       strict: true,
-                      schema: CAPTION_JSON_SCHEMA,
+                      schema: captionJsonSchema(metadata),
                     },
                   }
                 : { type: "json_object" },
@@ -215,7 +215,7 @@ export class OpenAICompatibleCaptionProvider implements CaptionProvider {
           502,
         );
       }
-      return { ...validateGenerated(result, metadata.language), source: "ai" };
+      return { ...validateGenerated(result, metadata.language, metadata.targetCaptionLength), source: "ai" };
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(
@@ -258,7 +258,7 @@ export class N8nCaptionProvider implements CaptionProvider {
           metadata,
           model: this.config.model,
           messages: buildMessages(metadata),
-          responseSchema: CAPTION_JSON_SCHEMA,
+          responseSchema: captionJsonSchema(metadata),
           maxOutputTokens: this.config.maxOutputTokens,
         }),
       });
@@ -269,7 +269,7 @@ export class N8nCaptionProvider implements CaptionProvider {
           502,
         );
       const result = await response.json();
-      return { ...validateGenerated(result, metadata.language), source: "ai" };
+      return { ...validateGenerated(result, metadata.language, metadata.targetCaptionLength), source: "ai" };
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(

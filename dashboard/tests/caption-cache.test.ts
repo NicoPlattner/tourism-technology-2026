@@ -116,3 +116,14 @@ test("campaign identity isolates periods even when caption metadata is identical
   assert.equal(client.getCached(metadata, "campaign-DE-winter-2026-27-v1")?.caption, "Caption 2.");
   assert.equal(calls, 2);
 });
+test("age changes cannot reuse a different audience's cached result", async () => {
+  let calls = 0;
+  const client = new CaptionClient("/api", async () => json(result(`Audience ${++calls}.`)));
+  const young = {...metadata, ageMin:18,ageMax:24};
+  const older = {...metadata, ageMin:45,ageMax:60};
+  await client.generate(young,true,"same-campaign");
+  assert.equal(client.getCached(older,"same-campaign"),undefined);
+  await client.generate(older,true,"same-campaign");
+  assert.equal(client.getCached(young,"same-campaign")?.caption,"Audience 1.");
+  assert.equal(client.getCached(older,"same-campaign")?.caption,"Audience 2.");
+});

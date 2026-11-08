@@ -9,7 +9,7 @@ import { metadataKey, validateGenerated } from "../src/campaigns/captions/contra
 import savedCaptions from "../src/campaigns/captions/preGenerated.json";
 import { MARKETS, TRAVEL_PERIODS } from "../src/campaigns/types.ts";
 const provider = new MockCampaignDataProvider();
-test("Q1 campaigns use assigned adult audiences, localized copy and distinct creative", async () => {
+test("Q1 campaigns use selected adult audiences, localized copy and distinct creative", async () => {
   const campaigns = await Promise.all(
     MARKETS.map((m) => provider.getRecommendation(m.code, "q1-2027")),
   );
@@ -101,9 +101,46 @@ test("all 12 saved campaign captions have matching metadata, valid localized out
     assert.equal(saved.metadataKey, metadataKey(c.captionMetadata));
     assert.equal(c.captionContent.source, "pre_generated");
     assert.ok(Number.isFinite(Date.parse(c.captionContent.generatedAt!)));
-    validateGenerated({ caption: c.captionContent.text, hashtags: c.captionContent.hashtags, language: c.captionContent.language }, c.language);
+    validateGenerated({ caption: c.captionContent.text, hashtags: c.captionContent.hashtags, language: c.captionContent.language }, c.language, c.captionMetadata.targetCaptionLength);
     assert.equal(c.caption, c.captionContent.text);
     c.captionContent.hashtags.push("#LocalMutation");
     assert.ok(!provider.getImmediateRecommendation(market.code, period.id).hashtags.includes("#LocalMutation"));
+  }
+});
+test("user-selected audience is independent of market data and preserves image and booking dates", () => {
+  for (const market of MARKETS) for (const period of TRAVEL_PERIODS) {
+    const initial = provider.getImmediateRecommendation(market.code, period.id);
+    assert.equal(initial.ageGroup, "18–24");
+    for (const audience of [{ageMin:25,ageMax:34},{ageMin:35,ageMax:44},{ageMin:45,ageMax:60}]) {
+      const c = provider.getImmediateRecommendation(market.code, period.id, audience);
+      assert.deepEqual(c.marketingPreferences.targetAudience, audience);
+      assert.equal(c.captionMetadata.ageMin, audience.ageMin);
+      assert.equal(c.captionMetadata.ageMax, audience.ageMax);
+      assert.equal(c.captionMetadata.visualDescription, initial.asset.alt);
+      assert.equal(c.asset.src, initial.asset.src);
+      assert.deepEqual(c.travel, initial.travel);
+      assert.equal(c.assumedLeadDays, initial.assumedLeadDays);
+      assert.equal(c.captionContent.source, "demo_fallback");
+      assert.match(c.reasoning, new RegExp(`${audience.ageMin}–${audience.ageMax}`));
+      assert.notEqual(metadataKey(c.captionMetadata), metadataKey(initial.captionMetadata));
+      assert.notEqual(c.id, initial.id);
+    }
+  }
+  assert.throws(() => provider.getImmediateRecommendation("DE","q1-2027",{ageMin:17,ageMax:24}));
+});
+test("all age/platform demo voices have the requested caption lengths and metadata", () => {
+  const rules = [[18,24,"TikTok",40,100],[25,34,"Instagram",80,160],[35,44,"Instagram",120,220],[45,60,"Facebook",180,350]] as const;
+  for (const market of MARKETS) {
+    const voices = new Set<string>();
+    for (const [ageMin,ageMax,platform,min,max] of rules) {
+      const c=provider.getImmediateRecommendation(market.code,"q1-2027",{ageMin,ageMax});
+      assert.equal(c.platform,platform);
+      assert.equal(c.captionMetadata.platform,platform);
+      assert.deepEqual(c.captionMetadata.targetCaptionLength,{min,max});
+      assert.ok(c.captionMetadata.tone);
+      validateGenerated({caption:c.caption,hashtags:c.hashtags,language:c.language},c.language,{min,max});
+      voices.add(c.caption);
+    }
+    assert.equal(voices.size,4);
   }
 });

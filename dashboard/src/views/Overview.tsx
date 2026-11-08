@@ -1,3 +1,5 @@
+import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
+import { DEFAULT_TARGET_AUDIENCE, type TargetAudience } from "../campaigns/types";
 import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
 import { useEffect, useState } from "react";
 import type { ViewProps } from "../App";
@@ -21,6 +23,7 @@ export default function Overview({
   provider = campaignDataProvider,
 }: ViewProps & { provider?: CampaignDataProvider }) {
   const [market, setMarket] = useState<SourceMarket>("DE");
+  const [targetAudience, setTargetAudience] = useState<TargetAudience>(DEFAULT_TARGET_AUDIENCE);
   const [period, setPeriod] = useState<TravelPeriod>("q1-2027");
   const [campaign, setCampaign] = useState<CampaignRecommendation | null>(() => provider.getImmediateRecommendation?.("DE", "q1-2027") || null);
   const [approvals, setApprovals] = useState<Record<string, CampaignApproval>>(
@@ -32,7 +35,7 @@ export default function Overview({
   useEffect(() => {
     let current = true;
     if (provider.getImmediateRecommendation) {
-      setCampaign(provider.getImmediateRecommendation(market, period));
+      setCampaign(provider.getImmediateRecommendation(market, period, targetAudience));
       setError("");
       setReview(false);
       return;
@@ -41,10 +44,10 @@ export default function Overview({
     setError("");
     setReview(false);
     provider
-      .getRecommendation(market, period)
+      .getRecommendation(market, period, targetAudience)
       .then((result) => {
         if (current) {
-          if (result.market !== market || result.period !== period) {
+          if (result.market !== market || result.period !== period || result.captionMetadata.ageMin !== targetAudience.ageMin || result.captionMetadata.ageMax !== targetAudience.ageMax) {
             setError(
               "The campaign service returned a different market or period. Please retry.",
             );
@@ -62,9 +65,9 @@ export default function Overview({
     return () => {
       current = false;
     };
-  }, [market, period, provider, retry]);
+  }, [market, period, targetAudience, provider, retry]);
   const currentCampaign =
-    campaign?.market === market && campaign.period === period ? campaign : provider.getImmediateRecommendation?.(market, period) || null;
+    campaign?.market === market && campaign.period === period && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience) || null;
   const assistant = useCaptionAssistant(currentCampaign);
   const visibleCampaign = currentCampaign
     ? {
@@ -115,12 +118,15 @@ export default function Overview({
             The right audience. The right moment. A story worth sharing.
           </p>
         </div>
-        <TravelPeriodSelector value={period} onChange={setPeriod} />
+        <div className="cp-controls">
+          <TravelPeriodSelector value={period} onChange={setPeriod} />
+          <TargetAgeSelector value={targetAudience} onChange={setTargetAudience} />
+        </div>
       </div>
       <div className="cp-demo-strip">
         <span className="status sample">Campaign demo</span>
         <p>
-          Fictional audiences, booking patterns and campaign recommendations.
+          Illustrative booking patterns and campaign recommendations. You choose the target audience.
           Independent of the dashboard’s real and uploaded data.
         </p>
       </div>

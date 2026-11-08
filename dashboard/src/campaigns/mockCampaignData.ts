@@ -1,3 +1,5 @@
+import { socialProfile, demoCaption } from "./socialProfile";
+import { DEFAULT_TARGET_AUDIENCE, TARGET_AGES, type TargetAudience } from "./types";
 import savedCaptions from "./captions/preGenerated.json";
 import { metadataKey } from "./captions/contracts";
 import type { CampaignCaption } from "./types";
@@ -21,8 +23,6 @@ const atSpring = new URL("./assets/at-spring.svg", import.meta.url).href;
 interface MarketScenario {
   country: string;
   title: string;
-  ageGroup: string;
-  segment: string;
   lead: number;
   language: CampaignLanguage;
   languageLabel: string;
@@ -34,9 +34,7 @@ interface MarketScenario {
   springCaption: string;
   hashtags: string[];
   springHashtags: string[];
-  reasoning: string;
   holidayAssumption: string;
-  springReasoning: string;
   image: string;
   springImage: string;
   alt: string;
@@ -46,8 +44,6 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
   DE: {
     country: "Germany",
     title: "Exams off. Alpine mode on.",
-    ageGroup: "18–26",
-    segment: "University students & young adults",
     lead: 60,
     language: "de",
     languageLabel: "German",
@@ -69,12 +65,8 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       "POV: Lernmodus aus, Alpenmodus an. 🐈🏔️ Frühlingsluft statt Bibliothek — wer kommt mit nach Ischgl?",
     hashtags: ["#Ischgl", "#KlausurenVorbei", "#SkiMitDerCrew"],
     springHashtags: ["#Ischgl", "#Alpenmodus", "#Frühlingsauszeit"],
-    reasoning:
-      "This fictional student audience is paired with a possible February semester-break window. An assumed 60-day booking lead puts the campaign in December, well before arrival.",
     holidayAssumption:
       "Semester-break dates vary by university. A February opportunity is an illustrative planning assumption, not a verified holiday calendar.",
-    springReasoning:
-      "This generated mock variation pairs young adults with an April mountain escape. The assumed 60-day lead moves promotion to February; spring travel and university breaks still need verification.",
     image: deWinter,
     springImage: deSpring,
     alt: "Original spinning white cat in goggles skiing in an illustrated snowy Alpine landscape",
@@ -84,8 +76,6 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
   NL: {
     country: "Netherlands",
     title: "Out of office. Into the Alps.",
-    ageGroup: "29–40",
-    segment: "Millennials, couples & friend groups",
     lead: 14,
     language: "nl",
     languageLabel: "Dutch",
@@ -111,12 +101,8 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       "Nog een meeting? Liever een berg. 🐈🏔️ Tijd voor frisse Alpenlucht en een spontane lente-escape naar Ischgl met je favoriete mensen.",
     hashtags: ["#Ischgl", "#EvenHelemaalWeg", "#Wintersport"],
     springHashtags: ["#Ischgl", "#LenteInDeBergen", "#EvenHelemaalWeg"],
-    reasoning:
-      "A fictional millennial audience and an assumed short, 14-day booking window suggest a spontaneous late-March escape. Promotion starts in March, close to the planned visit.",
     holidayAssumption:
       "No Dutch holiday or event is treated as verified. The short booking window and audience preference are fictional historical-behavior assumptions.",
-    springReasoning:
-      "This generated mock variation swaps the late-season ski trip for a late-April mountain break. A 14-day assumed lead recommends April promotion without claiming any confirmed school holiday.",
     image: nlWinter,
     springImage: nlSpring,
     alt: "Original unimpressed beige cat with a snowboard in a snowy Alpine scene, inspired by nostalgic internet humor",
@@ -126,8 +112,6 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
   BE: {
     country: "Belgium",
     title: "The mountains. But make it sigma.",
-    ageGroup: "18–24",
-    segment: "Young adult travelers",
     lead: 35,
     language: "fr",
     languageLabel: "French",
@@ -149,12 +133,8 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       "Mode pause alpine : activé. 🍗🏔️ La team, l’air frais et une escapade printanière à Ischgl qui sort de l’ordinaire.",
     hashtags: ["#Ischgl", "#MomentSigma", "#EscapadeAuSki"],
     springHashtags: ["#Ischgl", "#PauseAlpine", "#EscapadeDePrintemps"],
-    reasoning:
-      "A fictional adult Gen Z segment and a potential February travel window support playful French-language content. The assumed 35-day lead schedules the campaign in January.",
     holidayAssumption:
       "Belgian winter breaks differ by community. No exact break or event is verified; the February window is a fictional planning scenario. Dutch can be supplied as another language variant.",
-    springReasoning:
-      "This generated mock variation targets an adult May escape, with an assumed 35-day lead placing promotion in April. Potential spring breaks are unverified and no actual event is advertised.",
     image: beWinter,
     springImage: beSpring,
     alt: "Original golden cartoon chicken nugget with sunglasses riding a red sledge through illustrated Alpine snow",
@@ -164,8 +144,6 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
   AT: {
     country: "Austria",
     title: "Less everyday. More mountain.",
-    ageGroup: "25–35",
-    segment: "Domestic weekend travelers",
     lead: 21,
     language: "de",
     languageLabel: "German",
@@ -187,12 +165,8 @@ const SCENARIOS: Record<SourceMarket, MarketScenario> = {
       "Raus aus dem Alltag, rein in die Bergluft. 🏔️ Ein Frühlingswochenende Alpenmodus in Ischgl — wer ist dabei?",
     hashtags: ["#Ischgl", "#KurzMalWeg", "#Alpenmodus"],
     springHashtags: ["#Ischgl", "#Frühlingsauszeit", "#KurzMalWeg"],
-    reasoning:
-      "A fictional domestic weekend audience fits a short January getaway. An assumed 21-day booking lead places promotion in December; convenience is a creative hypothesis, not measured behavior.",
     holidayAssumption:
       "The weekend timing is a demo assumption, not evidence of a confirmed public holiday, live event or offer.",
-    springReasoning:
-      "This generated mock variation focuses on an Austrian May weekend outdoors. A 21-day assumed booking lead places promotion in late April; no public holiday or event is claimed.",
     image: atWinter,
     springImage: atSpring,
     alt: "Original cheerful Alpine marmot in a red beanie skiing down an illustrated snowy slope",
@@ -223,16 +197,20 @@ export const displayPublishingDate = (date: string) =>
     timeZone: "Europe/Vienna",
   }).format(new Date(date));
 export class MockCampaignDataProvider implements CampaignDataProvider {
-  async getRecommendation(market: SourceMarket, period: TravelPeriod): Promise<CampaignRecommendation> {
-    return this.getImmediateRecommendation(market, period);
+  async getRecommendation(market: SourceMarket, period: TravelPeriod, targetAudience = DEFAULT_TARGET_AUDIENCE): Promise<CampaignRecommendation> {
+    return this.getImmediateRecommendation(market, period, targetAudience);
   }
   getImmediateRecommendation(
     market: SourceMarket,
     period: TravelPeriod,
+    targetAudience: TargetAudience = DEFAULT_TARGET_AUDIENCE,
   ): CampaignRecommendation {
     const scenario = SCENARIOS[market];
     if (!scenario || !["q1-2027", "q2-2027", "winter-2026-27"].includes(period))
       throw new Error("Choose a supported source market and travel period.");
+    if (!TARGET_AGES.some(age => age.ageMin === targetAudience.ageMin && age.ageMax === targetAudience.ageMax))
+      throw new Error("Choose a supported adult target audience.");
+    const ageGroup = `${targetAudience.ageMin}–${targetAudience.ageMax}`;
     const spring = period === "q2-2027";
     const travel = {
       ...(spring
@@ -258,32 +236,35 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       description:
         "Meme-inspired fictional illustration; not a photograph or a representation of verified resort conditions.",
     };
+    const profile = socialProfile(targetAudience.ageMin);
+    const genericCaption = demoCaption(scenario.language, targetAudience.ageMin);
     const recommendation: CampaignRecommendation = {
-      id: `campaign-${market}-${period}-v1`,
+      id: `campaign-${market}-${period}-${targetAudience.ageMin}-${targetAudience.ageMax}-v1`,
       market,
       country: scenario.country,
       period,
       title: spring
         ? `${scenario.country}: a spring Alpine escape`
         : scenario.title,
-      ageGroup: scenario.ageGroup,
-      segment: scenario.segment,
+      ageGroup,
+      marketingPreferences: { country: scenario.country, travelPeriod: period, targetAudience: {...targetAudience} },
       assumedLeadDays: scenario.lead,
       travel,
       campaign: { start, end, label: "Recommended promotion window" },
       publishingDates,
       timezone: "Europe/Vienna",
-      platform: "Instagram",
+      platform: profile.platform,
       theme: spring
         ? "Meme-inspired spring escape · mock variation"
         : scenario.theme,
       language: scenario.language,
       languageLabel: scenario.languageLabel,
-      caption: spring ? scenario.springCaption : scenario.caption,
+      caption: genericCaption,
       hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
-      reasoning: spring ? scenario.springReasoning : scenario.reasoning,
+      reasoning: `You’re targeting travelers aged ${ageGroup} from ${scenario.country}. The illustrative ${scenario.lead}-day booking lead time places promotion ahead of the selected ${spring ? "spring" : "winter"} travel period. Caption personalization uses your selected audience and the displayed illustration.`,
       detailedReasoning: [
-        `Audience: ${scenario.ageGroup}-year-old ${scenario.segment.toLowerCase()} are an assigned fictional marketing segment, not inferred guest demographics.`,
+        `${profile.platform}, the writing voice and caption length are illustrative demo heuristics, not measured audience preferences.`,
+        `Selected target audience: ages ${ageGroup}. This is your marketing preference, not a demographic finding from tourism data.`,
         `Timing: target arrival ${displayDate(travel.start)} minus ${scenario.lead} assumed booking days gives ${displayDate(start)}. This 8-day promotion window ends before the target travel period.`,
         spring
           ? "Spring calendar overlap is unverified. This is a fictional travel window, not a confirmed holiday or event opportunity."
@@ -291,7 +272,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
         "The supplied historical-booking narrative is an assumption, not an analysis of the dashboard’s live or uploaded overnight-stay data.",
       ],
       assumptions: [
-        "Fictional campaign scenario. Audience, lead time and booking behavior are demo assumptions.",
+        "The audience is selected by the user. Booking lead time and behavior are illustrative mock assumptions, independent of tourism forecasts.",
         "Publishing at 18:00 Europe/Vienna is illustrative, not account engagement analysis.",
         ...(spring
           ? [
@@ -304,16 +285,17 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       ],
       asset,
       captionContent: {
-        text: spring ? scenario.springCaption : scenario.caption,
+        text: genericCaption,
         hashtags: [...(spring ? scenario.springHashtags : scenario.hashtags)],
         language: scenario.language,
         source: "demo_fallback",
       },
       captionMetadata: {
+        ...profile,
         country: scenario.country,
         language: scenario.language,
-        ageMin: Number(scenario.ageGroup.split("–")[0]),
-        ageMax: Number(scenario.ageGroup.split("–")[1]),
+        ageMin: targetAudience.ageMin,
+        ageMax: targetAudience.ageMax,
         season: spring ? "spring" : "winter",
         activity: spring
           ? "Alpine mountain getaway"

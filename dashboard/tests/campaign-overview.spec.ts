@@ -28,10 +28,10 @@ test("all four geographical countries update audience, localized copy, asset and
   ).toBeVisible();
   const images = new Set<string>();
   for (const [name, age, lead, language] of [
-    ["Germany", "18–26", "60", "de"],
-    ["Netherlands", "29–40", "14", "nl"],
+    ["Germany", "18–24", "60", "de"],
+    ["Netherlands", "18–24", "14", "nl"],
     ["Belgium", "18–24", "35", "fr"],
-    ["Austria", "25–35", "21", "de"],
+    ["Austria", "18–24", "21", "de"],
   ]) {
     await page
       .getByRole("button", { name: `Select ${name}`, exact: true })

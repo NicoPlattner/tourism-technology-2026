@@ -372,3 +372,33 @@ test("OpenAI base URL alias and model are configurable with explicit caption URL
   assert.equal(readProviderConfig(env).model, "configured-medium-model");
   assert.equal(readProviderConfig({...env, CAPTION_BASE_URL: "https://override.test/v1"}).baseUrl, "https://override.test/v1");
 });
+test("prompt treats selected ages as creative preferences and includes flexible guidance for all adult bands", () => {
+  for (const band of ["18–24","25–34","35–44","45–60"]) assert.ok(CAPTION_SYSTEM_PROMPT.includes(band));
+  assert.match(CAPTION_SYSTEM_PROMPT, /not an observed visitor demographic/);
+  assert.match(CAPTION_SYSTEM_PROMPT, /Do not assume older adults dislike memes/);
+  const messages = buildMessages({...metadata,ageMin:45,ageMax:60});
+  const payload = JSON.parse(messages[1].content);
+  assert.equal(payload.ageMin,45);
+  assert.equal(payload.ageMax,60);
+});
+test("platform, tone and length survive normalization and constrain actual model request and response", async () => {
+  const input = {...metadata, ageMin:45,ageMax:60,platform:"Facebook" as const,targetCaptionLength:{min:180,max:350},tone:"Descriptive, inviting; subtle wit and conversational storytelling."};
+  const {metadataKey} = await import("../src/campaigns/captions/contracts.ts");
+  const normalized = normalizeMetadata(input);
+  assert.equal(normalized.platform,"Facebook");
+  assert.notEqual(metadataKey(input),metadataKey({...input,tone:"A different creative voice"}));
+  assert.notEqual(metadataKey(input),metadataKey({...input,platform:"Instagram"}));
+  const text="Eine Alpenidee mit einem Augenzwinkern. ".repeat(6).trim();
+  const provider = new OpenAICompatibleCaptionProvider(config(), async (_url, options) => {
+    const body=JSON.parse(options!.body as string);
+    const m=JSON.parse(body.messages[1].content);
+    assert.equal(m.platform,"Facebook");assert.equal(m.tone,input.tone);
+    assert.deepEqual(m.targetCaptionLength,{min:180,max:350});
+    assert.equal(body.response_format.json_schema.schema.properties.caption.maxLength,350);
+    return response({...result,caption:text});
+  });
+  assert.equal((await provider.generate(input)).caption,text);
+  const invalid = new OpenAICompatibleCaptionProvider(config(),async()=>response(result));
+  await assert.rejects(invalid.generate(input),CaptionError);
+  assert.throws(()=>normalizeMetadata({...input,targetCaptionLength:{min:350,max:180}}),CaptionError);
+});

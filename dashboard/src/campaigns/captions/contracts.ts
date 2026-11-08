@@ -1,3 +1,4 @@
+import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
   country: string;
   language: string;
@@ -9,6 +10,9 @@ export interface CaptionMetadata {
   creativeTheme: string;
   objective: string;
   visualDescription?: string;
+  platform?: SocialPlatform;
+  targetCaptionLength?: CaptionLength;
+  tone?: string;
 }
 export interface GeneratedCaption {
   caption: string;
@@ -55,7 +59,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription"].includes(key),
+      (key) => ![...required, "visualDescription", "platform", "targetCaptionLength", "tone"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
@@ -89,6 +93,18 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
   } catch {
     throw new CaptionError("Invalid language code.");
   }
+  if (value.platform !== undefined || value.targetCaptionLength !== undefined || value.tone !== undefined) {
+    if (!["TikTok", "Instagram", "Facebook"].includes(value.platform as string) ||
+        !object(value.targetCaptionLength) || Object.keys(value.targetCaptionLength).sort().join(",") !== "max,min" ||
+        !Number.isInteger(value.targetCaptionLength.min) || !Number.isInteger(value.targetCaptionLength.max) ||
+        (value.targetCaptionLength.min as number) < 1 || (value.targetCaptionLength.max as number) > 350 ||
+        (value.targetCaptionLength.min as number) > (value.targetCaptionLength.max as number) ||
+        typeof value.tone !== "string" || !value.tone.trim() || value.tone.length > 600)
+      throw new CaptionError("Provide a valid platform, caption length and tone together.");
+    result.platform = value.platform;
+    result.targetCaptionLength = { min: value.targetCaptionLength.min, max: value.targetCaptionLength.max };
+    result.tone = value.tone.normalize("NFKC").trim().replace(/\s+/g, " ");
+  }
   return result as unknown as CaptionMetadata;
 }
 export function metadataKey(metadata: CaptionMetadata): string {
@@ -102,6 +118,7 @@ export function metadataKey(metadata: CaptionMetadata): string {
 export function validateGenerated(
   value: unknown,
   language: string,
+  length = { min: 1, max: 220 },
 ): GeneratedCaption {
   const fail = () =>
     new CaptionError(
@@ -117,7 +134,8 @@ export function validateGenerated(
   if (
     typeof value.caption !== "string" ||
     !value.caption.trim() ||
-    Array.from(value.caption.trim()).length > 220 ||
+    Array.from(value.caption.trim()).length > length.max ||
+    Array.from(value.caption.trim()).length < length.min ||
     /(?:^|\s)#[\p{L}\p{N}_]+/u.test(value.caption)
   )
     throw fail();
@@ -146,7 +164,7 @@ export function validateGenerated(
     language: value.language,
   };
 }
-export function validateAiCaption(value: unknown, language: string): AiCaption {
+export function validateAiCaption(value: unknown, language: string, length?: CaptionLength): AiCaption {
   if (
     !object(value) ||
     value.source !== "ai" ||
@@ -167,6 +185,7 @@ export function validateAiCaption(value: unknown, language: string): AiCaption {
         language: value.language,
       },
       language,
+      length,
     ),
     source: "ai",
   };
