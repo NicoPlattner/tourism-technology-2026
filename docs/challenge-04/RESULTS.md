@@ -181,6 +181,45 @@ nothing to winter forecasts (few public holidays in winter) and slightly hurt
 summer forecasts; they stay in the explanation layer, where bridge-day
 weekends show a small, significant summer over-forecast.
 
+# C. GUI models (Tirol × origin × time frame)
+
+Built 8 Nov from open data plus the TVB lead-time file; plan in PLAN.md §7–8.
+Tables in `out/gui/` (git-ignored; regenerate with the commands below); one
+answer per request via `models/gui_outputs.py: query(origin, start, end)`.
+
+```bash
+python3 data/fetch_holidays_history.py && python3 data/build_origin_panel.py && python3 data/build_tirol_daily.py
+```
+
+```bash
+cd models && python3 m1_origin.py && python3 m4_leadtime.py && python3 m3_daily.py && python3 gui_outputs.py
+```
+
+| Model | Output | Data | Test | Result | Grade |
+|---|---|---|---|---|---|
+| M1 | guests and nights per origin and month, 12 months ahead, 80 % range | Statistik Austria Tirol × 45 origins × month (99 % of nights); per-origin holidays | yearly origins 2012–2018 and 2022–2025, 12 months each | monthly error per origin after COVID **10.2 %** (nights), 10.2 % (arrivals) vs 14.2 % last year, 13.6 % 2-year mean; Tirol total per month 5.6 %; without holiday features 12.8 %; 80 % range covers 75 % | A/B |
+| M2 | length of stay | same | same | 2-year ratio 4.9 % error (beats dividing two forecasts, 5.6 %); arrivals = mean of direct and nights / length of stay | A |
+| M3 | daily distribution inside the time frame | Tirol daily pattern (34 regions) × origin holiday push | pull: Tirol 2025 from earlier years; push: Salzburg mobile data by home country | pull: last year aligned 19.3 % daily error vs 26.6 % flat; push improves 7 of 8 countries (NL 65 → 49 %, GB 102 → 75 %, BE 99 → 81 %, DE 29 → 24 %; FR slightly worse) | B |
+| M4 | booking lead time per arrival month, "book by" date | TVB lead-time classes (Paznaun as proxy) | predict a held-out season | "same as last season" best: 1.5 pp class-share error in winter, 3.2 pp summer; median lead time ±15 days. By-market split (derived) loses to the monthly average (3.3 vs 2.9 pp) → indicative only | B (all markets), C (by market) |
+| M5 | age bands, median age band, share of children | Salzburger Sportwelt guest cards (proxy region) | stability last season vs earlier | winter profiles shift only 2–4 % (total variation) | C |
+
+Example, Bavaria → Tirol, 15 Jan – 15 Mar 2027: 376k guests, 1.20 M nights
+(80 % range 0.96–1.49 M; same period last year 1.18 M), 3.2 nights per stay;
+median booking 75 days ahead (book by ~1 Nov 2026 to reach half of the
+first arrivals; 44 % book ≥ 90 days ahead); median age band 25–34, 28 %
+children (proxy). Bavarian school holidays 8–12 Feb 2027 roughly double the
+daily nights of the surrounding days.
+
+Destination Paznaun-Ischgl (`query(..., destination="Paznaun-Ischgl")`): M1 ×
+Paznaun's share of Tirol nights per origin country and season kind (latest
+season, Landesstatistik Tirol): winter DE 8.1 %, NL 8.8 %, BE 15 %, CH 12 %,
+DK 20 %, GB 6.7 %, PL 8.2 %, AT 4.9 %, other origins 12 %. Bavaria → Paznaun,
+15 Jan – 15 Mar 2027: ~97k nights (80 % range 78–121k; last year 95k). Grade B/C.
+
+Data used per model (selection rule: only blocks that improved the backtest):
+M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
+(push uses the origin's own calendar). M4 no holidays. M5 none of these.
+
 # B. Supporting results (long history and open data)
 
 | Finding | Number | Script |

@@ -120,6 +120,10 @@ What we tested (real winter 25/26, all scaled to the same monthly level):
 | LightGBM with pull features + one push index | 19.8 % | 11.6 % |
 | 3-model ensemble incl. push–pull | 16.2 % | 9.1 % |
 
+Push–pull outputs as *extra* LightGBM columns (existing holiday columns kept):
+winter 25/26 9.0 → 8.2 %, winter 24/25 13.5 → 14.7 %: not adopted (must improve
+both). At origin level, the holiday push is validated (M3, RESULTS section C).
+
 Decision: **forecast** with the ensemble (per-market holiday features stay
 separate; collapsing them into one push index loses information).
 **Structure and explanation** with push–pull:

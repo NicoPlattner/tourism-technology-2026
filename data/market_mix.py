@@ -20,7 +20,7 @@ BASE = "https://data.statistik.gv.at/data/"
 FILES = ["OGD_touextsai_Tour_HKL_1", "OGD_touextsai_Tour_HKL_1_C-C93-2"]
 # Statistik Austria country codes -> our market codes
 CODE = {"25": "NL", "62": "BE", "16": "GB", "32": "CH", "27": "PL", "09": "CZ", "11": "DK", "14": "FR",
-        "29": "IT", "31": "SE", "19": "LU"}
+        "20": "IT", "31": "SE", "63": "LU"}
 DE_REGIONS = {"80": "BY", "81": "BW", "82": "NW", "83": "DE_CENTRAL", "84": "DE_NORTH", "85": "DE_EAST", "53": "BE_BERLIN"}
 # German origin regions -> Länder (population split inside a region)
 DE_REGION_LAENDER = {"BY": ["BY"], "BW": ["BW"], "NW": ["NW"], "DE_CENTRAL": ["HE", "RP", "SL"],

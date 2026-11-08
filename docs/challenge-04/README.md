@@ -86,6 +86,7 @@ data/
   fetch_tirol_stats.py Landesstatistik Tirol: Paznaun origin mix, beds, key figures per municipality/season
   market_mix.py        monthly market weights: Paznaun season mix x Tirol monthly pattern (Statistik Austria)
   holiday_features.py  school / public / regional holidays, long weekends, bridge days per market
+  fetch_holidays_history.py, build_origin_panel.py, build_tirol_daily.py   inputs of the GUI models
   make_static_holidays.py  generates static/school_holidays_extra.csv (DK, GB, SE; IT/PL/FR gaps)
   fetch_macro.py       Eurostat, ECB, geopolitical risk, policy uncertainty, long snow series
   fetch_partner.py     TVB datasets via TTF Space (ttf_mcp.py = minimal MCP client)
@@ -101,6 +102,10 @@ models/
   early_warning.py     occupancy from free beds, booking lead-time mix
   push_pull.py         push (source-market free time) x pull (destination) model
   market_split.py      daily stays split by market (raked to season totals)
+  m1_origin.py         M1/M2 guests, nights, length of stay per origin (Tirol)
+  m3_daily.py          M3 daily distribution per origin (pull x holiday push)
+  m4_leadtime.py       M4 booking lead time
+  gui_outputs.py       M4/M5 tables, query(origin, start, end) for the GUI
   backtest_v2.py       comparison: push-pull, compact LightGBM, sample weights, ensembles
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
