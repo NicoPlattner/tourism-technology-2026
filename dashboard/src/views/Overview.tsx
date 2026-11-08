@@ -1,3 +1,4 @@
+import { useDataSnapshot } from "../campaigns/demand/useDataSnapshot";
 import { useDemand } from "../campaigns/demand/useDemand";
 import { withTravelWindow } from "../campaigns/opportunity/recommendation";
 import { useTravelOpportunity, AWARENESS_DAYS } from "../campaigns/opportunity/useTravelOpportunity";
@@ -68,33 +69,38 @@ export default function Overview({
   }, [market, period, travelDates, targetAudience, provider, retry]);
   const baseCampaign =
     campaign?.market === market && campaign.period === period && campaign.travel.start === travelDates.start && campaign.travel.end === travelDates.end && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience, travelDates) || null;
-  const demand = useDemand(travelDates);
+  const snapshot = useDataSnapshot();
+  const demand = useDemand(travelDates,snapshot.key);
   const query = demand.data[market];
   const dataStatus = query ? query.nights.value > 0 && query.guests.value > 0 ? "ready" : "empty" : demand.errors[market] ? "error" : "loading";
-  const opportunity = useTravelOpportunity(market,travelDates,query,retry);
+  const opportunity = useTravelOpportunity(market,travelDates,query,retry,snapshot.key);
   const currentCampaign = baseCampaign ? withTravelWindow(baseCampaign,query,dataStatus,opportunity,viennaToday(),AWARENESS_DAYS) : null;
-  const assistant = useCaptionAssistant(currentCampaign);
+  const sourcedCampaign = currentCampaign ? {...currentCampaign,
+    captionMetadata:{...currentCampaign.captionMetadata,...(snapshot.snapshot?{sourceSnapshot:snapshot.key}:{})},
+    detailedReasoning:[...currentCampaign.detailedReasoning,...(snapshot.snapshot?[`Data snapshot: ${snapshot.snapshot}. Built: ${snapshot.generatedAt||"not supplied"}.`]:[])],
+  } : null;
+  const assistant = useCaptionAssistant(sourcedCampaign);
   const selectedAsset = assistant.result?.assetId ? SEASONAL_ASSETS.find(asset => asset.id === assistant.result?.assetId) : undefined;
-  const visibleCampaign = currentCampaign
+  const visibleCampaign = sourcedCampaign
     ? {
-        ...currentCampaign,
-        reasoningSource: assistant.result?.campaignReasoning ? "ai" as const : currentCampaign.reasoningSource,
-        reasoning: assistant.result?.campaignReasoning || currentCampaign.reasoning,
+        ...sourcedCampaign,
+        reasoningSource: assistant.result?.campaignReasoning ? "ai" as const : sourcedCampaign.reasoningSource,
+        reasoning: assistant.result?.campaignReasoning || sourcedCampaign.reasoning,
         asset: selectedAsset ? { id:selectedAsset.id,src:selectedAsset.path,alt:selectedAsset.visualDescription,
-          source:"AI_GENERATED" as const,credit:currentCampaign.asset.credit,description:selectedAsset.visualDescription } : currentCampaign.asset,
-        theme: selectedAsset?.creativeTheme || currentCampaign.theme,
-        captionMetadata: selectedAsset ? { ...currentCampaign.captionMetadata,
+          source:"AI_GENERATED" as const,credit:sourcedCampaign.asset.credit,description:selectedAsset.visualDescription } : sourcedCampaign.asset,
+        theme: selectedAsset?.creativeTheme || sourcedCampaign.theme,
+        captionMetadata: selectedAsset ? { ...sourcedCampaign.captionMetadata,
           assetId: selectedAsset.id, activity: selectedAsset.activity,
           creativeTheme: selectedAsset.creativeTheme, visualDescription: selectedAsset.visualDescription,
-        } : currentCampaign.captionMetadata,
-        caption: assistant.result?.caption || currentCampaign.caption,
-        hashtags: assistant.result?.hashtags || currentCampaign.hashtags,
+        } : sourcedCampaign.captionMetadata,
+        caption: assistant.result?.caption || sourcedCampaign.caption,
+        hashtags: assistant.result?.hashtags || sourcedCampaign.hashtags,
         captionContent: assistant.result ? {
           text: assistant.result.caption,
           hashtags: assistant.result.hashtags,
           language: assistant.result.language,
           source: "live_ai" as const,
-        } : currentCampaign.captionContent,
+        } : sourcedCampaign.captionContent,
       }
     : null;
   return (

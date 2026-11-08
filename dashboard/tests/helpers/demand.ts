@@ -16,6 +16,7 @@ export function forecastFixture(start:string,end:string,occupancy=.5) {
   return {meta:{destination:'Paznaun-Ischgl'},daily};
 }
 export async function mockDemand(page:Page) {
+  await page.route('**/c04-api/meta',route=>route.fulfill({json:{freshness:{snapshot:'test-snapshot-1',generated_at:'2026-11-08T08:52Z',today:'2026-11-08'}}}));
   await page.route('**/c04-api/forecast?**',route=>{
     const p=new URL(route.request().url()).searchParams;
     return route.fulfill({json:forecastFixture(p.get('start')!,p.get('end')!)});

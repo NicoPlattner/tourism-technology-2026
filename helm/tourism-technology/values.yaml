@@ -31,5 +31,13 @@ c04Api:
   enabled: true
   image: ghcr.io/nicoplattner/c04-api:latest
   imagePullSecret: ""
+# Live refresh of the c04 data product (models/refresh.py, image from pipeline/c04/Dockerfile).
+c04Pipeline:
+  enabled: true
+  image: ghcr.io/nicoplattner/c04-pipeline:latest
+  size: 2Gi
+  storageClass: microk8s-retain-hostpath
+  fastSchedule: "23 5,11,17,23 * * *"   # Europe/Vienna: weather, snow, official forecast, re-dated actions
+  fullSchedule: "41 3 * * *"            # all sources; models re-run only when their inputs changed
 # Set by the deploy workflow so the API restarts when the Google secret changes.
 googleSecretChecksum: ""

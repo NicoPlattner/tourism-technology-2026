@@ -142,6 +142,8 @@ def query(origin: str, start: str, end: str, destination: str = "Tirol") -> dict
     m5 = pd.read_parquet(GUI / "m5_age.parquet")
     s, e = pd.Timestamp(start), pd.Timestamp(end)
     d = m3[(m3.origin == origin) & (m3.date >= s) & (m3.date <= e)].copy()
+    if "dest" in m1:  # M1 covers all 9 states: keep Tirol (W96-7) for the Tirol view
+        m1 = m1[m1.dest == "W96-7"]
     one = m1[m1.origin == origin].set_index("month")
     d["month"] = d.date.dt.to_period("M").dt.to_timestamp()
     d["expected_nights"] = d.share_of_month * d.month.map(one.nights)

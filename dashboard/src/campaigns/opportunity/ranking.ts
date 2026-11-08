@@ -1,10 +1,13 @@
 import type { SourceMarket, TravelDates } from '../types';
 import { shiftDate } from '../mockCampaignData';
 export interface ForecastDay { date:string; forecast:number|null; capacity:number|null; reference:number|null; capacityBasis:string }
-export interface MarketAction { marketCode:string; start:string; end:string; days:number; score:number; note:string }
+export interface MarketAction {
+  marketCode:string; start:string; end:string; days:number; score:number; note:string;
+  holidayPart?:number;basePart?:number;reasonType?:'holiday-driven'|'share-driven';actionType?:string;freeBlockDays?:number;reachDays?:number;launchOverdue?:boolean;asOf?:string;
+}
 export interface TravelWindow extends TravelDates {
   days:3|5|7; occupancy:number; spareBedNights:number; forecastNights:number; score:number;
-  marketEvidence:boolean; referenceGap:number; capacityBasis:string[]; notes:string[];
+  marketEvidence:boolean; referenceGap:number; capacityBasis:string[]; notes:string[]; marketReasons?:string[];
 }
 export interface WindowEvidence {
   analysisStart:string; analysisEnd:string; start:string; end:string; days:3|5|7;
@@ -30,16 +33,27 @@ export function awarenessBuffer(value:unknown):number {
   const parsed = Number(value ?? 7);
   return Number.isInteger(parsed) && parsed >= 0 && parsed <= 30 ? parsed : 7;
 }
-export function rankWindows(input:{forecast:ForecastDay[];actions:MarketAction[];market:SourceMarket;analysis:TravelDates;averageStay:number|null;today:string;leadDays:number;awarenessDays:number}):TravelWindow[] {
+export function rankWindows(input:{forecast:ForecastDay[];actions:MarketAction[];market:SourceMarket;analysis:TravelDates;averageStay:number|null;today:string;leadDays:number;awarenessDays:number;holidayWindows?:TravelDates[]}):TravelWindow[] {
   const {forecast,actions,market,analysis,averageStay,today}=input;
   const rows = new Map(forecast.map(day=>[day.date,day]));
   const applicable=actions.filter(action=>ACTION_CODES[market].includes(action.marketCode));
-  // A row's score is already the backend's addressable-night allocation, not a country occupancy forecast.
+  // Scores already include backend holiday/baseline caps and current bookability; never boost them again.
   const opportunityOn=(date:string)=>{
     const byOrigin = new Map<string,MarketAction>();
     for(const action of applicable) if(action.start<=date && action.end>=date && (!byOrigin.has(action.marketCode) || action.days < byOrigin.get(action.marketCode)!.days)) byOrigin.set(action.marketCode,action);
     const rows = byOrigin.has(market) ? [byOrigin.get(market)!] : [...byOrigin.values()];
-    return {score:rows.reduce((sum,a)=>sum+a.score/a.days,0),rows};
+    return {score:rows.reduce((sum,a)=>{
+      let score=a.score;
+      if(input.holidayWindows && !input.holidayWindows.some(window=>window.start<=date&&window.end>=date)){
+        // The action score can include holidays elsewhere in its merged block.
+        // Retain only its weighted regular-demand contribution outside known calendar overlap.
+        if(a.holidayPart!==undefined && a.basePart!==undefined){
+          const combined=a.holidayPart+.3*a.basePart;
+          score*=combined>0?.3*a.basePart/combined:0;
+        }else if(a.reasonType==='holiday-driven')score=0;
+      }
+      return sum+score/((Date.parse(a.end)-Date.parse(a.start))/86400000+1);
+    },0),rows};
   };
   const candidates:(TravelWindow & {marketScore:number})[]=[];
   for(let start=analysis.start;start<=analysis.end;start=shiftDate(start,1)){
@@ -57,7 +71,12 @@ export function rankWindows(input:{forecast:ForecastDay[];actions:MarketAction[]
         referenceGap:complete.reduce((sum,day)=>sum+Math.max(0,(day.reference??day.forecast)-day.forecast),0)/totalCapacity,
         marketScore:opportunity.reduce((sum,day)=>sum+day.score,0)/days,marketEvidence:opportunity.some(day=>day.rows.length>0),score:0,
         capacityBasis:[...new Set(complete.map(day=>day.capacityBasis).filter(Boolean))],
-        notes:[...new Set(opportunity.flatMap(day=>day.rows.map(row=>row.note)).filter(Boolean))]});
+        notes:[...new Set(opportunity.flatMap(day=>day.rows.map(row=>row.note)).filter(Boolean))],
+        marketReasons:[...new Set(opportunity.flatMap(day=>day.rows.map(action=>{
+          if(!action.reasonType)return '';
+          const basis=action.reasonType==='holiday-driven'?'holiday-driven (calendar association, not proven cause)':'share-driven regular demand (no holiday trigger)';
+          return `Origin ${action.marketCode}, broader block ${action.start}–${action.end}: ${basis}${action.actionType?`; ${action.actionType}`:''}${action.freeBlockDays!==undefined&&action.reachDays!==undefined?`; free block ${action.freeBlockDays}d / model reach ${action.reachDays}d (not stay length)`:''}${action.launchOverdue?'; original block launch overdue':''}.`.slice(0,240);
+        })).filter(Boolean))].slice(0,3)});
     }
   }
   const maxMarket=Math.max(0,...candidates.map(c=>c.marketScore));

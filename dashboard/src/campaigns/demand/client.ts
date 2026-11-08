@@ -3,10 +3,10 @@ import type { SourceMarket, TravelDates } from '../types';
 export class DemandClient {
   private cache = new Map<string, {expires:number; result:DemandQuery}>();
   constructor(private endpoint:string, private fetcher:typeof fetch = fetch.bind(globalThis), private timeoutMs=10000) {}
-  async query(market:SourceMarket, dates:TravelDates):Promise<DemandQuery> {
+  async query(market:SourceMarket, dates:TravelDates, snapshot=""):Promise<DemandQuery> {
     // The backend clips partially out-of-range queries. Reject them rather than showing partial totals as a full range.
     if (dates.start < '2024-01-01' || dates.end > '2027-12-31') throw new Error('Demand data covers 1 Jan 2024–31 Dec 2027. Choose dates within this range.');
-    const key = `${market}:${dates.start}:${dates.end}`;
+    const key = `${snapshot}:${market}:${dates.start}:${dates.end}`;
     const hit = this.cache.get(key); if (hit && hit.expires > Date.now()) return hit.result;
     const url = new URL(this.endpoint);
     url.search = new URLSearchParams({destination:'PAZNAUN',origin:ORIGIN_CODES[market],start:dates.start,end:dates.end}).toString();

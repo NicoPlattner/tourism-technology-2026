@@ -5,6 +5,7 @@ import { socialProfile } from "../socialProfile";
 import { creativeCandidates, seasonFromTravelDate, type AssetCandidate } from "../assetCatalog";
 import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
+  sourceSnapshot?: string;
   opportunityEvidence?: WindowEvidence;
   tourismContext?: TourismContext;
   country: string;
@@ -82,7 +83,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence", "sourceSnapshot"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
@@ -186,6 +187,10 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
         typeof evidence.marketEvidence !== "boolean" || typeof evidence.leadOpportunityPassed !== "boolean")
       throw new CaptionError("Provide valid forecast-window evidence within the selected analysis period.");
     result.opportunityEvidence = {...evidence};
+  }
+  if(value.sourceSnapshot !== undefined){
+    if(typeof value.sourceSnapshot !== "string" || !value.sourceSnapshot.trim() || value.sourceSnapshot.length>400)throw new CaptionError("Provide a valid data snapshot identifier.");
+    result.sourceSnapshot=value.sourceSnapshot.trim();
   }
   return result as unknown as CaptionMetadata;
 }

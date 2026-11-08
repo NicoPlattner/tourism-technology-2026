@@ -1,6 +1,6 @@
 market_group,0d,8d,31d,61d,90d,180d,grade
-DE,0.221,0.2524,0.1716,0.1525,0.1302,0.0723,C indicative (derived from market split)
-NL,0.0967,0.0898,0.1553,0.073,0.3949,0.1903,C indicative (derived from market split)
-BE_LU,0.3297,0.1239,0.0972,0.0655,0.257,0.1267,C indicative (derived from market split)
-NORDIC_UK,0.0967,0.0893,0.0797,0.0656,0.4669,0.2017,C indicative (derived from market split)
-OTHER,0.1532,0.1105,0.1867,0.1582,0.3105,0.0809,C indicative (derived from market split)
+DE,0.2239,0.2533,0.1709,0.1523,0.1275,0.0721,C indicative (derived from market split)
+NL,0.0967,0.0902,0.1559,0.0718,0.3961,0.1892,C indicative (derived from market split)
+BE_LU,0.3231,0.1203,0.0979,0.0655,0.2584,0.1348,C indicative (derived from market split)
+NORDIC_UK,0.0967,0.0894,0.0797,0.0657,0.4666,0.2018,C indicative (derived from market split)
+OTHER,0.1476,0.1088,0.1883,0.1598,0.3163,0.0792,C indicative (derived from market split)

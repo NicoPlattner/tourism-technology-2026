@@ -1,12 +1,12 @@
 kind,driver,applies_to,effect_multiplier,basis,grade
 pull,Monday night,"Paznaun-Ischgl, all markets",0.97,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
-pull,Tuesday night,"Paznaun-Ischgl, all markets",0.99,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,Tuesday night,"Paznaun-Ischgl, all markets",0.98,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,Wednesday night,"Paznaun-Ischgl, all markets",1.08,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,Thursday night,"Paznaun-Ischgl, all markets",1.16,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,Friday night,"Paznaun-Ischgl, all markets",1.23,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,Saturday night,"Paznaun-Ischgl, all markets",1.25,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,first week of the season,"Paznaun-Ischgl, all markets",0.71,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
-pull,weeks 2-3 of the season,"Paznaun-Ischgl, all markets",0.99,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
+pull,weeks 2-3 of the season,"Paznaun-Ischgl, all markets",1.0,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,last week of the season,"Paznaun-Ischgl, all markets",0.8,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,season opening weekend,"Paznaun-Ischgl, all markets",1.12,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B
 pull,season closing weekend,"Paznaun-Ischgl, all markets",1.1,push-pull fit on TVB daily stays 2024-2026; relative to a normal day of the same month and season phase,B

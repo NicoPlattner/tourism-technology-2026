@@ -17,25 +17,35 @@ export function parseActions(value:unknown):MarketAction[] {
   if(!Array.isArray(value))throw new Error('Market opportunity evidence is unavailable.');
   return value.flatMap(raw=>{
     if(!object(raw)||raw.kind!=='win demand'||typeof raw.market_code!=='string'||typeof raw.from!=='string'||typeof raw.to!=='string'||!validTravelDates({start:raw.from,end:raw.to})||!nonnegative(raw.score)||!nonnegative(raw.days)||raw.days<1)return [];
-    return [{marketCode:raw.market_code,start:raw.from,end:raw.to,score:raw.score,days:raw.days,note:typeof raw.note==='string'?raw.note.slice(0,400):''}];
+    return [{marketCode:raw.market_code,start:raw.from,end:raw.to,score:raw.score,days:raw.days,note:typeof raw.note==='string'?raw.note.slice(0,400):'',
+      holidayPart:nonnegative(raw.holiday_part_nights)?raw.holiday_part_nights:undefined,
+      basePart:nonnegative(raw.base_part_nights)?raw.base_part_nights:undefined,
+      reasonType:raw.reason_type==='holiday-driven'||raw.reason_type==='share-driven'?raw.reason_type:undefined,
+      actionType:typeof raw.action_type==='string'?raw.action_type.slice(0,80):undefined,
+      freeBlockDays:nonnegative(raw.free_block_days_max)?raw.free_block_days_max:undefined,
+      reachDays:nonnegative(raw.reach_days)?raw.reach_days:undefined,
+      launchOverdue:typeof raw.launch_overdue==='boolean'?raw.launch_overdue:undefined,
+      asOf:typeof raw.as_of==='string'?raw.as_of:undefined,
+    }];
   });
 }
 export class OpportunityClient {
   private cache=new Map<string,{expires:number;value:unknown}>();
   constructor(private base:string,private fetcher:typeof fetch=fetch.bind(globalThis),private timeoutMs=10000){}
-  private async get(path:string,dates:TravelDates):Promise<unknown>{
+  private async get(path:string,dates:TravelDates,snapshot:string):Promise<unknown>{
     const url=new URL(path,this.base);url.search=new URLSearchParams({start:dates.start,end:dates.end,...(path==='actions'?{limit:'500'}:{})}).toString();
-    const hit=this.cache.get(url.toString());if(hit&&hit.expires>Date.now())return hit.value;
+    const cacheKey=`${snapshot}:${url.toString()}`;
+    const hit=this.cache.get(cacheKey);if(hit&&hit.expires>Date.now())return hit.value;
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),this.timeoutMs);
     try{
       const response=await this.fetcher(url.toString(),{signal:controller.signal});
       if(!response.ok)throw new Error('Daily forecast or capacity data could not be loaded.');
       const value=await response.json();if(this.cache.size>=32)this.cache.delete(this.cache.keys().next().value!);
-      this.cache.set(url.toString(),{expires:Date.now()+300000,value});return value;
+      this.cache.set(cacheKey,{expires:Date.now()+300000,value});return value;
     }finally{clearTimeout(timer);}
   }
-  async load(dates:TravelDates){
-    const [forecast,actions]=await Promise.allSettled([this.get('forecast',dates).then(v=>parseForecast(v,dates)),this.get('actions',dates).then(parseActions)]);
+  async load(dates:TravelDates,snapshot=""){
+    const [forecast,actions]=await Promise.allSettled([this.get('forecast',dates,snapshot).then(v=>parseForecast(v,dates)),this.get('actions',dates,snapshot).then(parseActions)]);
     if(forecast.status==='rejected')throw new Error('Insufficient daily forecast/capacity data. The analysis creative preview remains available.');
     return {forecast:forecast.value,actions:actions.status==='fulfilled'?actions.value:[],actionsAvailable:actions.status==='fulfilled'};
   }

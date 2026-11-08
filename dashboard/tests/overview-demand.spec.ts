@@ -101,3 +101,30 @@ test('late prior-period demand cannot overwrite a newer filter, and delayed AI s
   await page.getByRole('button',{name:'Select Germany',exact:true}).click();
   await expect(page.locator('.cp-reasoning > p:not(.cp-window-reason)')).toContainText('Germany July evidence');
 });
+
+test('a refreshed served snapshot reloads data and invalidates the old AI context',async({page})=>{
+ let snapshot=1;
+ const generations:any[]=[];
+ await page.route('**/api/marketing/generate-caption',route=>{
+  const m=route.request().postDataJSON();generations.push(m);
+  return route.fulfill({json:{source:'ai',assetId:m.candidateAssets[0].id,platform:m.platform.toLowerCase(),language:m.language,caption:`Februar in Paznaun: neue Bergideen für die gemeinsame Auszeit. Variante ${generations.length}. 🏔️`,hashtags:['#Paznaun','#Ischgl'],creativeReason:'Eine passende Bildidee für den ausgewählten Zeitraum.',campaignReasoning:'The supplied destination data and selected dates guide this campaign. The booking lead-time proxy informs promotion timing, while estimated average stay and regional capacity support a travel inspiration message for the chosen audience.'}});
+ });
+ await page.route('**/c04-api/meta',route=>route.fulfill({json:{freshness:{snapshot:`version-${snapshot}`,generated_at:`2026-11-08T0${snapshot}:00Z`,today:'2026-11-08'}}}));
+ await page.route('**/c04-api/query?**',route=>{
+  const p=new URL(route.request().url()).searchParams;
+  return route.fulfill({json:demandFixture(p.get('origin')!,p.get('start')!,p.get('end')!,{nights:snapshot===1?60000:9000})});
+ });
+ await page.goto('./');
+ await expect(page.getByRole('button',{name:'Select Germany',exact:true})).toHaveAttribute('data-nights','60000');
+ await page.getByRole('button',{name:'Regenerate',exact:true}).click();
+ await expect(page.locator('.cp-reason-source')).toHaveText('AI reasoning');
+ snapshot=2;
+ await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+ await expect(page.getByRole('button',{name:'Select Germany',exact:true})).toHaveAttribute('data-nights','9000');
+ await expect(page.locator('.cp-reasoning')).toContainText('version-2');
+ await expect(page.locator('.cp-reason-source')).toHaveText('Data summary');
+ await page.getByRole('button',{name:'Regenerate',exact:true}).click();
+ await expect(page.locator('.cp-caption-text')).toContainText('Variante 2');
+ expect(generations[0].sourceSnapshot).toContain('version-1');
+ expect(generations[1].sourceSnapshot).toContain('version-2');
+});
