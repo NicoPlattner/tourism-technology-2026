@@ -33,7 +33,7 @@ c04Api:
   imagePullSecret: ""
 # Live refresh of the c04 data product (models/refresh.py, image from pipeline/c04/Dockerfile).
 c04Pipeline:
-  # Off by default: only the release that serves the data product runs it (deploy workflow, branch demand-api).
+  # Off by default: only the release that serves the data product runs it (deploy workflow: root deploy).
   enabled: false
   image: ghcr.io/nicoplattner/c04-pipeline:latest
   size: 2Gi

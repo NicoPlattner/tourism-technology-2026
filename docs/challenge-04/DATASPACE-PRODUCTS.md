@@ -2,9 +2,9 @@
 
 Register in TTF Space: **Data products ▸ New data product ▸ API (data service)**,
 access **External** (own server). Endpoint and docs stay stable: they are
-deployed from `main` via the release branch `demand-api`.
+deployed from `main` to the root domain.
 
-Base URL: `https://hackathon.daria-and-nico.com/demand-api/c04-api/`
+Base URL: `https://hackathon.daria-and-nico.com/c04-api/`
 
 ## Product 1: Tirol & Austria Demand by Origin (live API)
 
@@ -12,9 +12,9 @@ Base URL: `https://hackathon.daria-and-nico.com/demand-api/c04-api/`
 |---|---|
 | Title | Tirol & Austria Demand by Origin (live API) |
 | Type | API / data service (external) |
-| Endpoint | https://hackathon.daria-and-nico.com/demand-api/c04-api/ |
-| Documentation | https://hackathon.daria-and-nico.com/demand-api/c04-api/docs (OpenAPI: …/c04-api/openapi.json) |
-| Landing page | https://hackathon.daria-and-nico.com/demand-api/c04-api/ |
+| Endpoint | https://hackathon.daria-and-nico.com/c04-api/ |
+| Documentation | https://hackathon.daria-and-nico.com/c04-api/docs (OpenAPI: …/c04-api/openapi.json) |
+| Landing page | https://hackathon.daria-and-nico.com/c04-api/ |
 | Access | Open (everyone) |
 | Licence | ODbL 1.0 (contains holiday data from OpenHolidays; other inputs CC BY 4.0) |
 | Topics / challenge | 04 Overnight data; also useful for 01 Off-season |
@@ -48,9 +48,9 @@ Example: `/c04-api/query?destination=Tirol&origin=80&start=2027-01-15&end=2027-0
 |---|---|
 | Title | Paznaun-Ischgl Demand Outlook & Actions (live API) |
 | Type | API / data service (external) |
-| Endpoint | https://hackathon.daria-and-nico.com/demand-api/c04-api/ |
-| Documentation | https://hackathon.daria-and-nico.com/demand-api/c04-api/docs (section "Paznaun-Ischgl outlook & actions") |
-| Landing page | https://hackathon.daria-and-nico.com/demand-api/c04-api/ |
+| Endpoint | https://hackathon.daria-and-nico.com/c04-api/ |
+| Documentation | https://hackathon.daria-and-nico.com/c04-api/docs (section "Paznaun-Ischgl outlook & actions") |
+| Landing page | https://hackathon.daria-and-nico.com/c04-api/ |
 | Access | Members of the data space |
 | Licence | Attribution (TTF); derived from TVB Paznaun-Ischgl data: name TVB Paznaun-Ischgl with feratel, non-commercial use |
 | Topics / challenge | 04 Overnight data |

@@ -129,3 +129,9 @@ After the refresh jobs loaded the shared server, refreshes are opt-in:
 - `fast` = snow and weather only (about 10 s, no model fit, no new forecast); `full` = all sources and
   re-training of the models whose inputs changed (several minutes, 1 CPU / 3 GiB limit).
 - The pipeline objects exist only in the `demand-api` release (`c04Pipeline.enabled`, set by the deploy workflow).
+
+## Change (8 Nov, after the server crash): one deployment from `main` at the root
+
+Branch deployments are no longer used. `main` is deployed to the root domain
+(`https://hackathon.daria-and-nico.com/`, API at `/c04-api/`); the pipeline objects exist only in the root
+release, suspended; a refresh runs only with the deploy input `c04_refresh` (root deploy) or a switched-on schedule.
