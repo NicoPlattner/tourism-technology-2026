@@ -1,6 +1,6 @@
 {
-  "source": "models/results_real_backtest.csv",
-  "evaluator": "models/real_backtest.py",
+  "source": "c04/evaluation/real_backtest.csv",
+  "evaluator": "c04/models/real_backtest.py",
   "source_sha256": "35906d3350c559f1a727f41b9f81e2f7c40489b4c39a900767f0a67460abf883",
   "windows": [
     {

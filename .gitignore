@@ -3,10 +3,10 @@ helm/tourism-technology/site/
 
 helm/tourism-technology/caption-server.cjs
 helm/tourism-technology/api/
-data/raw/
+c04/data/raw/
 .env*
 !dashboard/.env
-data/processed/
+c04/data/processed/
 __pycache__/
 *.pyc
-out/
+c04/out/

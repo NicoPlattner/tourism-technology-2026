@@ -29,7 +29,7 @@ class PerformanceExportTests(unittest.TestCase):
         self.assertEqual(output['windows'][1]['end'], '2026-10-31')
 
     def test_periods_match_evaluator_calls_not_display_labels(self):
-        tree=ast.parse((exporter.ROOT / 'models/real_backtest.py').read_text())
+        tree=ast.parse((exporter.ROOT / 'c04/models/real_backtest.py').read_text())
         calls={}
         for node in ast.walk(tree):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'evaluate' and len(node.args) >= 4:
