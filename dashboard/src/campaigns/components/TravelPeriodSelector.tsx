@@ -40,7 +40,7 @@ export default function TravelPeriodSelector({value,onChange}: {value:TravelDate
   const first=dateOf(month);const start=new Date(first);start.setUTCDate(1-(first.getUTCDay()+6)%7);
   const days=Array.from({length:42},(_,index)=>{const day=new Date(start);day.setUTCDate(day.getUTCDate()+index);return iso(day);});
   const calendarIcon=<svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="13" rx="1" stroke="currentColor" strokeWidth="1.5"/><path d="M6 2v4m8-4v4M3 8h14" stroke="currentColor" strokeWidth="1.5"/></svg>;
-  return <fieldset className="cp-travel-dates cp-calendar-control" ref={root} aria-describedby={`${id}-help`}
+  return <fieldset className="cp-travel-dates cp-calendar-control" ref={root} aria-describedby={invalid?`${id}-help`:undefined}
     onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setOpen(false);}}
     onKeyDown={event=>{if(event.key==="Escape"&&open){event.preventDefault();event.stopPropagation();close();}}}>
     <legend>Target travel period</legend>
@@ -54,9 +54,9 @@ export default function TravelPeriodSelector({value,onChange}: {value:TravelDate
           ref={node=>{triggers.current[field]=node;}} onClick={()=>show(field)}>{calendarIcon}</button>
       </label>)}
     </div>
-    <span id={`${id}-help`} role={invalid?"status":undefined} className={invalid?"cp-date-error":""}>
-      {invalid?!draft.start||!draft.end?"Choose both dates to update the campaign.":"End date must be on or after start date.":"When guests visit, not when you advertise."}
-    </span>
+    {invalid&&<span id={`${id}-help`} role="status" className="cp-date-error">
+      {!draft.start||!draft.end?"Choose both dates to update the campaign.":"End date must be on or after start date."}
+    </span>}
     {open&&<div className="cp-calendar" role="dialog" aria-label="Choose travel dates">
       <div className="cp-calendar-heading">
         <button type="button" aria-label="Previous month" onClick={()=>shiftMonth(-1)}>‹</button>
