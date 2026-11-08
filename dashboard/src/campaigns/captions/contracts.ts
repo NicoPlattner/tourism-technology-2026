@@ -1,3 +1,5 @@
+import { socialProfile } from "../socialProfile";
+import { creativeCandidates, seasonFromTravelDate, type AssetCandidate } from "../assetCatalog";
 import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
   country: string;
@@ -9,6 +11,11 @@ export interface CaptionMetadata {
   destination: string;
   creativeTheme: string;
   objective: string;
+  generationMode?: "creative";
+  travelPeriod?: string;
+  travelDates?: { start: string; end: string; };
+  candidateAssets?: AssetCandidate[];
+  assetId?: string;
   visualDescription?: string;
   platform?: SocialPlatform;
   targetCaptionLength?: CaptionLength;
@@ -19,7 +26,15 @@ export interface GeneratedCaption {
   hashtags: string[];
   language: string;
 }
+export interface GeneratedCreative extends GeneratedCaption {
+  assetId: string;
+  platform: "tiktok" | "instagram" | "facebook";
+  creativeReason: string;
+}
 export interface AiCaption extends GeneratedCaption {
+  assetId?: string;
+  platform?: GeneratedCreative["platform"];
+  creativeReason?: string;
   source: "ai";
 }
 export class CaptionError extends Error {
@@ -51,6 +66,7 @@ const limits: Record<string, number> = {
   creativeTheme: 200,
   objective: 120,
   visualDescription: 600,
+  assetId: 120,
 };
 const object = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
@@ -59,14 +75,14 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "platform", "targetCaptionLength", "tone"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
   const result: Record<string, unknown> = {};
   for (const [key, max] of Object.entries(limits)) {
     const raw = value[key];
-    if (key === "visualDescription" && raw === undefined) continue;
+    if ((key === "visualDescription" || key === "assetId") && raw === undefined) continue;
     if (typeof raw !== "string") throw new CaptionError(`${key} must be text.`);
     const text = raw.normalize("NFKC").trim().replace(/\s+/g, " ");
     if (!text || text.length > max || /[\u0000-\u0008\u000e-\u001f]/.test(text))
@@ -104,6 +120,34 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     result.platform = value.platform;
     result.targetCaptionLength = { min: value.targetCaptionLength.min, max: value.targetCaptionLength.max };
     result.tone = value.tone.normalize("NFKC").trim().replace(/\s+/g, " ");
+  }
+  if (value.generationMode !== undefined || value.candidateAssets !== undefined || value.travelDates !== undefined || value.travelPeriod !== undefined) {
+    if (value.generationMode !== "creative" || typeof value.travelPeriod !== "string" || !/^(q[1-4]-2027|winter-2026-27)$/.test(value.travelPeriod) ||
+        !object(value.travelDates) || Object.keys(value.travelDates).sort().join(",") !== "end,start" ||
+        ![value.travelDates.start,value.travelDates.end].every(date => typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(Date.parse(date)) && new Date(date).toISOString().slice(0,10) === date) ||
+        (value.travelDates.start as string) > (value.travelDates.end as string) || !value.platform || !value.tone || !value.targetCaptionLength)
+      throw new CaptionError("Provide creative targeting, platform and valid travel dates.");
+    const season = seasonFromTravelDate(value.travelDates.start as string);
+    if (season !== result.season) throw new CaptionError("The campaign season must match the target travel dates.");
+    let candidates: AssetCandidate[];
+    try { candidates = creativeCandidates(result.ageMin as number,season); }
+    catch { throw new CaptionError("No compatible creative assets exist for this audience."); }
+    if (!Array.isArray(value.candidateAssets) || value.candidateAssets.length !== candidates.length ||
+        candidates.some(candidate => !(value.candidateAssets as unknown[]).some((raw: unknown) => object(raw) &&
+          Object.keys(raw).sort().join(",") === Object.keys(candidate).sort().join(",") &&
+          Object.entries(candidate).every(([key,value]) => raw[key] === value))))
+      throw new CaptionError("Use the compatible assets from the campaign library without altering their metadata.");
+    const profile = socialProfile(result.ageMin as number);
+    if (candidates[0].ageGroup !== `${result.ageMin}–${result.ageMax}` || result.platform !== profile.platform)
+      throw new CaptionError("Use the platform recommended for the selected adult audience.");
+    result.assetId = candidates[0].id;
+    result.activity = candidates[0].activity;
+    result.creativeTheme = candidates[0].creativeTheme;
+    result.visualDescription = candidates[0].visualDescription;
+    result.generationMode = "creative";
+    result.travelPeriod = value.travelPeriod;
+    result.travelDates = { start:value.travelDates.start, end:value.travelDates.end };
+    result.candidateAssets = candidates;
   }
   return result as unknown as CaptionMetadata;
 }
@@ -164,7 +208,12 @@ export function validateGenerated(
     language: value.language,
   };
 }
-export function validateAiCaption(value: unknown, language: string, length?: CaptionLength): AiCaption {
+export function validateAiCaption(value: unknown, language: string, length?: CaptionLength, metadata?: CaptionMetadata): AiCaption {
+  if (metadata?.generationMode === "creative") {
+    if (!object(value) || value.source !== "ai") throw new CaptionError("Invalid creative response.","INVALID_AI_RESPONSE",502);
+    const {source: _source,...creative} = value;
+    return {...validateCreative(creative,metadata),source:"ai"};
+  }
   if (
     !object(value) ||
     value.source !== "ai" ||
@@ -189,4 +238,21 @@ export function validateAiCaption(value: unknown, language: string, length?: Cap
     ),
     source: "ai",
   };
+}
+export function validateCreative(value: unknown, metadata: CaptionMetadata): GeneratedCreative {
+  const fail = () => new CaptionError("The AI returned an invalid or incompatible creative. Your previous post is unchanged.","INVALID_AI_RESPONSE",502);
+  if (!object(value) || Object.keys(value).sort().join(",") !== "assetId,caption,creativeReason,hashtags,language,platform") throw fail();
+  const asset = metadata.candidateAssets?.find(candidate => candidate.id === value.assetId);
+  if (!asset || value.platform !== metadata.platform?.toLowerCase() || typeof value.creativeReason !== "string" ||
+      !value.creativeReason.trim() || Array.from(value.creativeReason.trim()).length > 240) throw fail();
+  const caption = validateGenerated({caption:value.caption,hashtags:value.hashtags,language:value.language},metadata.language,metadata.targetCaptionLength);
+  const text = caption.caption.toLowerCase();
+  // Conservative deterministic checks for obvious visual contradictions, not semantic proof.
+  const catPattern = metadata.language.startsWith("fr") ? /\b(?:chat|chats|chaton|miaou)\b/u : metadata.language.startsWith("nl") ? /\b(?:kat|katten|kitten|miauw)\b/u : /\b(?:cat|cats|kitten|katze|katzen|kater|miau)\b/u;
+  if (!asset.ageGroup.startsWith("18–") && catPattern.test(text)) throw fail();
+  if (asset.season !== "winter" && /\b(?:ski|skiing|skifahren|skifahrt|skifahrer|snowboard|snowboarding|piste|pisten|pistes|skien|skiën)\b/u.test(text)) throw fail();
+  return { ...caption, assetId:asset.id, platform:value.platform as GeneratedCreative["platform"],creativeReason:value.creativeReason.trim() };
+}
+export function validateProviderResult(value: unknown, metadata: CaptionMetadata): GeneratedCaption | GeneratedCreative {
+  return metadata.generationMode === "creative" ? validateCreative(value,metadata) : validateGenerated(value,metadata.language,metadata.targetCaptionLength);
 }

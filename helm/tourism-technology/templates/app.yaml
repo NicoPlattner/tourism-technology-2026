@@ -146,8 +146,14 @@ spec:
           configMap:
             name: {{ .Release.Name }}-caption-api
         - name: site
-          configMap:
-            name: {{ .Release.Name }}-site
+          projected:
+            sources:
+              - configMap:
+                  name: {{ .Release.Name }}-site
+              {{- range .Values.staticAssetConfigMaps }}
+              - configMap:
+                  name: {{ . | quote }}
+              {{- end }}
         - name: nginx
           configMap:
             name: {{ .Release.Name }}-nginx

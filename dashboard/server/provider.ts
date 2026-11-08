@@ -1,7 +1,7 @@
 import {
   CaptionError,
   normalizeMetadata,
-  validateGenerated,
+  validateProviderResult,
   type AiCaption,
   type CaptionMetadata,
 } from "../src/campaigns/captions/contracts";
@@ -215,7 +215,7 @@ export class OpenAICompatibleCaptionProvider implements CaptionProvider {
           502,
         );
       }
-      return { ...validateGenerated(result, metadata.language, metadata.targetCaptionLength), source: "ai" };
+      return { ...validateProviderResult(result, metadata), source: "ai" };
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(
@@ -269,7 +269,7 @@ export class N8nCaptionProvider implements CaptionProvider {
           502,
         );
       const result = await response.json();
-      return { ...validateGenerated(result, metadata.language, metadata.targetCaptionLength), source: "ai" };
+      return { ...validateProviderResult(result, metadata), source: "ai" };
     } catch (error) {
       if (controller.signal.aborted)
         throw new CaptionError(

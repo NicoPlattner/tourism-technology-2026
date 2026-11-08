@@ -1,7 +1,7 @@
 import type { SocialPlatform } from "./socialProfile";
 import type { CaptionMetadata } from "./captions/contracts";
 export type SourceMarket = "DE" | "NL" | "BE" | "AT";
-export type TravelPeriod = "q1-2027" | "q2-2027" | "winter-2026-27";
+export type TravelPeriod = "q1-2027" | "q2-2027" | "q3-2027" | "q4-2027" | "winter-2026-27";
 export type CampaignLanguage = "de" | "nl" | "fr";
 export interface DateRange {
   start: string;
@@ -74,6 +74,7 @@ export interface CampaignDataProvider {
 }
 export interface CampaignApproval {
   campaignId: string;
+  assetId?: string;
   approvedAt: string;
   publishingDates: string[];
   caption: string;
@@ -95,5 +96,7 @@ export const TRAVEL_PERIODS: {
 }[] = [
   { id: "q1-2027", label: "Q1 2027", range: "January–March" },
   { id: "q2-2027", label: "Q2 2027", range: "April–June" },
+  { id: "q3-2027", label: "Q3 2027", range: "July–September" },
+  { id: "q4-2027", label: "Q4 2027", range: "October–December" },
   { id: "winter-2026-27", label: "Winter 2026/27", range: "December–March" },
 ];

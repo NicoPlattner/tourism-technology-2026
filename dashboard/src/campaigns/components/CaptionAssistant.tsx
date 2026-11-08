@@ -46,7 +46,7 @@ export default function CaptionAssistant({
           className="link"
           onClick={assistant.regenerate}
           disabled={assistant.pending}
-          title="Generate a new caption with AI"
+          title="Select a library image and generate its caption with AI"
           aria-label={assistant.pending ? "Regenerating caption" : assistant.error ? "Retry" : "Regenerate"}
         >
           <svg className={assistant.pending ? "cp-caption-spinner" : ""} width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -58,10 +58,11 @@ export default function CaptionAssistant({
           Copy caption
         </button>
       </div>
+      {result?.creativeReason && <p className="cp-creative-reason">{result.creativeReason}</p>}
       {assistant.error && (
         <p className="cp-caption-error" role="status">
           {assistant.error}
-          {" Your previous caption is unchanged."}
+          {" Your previous post is unchanged."}
         </p>
       )}
       {copyStatus && (
