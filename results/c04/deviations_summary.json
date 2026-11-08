@@ -9,7 +9,7 @@
    "mean_error": 374.62
   },
   "unexplained_stays": 549,
-  "level_shift_stays": -100686,
+  "level_shift_stays": -100668,
   "forecast_zero_days": 6,
   "actual_on_forecast_zero_days": 371,
   "actual_total": 2350535,
@@ -24,8 +24,8 @@
    "covariance_share": 0.644,
    "mean_error": 270.807
   },
-  "unexplained_stays": 10759,
-  "level_shift_stays": -78646,
+  "unexplained_stays": 10758,
+  "level_shift_stays": -78355,
   "forecast_zero_days": 5,
   "actual_on_forecast_zero_days": 383,
   "actual_total": 404517,
