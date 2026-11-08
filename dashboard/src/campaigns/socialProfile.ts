@@ -1,3 +1,5 @@
+import { seasonalPreview } from "./seasonalPreview";
+import type { CampaignSeason } from "./assetCatalog";
 export type SocialPlatform = "TikTok" | "Instagram" | "Facebook";
 export interface CaptionLength { min: number; max: number; }
 export interface SocialProfile {
@@ -19,7 +21,8 @@ export const SOCIAL_PROFILES: Record<number, SocialProfile> = {
 export function socialProfile(ageMin: number): SocialProfile {
   return structuredClone(SOCIAL_PROFILES[ageMin] || SOCIAL_PROFILES[35]);
 }
-export function demoCaption(language: string, ageMin: number) {
+export function demoCaption(language: string, ageMin: number, season: CampaignSeason = "winter") {
+  if (ageMin === 35) return seasonalPreview(language, season);
   const copy = language === "nl" ? [
     "POV: je hoofd zit al in de Alpen. Tijd voor een bergidee? 🏔️",
     "Nog één tabblad open, maar in gedachten al in de Alpen. Bewaar dit bergidee voor je volgende trip met je favoriete reisgenoot. 🏔️",

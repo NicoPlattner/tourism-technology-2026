@@ -97,3 +97,9 @@ These are API estimates/proxies, not observed bookings for the selected age grou
 Run the C04 API with its documented Python requirements on port 8080. From `dashboard`, run `npm run dev` (normally port 5173), or specify `-- --host 127.0.0.1 --port 5175` with `CAPTION_ALLOWED_ORIGINS=http://127.0.0.1:5175` for the live browser script. `C04_API_URL` can override the Vite proxy target; it defaults to the local service. Keep caption credentials in private environment settings, never in source.
 
 The two `verify-overview-*` scripts deliberately call the live model and are not part of routine automated tests. Set the actual service URL/environment before running them; the AI script requires `C04_API_URL` pointing to a deployed C04 API base URL.
+
+## Caption reliability follow-up
+
+A live 35–44 Instagram case returned 104–107 characters, below its 120–220 limit. Credentials and connectivity were working; validation rejected the completed model output. The OpenAI-compatible adapter now requests one correction with the actual character count and required bounds. Both attempts share the original deadline. A second invalid response is still rejected; no invalid caption is cached or displayed as AI output. Authentication, rate-limit and refusal errors are not retried.
+
+Live reproduction confirmed the previously undersized German summer and Austrian winter cases now validate after correction. A real browser generation for Germany / July / 35–44 returned HTTP 200 and a 144-character caption. New regression tests cover correction feedback, the two-attempt limit, authentication errors and seasonal preview lengths. The generic 35–44 fallback was replaced with curated, image-specific previews for all four seasons in German, Dutch and French. These remain explicitly labeled demo previews.
