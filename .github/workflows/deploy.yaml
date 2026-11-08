@@ -234,6 +234,11 @@ jobs:
           url="https://hackathon.daria-and-nico.com$DEPLOY_PATH"
           if curl --fail --silent --show-error --location --max-time 30 "$url" | grep -Fq 'Demand Radar'; then
             curl -sS --max-time 10 -X POST -H 'Content-Type: application/json' -d '{}' "${url%/}/api/marketing/generate-caption" | grep -Fq 'INVALID_METADATA'
+            for image in helm/tourism-technology/site/*.webp; do
+              [[ -f "$image" ]] || continue
+              curl --fail --silent --show-error --max-time 30 "${url%/}/$(basename "$image")" -o "$RUNNER_TEMP/public-image.webp"
+              cmp "$image" "$RUNNER_TEMP/public-image.webp"
+            done
             printf 'Public URL verified: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
           else
             printf 'Public URL verification failed: %s\n' "$url" >> "$GITHUB_STEP_SUMMARY"
