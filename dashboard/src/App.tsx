@@ -6,18 +6,14 @@ import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
 import { longDate } from './analysis/format';
 import Overview from './views/Overview';
-import Season from './views/Season';
-import Why from './views/Why';
-import Capacity from './views/Capacity';
+import Data from './views/Data';
 import Actions from './views/Actions';
 import Sources from './views/Sources';
 
-export type Tab = 'overview' | 'season' | 'why' | 'capacity' | 'actions' | 'integrations';
+export type Tab = 'overview' | 'data' | 'actions' | 'integrations';
 const TABS: { id: Tab; label: string; hint: string }[] = [
   { id: 'overview', label: 'Overview', hint: 'Overview' },
-  { id: 'season', label: 'Season', hint: 'Day by day' },
-  { id: 'why', label: 'Deviations', hint: 'Gaps to the forecast' },
-  { id: 'capacity', label: 'Beds', hint: 'Bed occupancy per month' },
+  { id: 'data', label: 'Data', hint: 'Season, deviations and beds' },
   { id: 'actions', label: 'Actions', hint: 'Campaigns & publishing' },
   { id: 'integrations', label: 'Integrations', hint: 'Google Analytics and data sources' },
 ];
@@ -25,12 +21,15 @@ const TABS: { id: Tab; label: string; hint: string }[] = [
 // Official Ischgl logo, loaded from ischgl.com (the asset stays with its owner).
 const LOGO = 'https://www.ischgl.com/007_BERGBAHNEN/001_SSAG/shopski/ischgl_ohne_r.png';
 
-// #data is the tab's old address; keep old links working.
-const readTab = (): Tab => (location.hash === '#data' ? 'integrations' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
+// Existing analytics links now open their section on the combined Data page.
+const readTab = (): Tab => (['#season', '#why', '#capacity'].includes(location.hash) ? 'data' : TABS.find((t) => `#${t.id}` === location.hash)?.id ?? 'overview');
 
 export default function App() {
   const campaignState = useCampaigns();
   const [tab, setTab] = useState<Tab>(readTab);
+  useEffect(() => {
+    if (tab === 'data' && ['#season', '#why', '#capacity'].includes(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  }, [tab]);
   const [ga, setGa] = useState<GaState | null>(null);
   const [gaError, setGaError] = useState<string | undefined>();
   const [live, setLive] = useState<Awaited<ReturnType<typeof refreshOpenData>> | null>(null);
@@ -87,9 +86,7 @@ export default function App() {
 
       <main>
         {tab === 'overview' && <Overview {...props} />}
-        {tab === 'season' && <Season {...props} />}
-        {tab === 'why' && <Why {...props} />}
-        {tab === 'capacity' && <Capacity {...props} />}
+        {tab === 'data' && <Data {...props} />}
         {tab === 'actions' && <Actions {...props} />}
         {tab === 'integrations' && <Sources {...props} ga={ga} setGa={setGa} gaError={gaError} />}
       </main>

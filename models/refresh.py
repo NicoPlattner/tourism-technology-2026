@@ -66,6 +66,15 @@ def setup():
                 shutil.copytree(src, res / part, dirs_exist_ok=True)
     link(ROOT / "results", res)
     (WORK / "snapshots").mkdir(parents=True, exist_ok=True)
+    seed = ROOT / "pipeline" / "c04" / "seed"  # derived outputs of the TTF-data steps (fallback)
+    gui = ROOT / "out" / "gui"
+    gui.mkdir(parents=True, exist_ok=True)
+    for f in seed.glob("*.parquet"):
+        if not (gui / f.name).exists():
+            shutil.copy(f, gui / f.name)
+
+
+WARNINGS: list[str] = []  # optional steps that failed (shown in /meta -> freshness.refresh)
 
 
 def run(script: str, *args, required=True, timeout=1800) -> bool:
@@ -75,17 +84,24 @@ def run(script: str, *args, required=True, timeout=1800) -> bool:
                        capture_output=True, text=True)
     tail = (p.stdout + p.stderr).strip().splitlines()[-6:]
     log(f"  exit {p.returncode} after {time.time() - t:.0f}s", *(("\n    " + x) for x in tail))
-    if p.returncode != 0 and required:
-        raise RuntimeError(f"{script} failed")
+    if p.returncode != 0:
+        msg = f"{script} {' '.join(args)}: " + " | ".join(tail)[-600:]
+        if required:
+            raise RuntimeError(msg)
+        WARNINGS.append(msg)
     return p.returncode == 0
 
 
 def run_py(code: str, label: str, required=True) -> bool:
     log("run", label)
     p = subprocess.run([PY, "-c", code], cwd=ROOT / "models", capture_output=True, text=True, timeout=1800)
-    log(f"  exit {p.returncode}", *(("\n    " + x) for x in (p.stdout + p.stderr).strip().splitlines()[-4:]))
-    if p.returncode != 0 and required:
-        raise RuntimeError(f"{label} failed")
+    tail = (p.stdout + p.stderr).strip().splitlines()[-6:]
+    log(f"  exit {p.returncode}", *(("\n    " + x) for x in tail))
+    if p.returncode != 0:
+        msg = f"{label}: " + " | ".join(tail)[-600:]
+        if required:
+            raise RuntimeError(msg)
+        WARNINGS.append(msg)
     return p.returncode == 0
 
 
@@ -155,9 +171,25 @@ def prepare(mode: str):
         run("data/build_tirol_daily.py")
 
 
+NEEDS = {"market_split": "partner", "m4_leadtime": "partner", "gui_outputs": "cards"}
+
+
+def available() -> dict:
+    raw = ROOT / "data" / "raw"
+    if os.environ.get("REFRESH_SIMULATE_NO_TTF"):  # test switch: behave as if the TTF Data Space failed
+        return {"partner": False, "cards": False}
+    return {"partner": any((raw / "partner").glob("overnight_stays_*.csv")),
+            "cards": any((raw / "other" / "guestcard_usage_sportwelt").glob("*.csv"))}
+
+
 def models(state: dict) -> list[str]:
-    ran = []
+    ran, have = [], available()
     for name, how, inputs, output in MODELS:
+        need = NEEDS.get(name)
+        if need and not have[need]:
+            WARNINGS.append(f"{name} skipped: no {'TVB' if need == 'partner' else 'guest-card'} data from the "
+                            "TTF Data Space; its last outputs are kept")
+            continue
         h = digest(inputs)
         if state.get(name) == h and (ROOT / output).exists():
             continue
@@ -167,9 +199,13 @@ def models(state: dict) -> list[str]:
             run_py(how, name)
         state[name] = h
         ran.append(name)
-    run("models/forecast_winter.py")   # daily inputs (snow, weather, bookings) change every run
     run("models/export_gui.py")        # GUI tables + push and pull reasons
-    run("models/export_challenge.py")  # forecast, deviations, warnings, actions, manifest
+    if have["partner"]:
+        run("models/forecast_winter.py")   # daily inputs (snow, weather, bookings) change every run
+        run("models/export_challenge.py")  # forecast, deviations, warnings, actions, manifest
+    else:
+        WARNINGS.append("Paznaun outlook not rebuilt (no TVB data): the last tables are kept")
+        run_py("import export_challenge as e; e.write_manifest()", "manifest", required=False)
     return ran
 
 
@@ -206,7 +242,7 @@ def publish(mode: str, ran: list[str]) -> str:
         shutil.copytree((ROOT / "results" / part).resolve(), stage / part)
     man_p = stage / "c04" / "manifest.json"
     man = json.loads(man_p.read_text()) if man_p.exists() else {}
-    man.update(refresh_mode=mode, models_rerun=ran, snapshot=ts)
+    man.update(refresh_mode=mode, models_rerun=ran, built_snapshot=ts)  # the API adds "snapshot" = served one
     man_p.write_text(json.dumps(man, ensure_ascii=False, indent=1))
     validate(stage, previous)
     final = snaps / ts
@@ -239,6 +275,11 @@ def main():
         mode = "full" if not state or not (WORK / "snapshots" / "current").exists() else "fast"
     has_key = bool(os.environ.get("TTF_SPACE_API_KEY"))
     log(f"refresh {mode}; key {'present' if has_key else 'missing'}; work {WORK}")
+    started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    status_p = WORK / "snapshots" / "status.json"  # read by the API (/meta): last run, also when it failed
+    status = {"mode": mode, "started": started, "running": True, "ttf_key": has_key}
+    old = json.loads(status_p.read_text()) if status_p.exists() else {}
+    status_p.write_text(json.dumps({**old, "current_run": status}, indent=1))
     try:
         fetch(mode, has_key)
         prepare(mode)
@@ -246,8 +287,15 @@ def main():
         ts = publish(mode, ran)
     except Exception as e:  # keep the last good snapshot
         log("FAILED:", e)
+        status.update(running=False, ok=False, finished=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+                      error=str(e)[-1500:], warnings=WARNINGS)
+        status_p.write_text(json.dumps({**old, "current_run": None, "last_run": status,
+                                        "last_failure": status}, indent=1))
         sys.exit(1)
     state_p.write_text(json.dumps(state, indent=1))
+    status.update(running=False, ok=True, finished=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+                  snapshot=ts, models_rerun=ran, warnings=WARNINGS)
+    status_p.write_text(json.dumps({**old, "current_run": None, "last_run": status, "last_success": status}, indent=1))
     log(f"published snapshot {ts}; models re-run: {ran or 'none'}")
 
 
