@@ -4,7 +4,6 @@ import { buildDataset, refreshOpenData, SAMPLE } from './data/sources';
 import { gaApi, type GaState } from './data/googleAnalytics';
 import type { Dataset } from './data/types';
 import { accuracy, actions, capacityOutlook, episodes, quality, seasons, weeksVsLastYear } from './analysis/insights';
-import { longDate } from './analysis/format';
 import Overview from './views/Overview';
 import Data from './views/Data';
 import Actions from './views/Actions';
@@ -60,13 +59,6 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="metabar">
-        <span className="meta-l">Demand Radar · TVB Paznaun-Ischgl</span>
-        <span className="meta-r">
-          {ds.sampleData && tab !== 'data' && <button className="sample" onClick={() => go('integrations')} title="Stays and beds are sample data; forecast, weather, holidays and events are open data">Sample data</button>}
-          <span>{tab === 'data' ? 'Paznaun-Ischgl · data & insights' : longDate(ds.today)}</span>
-        </span>
-      </div>
       <header className="top">
         <a className="brand" href="#overview" onClick={(e) => { e.preventDefault(); go('overview'); }} aria-label="Ischgl — Demand Radar, overview">
           {logoOk ? (
