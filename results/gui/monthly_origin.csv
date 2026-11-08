@@ -4164,17 +4164,17 @@ Kärnten,W96-2,25,Netherlands,2026-10,1801,9094,7544,10962,5.05,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2026-11,359,1152,996,1334,3.21,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2026-12,4976,26261,21914,31471,5.28,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-01,7633,42523,34879,51843,5.57,False,M1 model,A
-Kärnten,W96-2,25,Netherlands,2027-02,9135,53436,41761,68375,5.85,False,M1 model,A
-Kärnten,W96-2,25,Netherlands,2027-03,2097,12103,8966,16337,5.77,False,M1 model,A
+Kärnten,W96-2,25,Netherlands,2027-02,8933,52383,40938,67028,5.86,False,M1 model,A
+Kärnten,W96-2,25,Netherlands,2027-03,1824,10424,7722,14072,5.71,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-04,1962,7003,5531,8867,3.57,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-05,6161,23393,19802,27635,3.8,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-06,17328,87414,76345,100088,5.04,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-07,52281,272905,238454,312332,5.22,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-08,40724,291774,258234,329671,7.16,False,M1 model,A
 Kärnten,W96-2,25,Netherlands,2027-09,10695,53035,45670,61588,4.96,False,M1 model,A
-Kärnten,W96-2,25,Netherlands,2027-10,1772,8949,7053,11326,5.05,True,carried forward: M1 one year earlier x forecast growth,C
-Kärnten,W96-2,25,Netherlands,2027-11,353,1134,931,1378,3.21,True,carried forward: M1 one year earlier x forecast growth,C
-Kärnten,W96-2,25,Netherlands,2027-12,4897,25842,20485,32517,5.28,True,carried forward: M1 one year earlier x forecast growth,C
+Kärnten,W96-2,25,Netherlands,2027-10,1767,8921,7031,11291,5.05,True,carried forward: M1 one year earlier x forecast growth,C
+Kärnten,W96-2,25,Netherlands,2027-11,352,1130,928,1374,3.21,True,carried forward: M1 one year earlier x forecast growth,C
+Kärnten,W96-2,25,Netherlands,2027-12,4882,25761,20422,32416,5.28,True,carried forward: M1 one year earlier x forecast growth,C
 Kärnten,W96-2,26,Norway,2024-01,40,127,127,127,3.18,False,observed (Statistik Austria),A
 Kärnten,W96-2,26,Norway,2024-02,119,364,364,364,3.06,False,observed (Statistik Austria),A
 Kärnten,W96-2,26,Norway,2024-03,47,163,163,163,3.47,False,observed (Statistik Austria),A
@@ -7524,17 +7524,17 @@ Niederösterreich,W96-3,25,Netherlands,2026-10,1659,3904,2600,5862,2.35,False,M1
 Niederösterreich,W96-3,25,Netherlands,2026-11,1262,2615,2009,3404,2.07,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2026-12,1441,2998,2185,4114,2.08,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-01,850,1618,1152,2273,1.9,False,M1 model,B
-Niederösterreich,W96-3,25,Netherlands,2027-02,878,1779,1263,2505,2.03,False,M1 model,B
-Niederösterreich,W96-3,25,Netherlands,2027-03,1280,2321,1583,3403,1.81,False,M1 model,B
+Niederösterreich,W96-3,25,Netherlands,2027-02,868,1759,1249,2477,2.03,False,M1 model,B
+Niederösterreich,W96-3,25,Netherlands,2027-03,1179,2136,1457,3132,1.81,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-04,1845,4130,2630,6484,2.24,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-05,3290,8038,5467,11819,2.44,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-06,4285,10397,7269,14872,2.43,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-07,5186,13020,9176,18472,2.51,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-08,5328,14384,10343,20003,2.7,False,M1 model,B
 Niederösterreich,W96-3,25,Netherlands,2027-09,3439,8446,5614,12706,2.46,False,M1 model,B
-Niederösterreich,W96-3,25,Netherlands,2027-10,1682,3959,2505,6241,2.35,True,carried forward: M1 one year earlier x forecast growth,C
-Niederösterreich,W96-3,25,Netherlands,2027-11,1280,2652,1935,3624,2.07,True,carried forward: M1 one year earlier x forecast growth,C
-Niederösterreich,W96-3,25,Netherlands,2027-12,1461,3041,2105,4380,2.08,True,carried forward: M1 one year earlier x forecast growth,C
+Niederösterreich,W96-3,25,Netherlands,2027-10,1677,3948,2498,6224,2.35,True,carried forward: M1 one year earlier x forecast growth,C
+Niederösterreich,W96-3,25,Netherlands,2027-11,1276,2644,1930,3614,2.07,True,carried forward: M1 one year earlier x forecast growth,C
+Niederösterreich,W96-3,25,Netherlands,2027-12,1457,3032,2100,4368,2.08,True,carried forward: M1 one year earlier x forecast growth,C
 Niederösterreich,W96-3,26,Norway,2024-01,163,213,213,213,1.31,False,observed (Statistik Austria),A
 Niederösterreich,W96-3,26,Norway,2024-02,107,161,161,161,1.5,False,observed (Statistik Austria),A
 Niederösterreich,W96-3,26,Norway,2024-03,145,295,295,295,2.03,False,observed (Statistik Austria),A
@@ -10884,17 +10884,17 @@ Oberösterreich,W96-4,25,Netherlands,2026-10,3312,6892,4590,10348,2.08,False,M1 
 Oberösterreich,W96-4,25,Netherlands,2026-11,1744,3442,2644,4480,1.97,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2026-12,2799,6571,4789,9015,2.35,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-01,1641,5115,3641,7186,3.12,False,M1 model,B
-Oberösterreich,W96-4,25,Netherlands,2027-02,2895,12738,9045,17938,4.4,False,M1 model,B
-Oberösterreich,W96-4,25,Netherlands,2027-03,1719,4653,3174,6822,2.71,False,M1 model,B
+Oberösterreich,W96-4,25,Netherlands,2027-02,2861,12496,8873,17597,4.37,False,M1 model,B
+Oberösterreich,W96-4,25,Netherlands,2027-03,1520,4066,2773,5961,2.68,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-04,3198,6886,4385,10812,2.15,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-05,4874,10204,6940,15004,2.09,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-06,7285,16620,11620,23773,2.28,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-07,13753,32181,22682,45659,2.34,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-08,13339,36629,26340,50938,2.75,False,M1 model,B
 Oberösterreich,W96-4,25,Netherlands,2027-09,5553,14240,9466,21422,2.56,False,M1 model,B
-Oberösterreich,W96-4,25,Netherlands,2027-10,3296,6859,4340,10813,2.08,True,carried forward: M1 one year earlier x forecast growth,C
-Oberösterreich,W96-4,25,Netherlands,2027-11,1736,3425,2500,4681,1.97,True,carried forward: M1 one year earlier x forecast growth,C
-Oberösterreich,W96-4,25,Netherlands,2027-12,2785,6539,4528,9419,2.35,True,carried forward: M1 one year earlier x forecast growth,C
+Oberösterreich,W96-4,25,Netherlands,2027-10,3279,6822,4317,10756,2.08,True,carried forward: M1 one year earlier x forecast growth,C
+Oberösterreich,W96-4,25,Netherlands,2027-11,1726,3407,2487,4656,1.97,True,carried forward: M1 one year earlier x forecast growth,C
+Oberösterreich,W96-4,25,Netherlands,2027-12,2770,6504,4504,9369,2.35,True,carried forward: M1 one year earlier x forecast growth,C
 Oberösterreich,W96-4,26,Norway,2024-01,78,189,189,189,2.42,False,observed (Statistik Austria),A
 Oberösterreich,W96-4,26,Norway,2024-02,70,159,159,159,2.27,False,observed (Statistik Austria),A
 Oberösterreich,W96-4,26,Norway,2024-03,114,261,261,261,2.29,False,observed (Statistik Austria),A
@@ -14244,17 +14244,17 @@ Salzburg,W96-5,25,Netherlands,2026-10,6941,30408,25227,36653,4.38,False,M1 model
 Salzburg,W96-5,25,Netherlands,2026-11,3537,14216,12285,16452,4.02,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2026-12,68878,377341,314874,452201,5.48,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-01,91622,490226,402096,597672,5.35,False,M1 model,A
-Salzburg,W96-5,25,Netherlands,2027-02,149627,891788,696943,1141107,5.96,False,M1 model,A
-Salzburg,W96-5,25,Netherlands,2027-03,68703,382804,283581,516745,5.57,False,M1 model,A
+Salzburg,W96-5,25,Netherlands,2027-02,147964,874843,683699,1119424,5.91,False,M1 model,A
+Salzburg,W96-5,25,Netherlands,2027-03,59549,324937,240713,438631,5.46,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-04,8656,33626,26558,42575,3.88,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-05,10311,38873,32906,45922,3.77,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-06,22110,86890,75887,99488,3.93,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-07,68130,271949,237620,311239,3.99,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-08,63649,335485,296919,379059,5.27,False,M1 model,A
 Salzburg,W96-5,25,Netherlands,2027-09,18762,78240,67375,90857,4.17,False,M1 model,A
-Salzburg,W96-5,25,Netherlands,2027-10,7141,31283,24655,39593,4.38,True,carried forward: M1 one year earlier x forecast growth,C
-Salzburg,W96-5,25,Netherlands,2027-11,3638,14625,12006,17772,4.02,True,carried forward: M1 one year earlier x forecast growth,C
-Salzburg,W96-5,25,Netherlands,2027-12,70859,388197,307737,488471,5.48,True,carried forward: M1 one year earlier x forecast growth,C
+Salzburg,W96-5,25,Netherlands,2027-10,6965,30511,24047,38616,4.38,True,carried forward: M1 one year earlier x forecast growth,C
+Salzburg,W96-5,25,Netherlands,2027-11,3549,14265,11710,17333,4.02,True,carried forward: M1 one year earlier x forecast growth,C
+Salzburg,W96-5,25,Netherlands,2027-12,69111,378618,300143,476418,5.48,True,carried forward: M1 one year earlier x forecast growth,C
 Salzburg,W96-5,26,Norway,2024-01,1685,7264,7264,7264,4.31,False,observed (Statistik Austria),A
 Salzburg,W96-5,26,Norway,2024-02,2742,14300,14300,14300,5.22,False,observed (Statistik Austria),A
 Salzburg,W96-5,26,Norway,2024-03,1810,8387,8387,8387,4.63,False,observed (Statistik Austria),A
@@ -17604,17 +17604,17 @@ Steiermark,W96-6,25,Netherlands,2026-10,1887,5742,3824,8621,3.04,False,M1 model,
 Steiermark,W96-6,25,Netherlands,2026-11,799,1874,1440,2439,2.34,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2026-12,4993,25319,18454,34736,5.07,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-01,3762,20950,14912,29432,5.57,False,M1 model,B
-Steiermark,W96-6,25,Netherlands,2027-02,10438,61681,43799,86863,5.91,False,M1 model,B
-Steiermark,W96-6,25,Netherlands,2027-03,2899,15205,10370,22293,5.25,False,M1 model,B
+Steiermark,W96-6,25,Netherlands,2027-02,10296,60750,43138,85552,5.9,False,M1 model,B
+Steiermark,W96-6,25,Netherlands,2027-03,2535,12962,8841,19005,5.11,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-04,1987,5321,3388,8355,2.68,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-05,3135,8711,5924,12808,2.78,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-06,20157,68471,47871,97936,3.4,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-07,17682,62435,44005,88583,3.53,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-08,16573,78430,56399,109068,4.73,False,M1 model,B
 Steiermark,W96-6,25,Netherlands,2027-09,5158,16135,10725,24273,3.13,False,M1 model,B
-Steiermark,W96-6,25,Netherlands,2027-10,1991,6058,3833,9550,3.04,True,carried forward: M1 one year earlier x forecast growth,C
-Steiermark,W96-6,25,Netherlands,2027-11,843,1977,1443,2702,2.34,True,carried forward: M1 one year earlier x forecast growth,C
-Steiermark,W96-6,25,Netherlands,2027-12,5268,26712,18497,38481,5.07,True,carried forward: M1 one year earlier x forecast growth,C
+Steiermark,W96-6,25,Netherlands,2027-10,1974,6006,3800,9468,3.04,True,carried forward: M1 one year earlier x forecast growth,C
+Steiermark,W96-6,25,Netherlands,2027-11,836,1960,1431,2679,2.34,True,carried forward: M1 one year earlier x forecast growth,C
+Steiermark,W96-6,25,Netherlands,2027-12,5223,26483,18338,38151,5.07,True,carried forward: M1 one year earlier x forecast growth,C
 Steiermark,W96-6,26,Norway,2024-01,409,2034,2034,2034,4.97,False,observed (Statistik Austria),A
 Steiermark,W96-6,26,Norway,2024-02,372,1802,1802,1802,4.84,False,observed (Statistik Austria),A
 Steiermark,W96-6,26,Norway,2024-03,242,884,884,884,3.65,False,observed (Statistik Austria),A
@@ -20964,17 +20964,17 @@ Tirol,W96-7,25,Netherlands,2026-10,14773,64007,53101,77152,4.33,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2026-11,6811,24868,21489,28778,3.65,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2026-12,128763,688586,574594,825193,5.35,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-01,167915,861814,706882,1050702,5.13,False,M1 model,A
-Tirol,W96-7,25,Netherlands,2027-02,274991,1603276,1252978,2051506,5.83,False,M1 model,A
-Tirol,W96-7,25,Netherlands,2027-03,151373,804038,595630,1085365,5.31,False,M1 model,A
+Tirol,W96-7,25,Netherlands,2027-02,271549,1570883,1227663,2010057,5.78,False,M1 model,A
+Tirol,W96-7,25,Netherlands,2027-03,131962,687942,509627,928648,5.21,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-04,23594,83047,65591,105149,3.52,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-05,24138,78761,66671,93043,3.26,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-06,59989,225396,196854,258076,3.76,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-07,153043,586290,512279,670994,3.83,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-08,144872,691680,612169,781519,4.77,False,M1 model,A
 Tirol,W96-7,25,Netherlands,2027-09,59059,227973,196315,264738,3.86,False,M1 model,A
-Tirol,W96-7,25,Netherlands,2027-10,15169,65724,51799,83183,4.33,True,carried forward: M1 one year earlier x forecast growth,C
-Tirol,W96-7,25,Netherlands,2027-11,6994,25535,20962,31028,3.65,True,carried forward: M1 one year earlier x forecast growth,C
-Tirol,W96-7,25,Netherlands,2027-12,132218,707059,560509,889697,5.35,True,carried forward: M1 one year earlier x forecast growth,C
+Tirol,W96-7,25,Netherlands,2027-10,14790,64081,50504,81104,4.33,True,carried forward: M1 one year earlier x forecast growth,C
+Tirol,W96-7,25,Netherlands,2027-11,6819,24896,20438,30252,3.65,True,carried forward: M1 one year earlier x forecast growth,C
+Tirol,W96-7,25,Netherlands,2027-12,128913,689384,546497,867456,5.35,True,carried forward: M1 one year earlier x forecast growth,C
 Tirol,W96-7,26,Norway,2024-01,2385,9767,9767,9767,4.1,False,observed (Statistik Austria),A
 Tirol,W96-7,26,Norway,2024-02,4492,20643,20643,20643,4.6,False,observed (Statistik Austria),A
 Tirol,W96-7,26,Norway,2024-03,3049,13531,13531,13531,4.44,False,observed (Statistik Austria),A
@@ -24324,17 +24324,17 @@ Vorarlberg,W96-8,25,Netherlands,2026-10,2847,14054,11659,16940,4.94,False,M1 mod
 Vorarlberg,W96-8,25,Netherlands,2026-11,505,1524,1317,1763,3.02,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2026-12,17671,92764,77408,111168,5.25,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-01,18202,95021,77939,115847,5.22,False,M1 model,A
-Vorarlberg,W96-8,25,Netherlands,2027-02,46014,265762,207696,340062,5.78,False,M1 model,A
-Vorarlberg,W96-8,25,Netherlands,2027-03,15501,87037,64477,117491,5.61,False,M1 model,A
+Vorarlberg,W96-8,25,Netherlands,2027-02,45379,259728,202980,332340,5.72,False,M1 model,A
+Vorarlberg,W96-8,25,Netherlands,2027-03,13598,74279,55026,100269,5.46,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-04,2740,9338,7376,11824,3.41,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-05,3459,12213,10338,14428,3.53,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-06,9594,42569,37178,48741,4.44,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-07,19221,96912,84678,110913,5.04,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-08,21701,123178,109019,139177,5.68,False,M1 model,A
 Vorarlberg,W96-8,25,Netherlands,2027-09,7938,35834,30857,41612,4.51,False,M1 model,A
-Vorarlberg,W96-8,25,Netherlands,2027-10,2933,14480,11412,18326,4.94,True,carried forward: M1 one year earlier x forecast growth,C
-Vorarlberg,W96-8,25,Netherlands,2027-11,520,1570,1289,1908,3.02,True,carried forward: M1 one year earlier x forecast growth,C
-Vorarlberg,W96-8,25,Netherlands,2027-12,18206,95577,75767,120265,5.25,True,carried forward: M1 one year earlier x forecast growth,C
+Vorarlberg,W96-8,25,Netherlands,2027-10,2871,14169,11167,17933,4.94,True,carried forward: M1 one year earlier x forecast growth,C
+Vorarlberg,W96-8,25,Netherlands,2027-11,509,1536,1261,1867,3.02,True,carried forward: M1 one year earlier x forecast growth,C
+Vorarlberg,W96-8,25,Netherlands,2027-12,17816,93527,74142,117685,5.25,True,carried forward: M1 one year earlier x forecast growth,C
 Vorarlberg,W96-8,26,Norway,2024-01,237,1107,1107,1107,4.67,False,observed (Statistik Austria),A
 Vorarlberg,W96-8,26,Norway,2024-02,753,3505,3505,3505,4.65,False,observed (Statistik Austria),A
 Vorarlberg,W96-8,26,Norway,2024-03,446,2035,2035,2035,4.56,False,observed (Statistik Austria),A
@@ -27684,17 +27684,17 @@ Wien,W96-9,25,Netherlands,2026-10,10638,27148,18081,40760,2.55,False,M1 model,B
 Wien,W96-9,25,Netherlands,2026-11,9822,23857,18330,31052,2.43,False,M1 model,B
 Wien,W96-9,25,Netherlands,2026-12,12646,34507,25152,47343,2.73,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-01,5768,14382,10237,20206,2.49,False,M1 model,B
-Wien,W96-9,25,Netherlands,2027-02,6893,17937,12737,25260,2.6,False,M1 model,B
-Wien,W96-9,25,Netherlands,2027-03,8668,21619,14745,31697,2.49,False,M1 model,B
+Wien,W96-9,25,Netherlands,2027-02,6863,17755,12608,25004,2.59,False,M1 model,B
+Wien,W96-9,25,Netherlands,2027-03,8074,19827,13523,29070,2.46,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-04,11691,31300,19933,49147,2.68,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-05,12503,34127,23210,50179,2.73,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-06,12018,31073,21724,44444,2.59,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-07,15118,38107,26858,54066,2.52,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-08,16570,41609,29921,57864,2.51,False,M1 model,B
 Wien,W96-9,25,Netherlands,2027-09,12179,32093,21333,48279,2.63,False,M1 model,B
-Wien,W96-9,25,Netherlands,2027-10,10963,27979,17703,44109,2.55,True,carried forward: M1 one year earlier x forecast growth,C
-Wien,W96-9,25,Netherlands,2027-11,10123,24588,17946,33602,2.43,True,carried forward: M1 one year earlier x forecast growth,C
-Wien,W96-9,25,Netherlands,2027-12,13033,35564,24626,51232,2.73,True,carried forward: M1 one year earlier x forecast growth,C
+Wien,W96-9,25,Netherlands,2027-10,10901,27820,17603,43858,2.55,True,carried forward: M1 one year earlier x forecast growth,C
+Wien,W96-9,25,Netherlands,2027-11,10065,24448,17844,33412,2.43,True,carried forward: M1 one year earlier x forecast growth,C
+Wien,W96-9,25,Netherlands,2027-12,12959,35362,24486,50941,2.73,True,carried forward: M1 one year earlier x forecast growth,C
 Wien,W96-9,26,Norway,2024-01,740,1665,1665,1665,2.25,False,observed (Statistik Austria),A
 Wien,W96-9,26,Norway,2024-02,1045,2516,2516,2516,2.41,False,observed (Statistik Austria),A
 Wien,W96-9,26,Norway,2024-03,1552,4119,4119,4119,2.65,False,observed (Statistik Austria),A
@@ -37092,17 +37092,17 @@ Paznaun-Ischgl,PAZNAUN,25,Netherlands,2026-10,340,1472,1221,1775,4.33,True,M1 mo
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2026-11,599,2188,1891,2532,3.65,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2026-12,11331,60596,50564,72617,5.35,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-01,14776,75840,62206,92462,5.13,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
-Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-02,24199,141088,110262,180533,5.83,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
-Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-03,13321,70755,52415,95512,5.31,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
+Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-02,23896,138238,108034,176885,5.78,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
+Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-03,11613,60539,44847,81721,5.21,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-04,2076,7308,5772,9253,3.52,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-05,555,1812,1533,2140,3.26,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-06,1380,5184,4528,5936,3.76,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-07,3520,13485,11782,15433,3.83,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-08,3332,15909,14080,17975,4.77,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-09,1358,5243,4515,6089,3.86,True,M1 model x Paznaun share of Tirol nights (Landesstatistik Tirol),C
-Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-10,349,1512,1191,1913,4.33,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
-Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-11,615,2247,1845,2730,3.65,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
-Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-12,11635,62221,49325,78293,5.35,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
+Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-10,340,1474,1162,1865,4.33,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
+Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-11,600,2191,1799,2662,3.65,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
+Paznaun-Ischgl,PAZNAUN,25,Netherlands,2027-12,11344,60666,48092,76336,5.35,True,carried forward: M1 one year earlier x forecast growth x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,26,Norway,2024-01,266,1090,1090,1090,4.1,True,observed (Statistik Austria) x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,26,Norway,2024-02,501,2304,2304,2304,4.6,True,observed (Statistik Austria) x Paznaun share of Tirol nights (Landesstatistik Tirol),C
 Paznaun-Ischgl,PAZNAUN,26,Norway,2024-03,340,1510,1510,1510,4.44,True,observed (Statistik Austria) x Paznaun share of Tirol nights (Landesstatistik Tirol),C

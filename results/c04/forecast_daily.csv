@@ -1,182 +1,182 @@
 date,forecast_ours,p10,p90,forecast_official_tr53,capacity_est,utilisation,events,flags,capacity_basis,spare_beds,grade
 2026-11-01,483,284,821,173,1468,0.329,,tvb_forecast_outside_our_80pct_band,same weekday last year,985,B
-2026-11-02,1121,659,1906,432,1280,0.876,,tvb_forecast_outside_our_80pct_band,same weekday last year,159,B
-2026-11-03,620,365,1055,559,1292,0.48,,tvb_forecast_outside_our_80pct_band,same weekday last year,672,B
-2026-11-04,624,367,1061,750,1277,0.489,,tvb_forecast_outside_our_80pct_band,same weekday last year,653,B
-2026-11-05,635,374,1080,1143,1626,0.391,,tvb_forecast_outside_our_80pct_band,same weekday last year,991,B
-2026-11-06,740,435,1258,1015,1610,0.46,,tvb_forecast_zero,same weekday last year,870,B
-2026-11-07,584,343,993,1263,1595,0.366,,tvb_forecast_zero,same weekday last year,1011,B
-2026-11-08,458,269,778,1065,1553,0.295,,tvb_forecast_zero,same weekday last year,1095,B
-2026-11-09,420,247,713,0,1574,0.267,,tvb_forecast_zero,same weekday last year,1154,B
-2026-11-10,421,248,716,160,1588,0.265,,tvb_forecast_outside_our_80pct_band,same weekday last year,1167,B
-2026-11-11,428,252,727,385,1496,0.286,,tvb_forecast_zero,same weekday last year,1068,B
-2026-11-12,438,258,745,811,1543,0.284,,tvb_forecast_zero,same weekday last year,1105,B
-2026-11-13,510,300,867,716,1619,0.315,,,same weekday last year,1109,B
-2026-11-14,531,312,903,997,1761,0.302,,,same weekday last year,1230,B
-2026-11-15,403,237,685,830,1825,0.221,,tvb_forecast_outside_our_80pct_band,same weekday last year,1422,B
-2026-11-16,414,244,704,431,1885,0.22,,tvb_forecast_outside_our_80pct_band,same weekday last year,1471,B
-2026-11-17,398,234,676,621,1982,0.201,,tvb_forecast_outside_our_80pct_band,same weekday last year,1584,B
-2026-11-18,528,311,898,875,1981,0.267,,tvb_forecast_outside_our_80pct_band,same weekday last year,1453,B
-2026-11-19,450,264,765,1329,2097,0.215,,tvb_forecast_outside_our_80pct_band,same weekday last year,1647,B
-2026-11-20,522,307,888,1260,2186,0.239,,tvb_forecast_outside_our_80pct_band,same weekday last year,1664,B
-2026-11-21,556,327,945,1566,2339,0.238,,tvb_forecast_outside_our_80pct_band,same weekday last year,1783,B
-2026-11-22,429,252,729,1423,2419,0.177,,,same weekday last year,1990,B
-2026-11-23,430,253,731,712,2485,0.173,,,same weekday last year,2055,B
-2026-11-24,458,270,779,3272,2587,0.177,,tvb_forecast_outside_our_80pct_band,same weekday last year,2129,B
-2026-11-25,1155,680,1964,3543,7460,0.155,,tvb_forecast_outside_our_80pct_band,same weekday last year,6305,B
-2026-11-26,5524,3249,9391,4136,12912,0.428,event,,same weekday last year,7388,B
-2026-11-27,7812,4595,13282,6608,15061,0.519,,,same weekday last year,7249,B
-2026-11-28,8821,5188,14997,6713,15639,0.564,event,,same weekday last year,6818,B
-2026-11-29,4874,2867,8287,4737,13459,0.362,,,same weekday last year,8585,B
-2026-11-30,3186,1874,5417,5811,15093,0.211,,,same weekday last year,11907,B
-2026-12-01,4993,2937,8489,5505,15021,0.332,,,same weekday last year,10028,B
-2026-12-02,5866,3450,9973,5852,15061,0.389,,,same weekday last year,9195,B
-2026-12-03,7921,4659,13466,6449,16255,0.487,event,,same weekday last year,8334,B
-2026-12-04,10943,6437,18605,9629,17034,0.642,event,,same weekday last year,6091,B
-2026-12-05,11840,6964,20131,10022,17018,0.696,event,,same weekday last year,5178,B
-2026-12-06,7436,4373,12642,9826,16416,0.453,,,same weekday last year,8980,B
-2026-12-07,6544,3849,11126,7918,16188,0.404,,,same weekday last year,9644,B
-2026-12-08,6178,3634,10503,8192,15987,0.386,,,same weekday last year,9809,B
-2026-12-09,7170,4217,12191,7706,15918,0.45,,,same weekday last year,8748,B
-2026-12-10,9811,5771,16681,8266,16946,0.579,event,,same weekday last year,7135,B
-2026-12-11,12649,7440,21506,11406,17761,0.712,event,,same weekday last year,5112,B
-2026-12-12,13745,8084,23368,11752,18213,0.755,event,,same weekday last year,4468,B
-2026-12-13,9337,5492,15874,11507,17277,0.54,,,same weekday last year,7940,B
-2026-12-14,9883,5813,16804,9544,17670,0.559,,,same weekday last year,7787,B
-2026-12-15,9609,5652,16337,9730,17703,0.543,,,same weekday last year,8094,B
-2026-12-16,10029,5899,17050,9982,17720,0.566,,,same weekday last year,7691,B
-2026-12-17,11471,6747,19502,10476,17982,0.638,,,same weekday last year,6511,B
-2026-12-18,13165,7743,22382,13545,18595,0.708,,,same weekday last year,5430,B
-2026-12-19,18733,11019,31850,14568,21206,0.883,event,,same weekday last year,2473,B
-2026-12-20,17700,10411,30094,14245,21381,0.828,event,,same weekday last year,3681,B
-2026-12-21,16315,9596,27739,14204,21406,0.762,,,same weekday last year,5091,B
-2026-12-22,16114,9478,27397,14305,21134,0.762,,,same weekday last year,5020,B
-2026-12-23,19080,11222,32439,15789,20998,0.909,event,,same weekday last year,1918,B
-2026-12-24,19016,13829,26148,17089,20993,0.906,,,same weekday last year,1977,B
-2026-12-25,18985,13806,26106,21093,20809,0.912,,,same weekday last year,1824,B
-2026-12-26,19264,14009,26490,20130,22634,0.851,,,same weekday last year,3370,B
-2026-12-27,20713,15063,28482,21795,23166,0.894,,,same weekday last year,2453,B
-2026-12-28,20844,15158,28662,19074,23335,0.893,,,same weekday last year,2491,B
-2026-12-29,21622,15724,29733,19073,23347,0.926,event,,same weekday last year,1725,B
-2026-12-30,21489,15627,29549,19135,23364,0.92,,,same weekday last year,1875,B
-2026-12-31,21481,15621,29538,20674,23098,0.93,,,same weekday last year,1617,B
-2027-01-01,21076,15327,28982,24072,21687,0.972,event,tight,same weekday last year,611,B
-2027-01-02,20584,14970,28305,21796,21606,0.953,,tight,same weekday last year,1022,B
-2027-01-03,20134,14642,27686,21219,21578,0.933,,,same weekday last year,1444,B
-2027-01-04,19061,13862,26211,20307,21463,0.888,,,same weekday last year,2402,B
-2027-01-05,18917,13757,26013,20190,20878,0.906,,,same weekday last year,1961,B
-2027-01-06,17963,13064,24701,18321,20892,0.86,event,,same weekday last year,2929,B
-2027-01-07,17844,10495,30338,22350,20529,0.869,,,same weekday last year,2685,B
-2027-01-08,17784,10460,30235,18192,19779,0.899,,,same weekday last year,1995,B
-2027-01-09,17923,10542,30471,18157,19529,0.918,,,same weekday last year,1606,B
-2027-01-10,17127,10074,29119,16299,19539,0.877,event,,same weekday last year,2412,B
-2027-01-11,15704,9237,26699,14656,19659,0.799,event,spare_capacity,same weekday last year,3955,B
-2027-01-12,15510,9123,26369,14432,19486,0.796,event,spare_capacity,same weekday last year,3976,B
-2027-01-13,16130,9487,27424,14104,19450,0.829,event,,same weekday last year,3320,B
-2027-01-14,16772,9865,28515,14214,19640,0.854,event,,same weekday last year,2868,B
-2027-01-15,17161,10094,29177,14918,19610,0.875,event,,same weekday last year,2449,B
-2027-01-16,17770,10452,30213,14788,19887,0.894,event,,same weekday last year,2117,B
-2027-01-17,16294,9584,27703,14008,19515,0.835,event,,same weekday last year,3221,B
-2027-01-18,16252,9559,27631,15588,19483,0.834,event,,same weekday last year,3231,B
-2027-01-19,16161,9505,27476,15279,19427,0.832,event,,same weekday last year,3266,B
-2027-01-20,16831,9899,28615,15045,19522,0.862,event,,same weekday last year,2691,B
-2027-01-21,17397,10233,29578,15078,19826,0.877,event,,same weekday last year,2429,B
-2027-01-22,17562,10330,29859,15710,19615,0.895,,,same weekday last year,2053,B
-2027-01-23,18270,10746,31062,15511,20539,0.89,,,same weekday last year,2269,B
-2027-01-24,17122,10071,29110,14667,20117,0.851,,,same weekday last year,2995,B
-2027-01-25,16975,9984,28860,17081,20238,0.839,,,same weekday last year,3263,B
-2027-01-26,16794,9878,28553,16718,20009,0.839,,,same weekday last year,3215,B
-2027-01-27,17200,10116,29242,16434,20138,0.854,,,same weekday last year,2938,B
-2027-01-28,17568,10333,29869,16423,20125,0.873,event,,same weekday last year,2557,B
-2027-01-29,18032,10606,30658,20406,19952,0.904,,,same weekday last year,1920,B
-2027-01-30,19338,11374,32878,19996,20956,0.923,,,same weekday last year,1618,B
-2027-01-31,18794,11054,31952,19122,20838,0.902,,,same weekday last year,2044,B
-2027-02-01,19568,11509,33269,20349,20961,0.934,,,same weekday last year,1393,B
-2027-02-02,19392,11406,32969,19951,21023,0.922,,,same weekday last year,1631,B
-2027-02-03,19658,11562,33422,19641,20894,0.941,,,same weekday last year,1236,B
-2027-02-04,19946,11732,33911,19617,20904,0.954,,tight,same weekday last year,958,B
-2027-02-05,19570,11510,33272,21712,20081,0.975,,tight,same weekday last year,511,B
-2027-02-06,20672,12159,35146,23401,21158,0.977,,tight,same weekday last year,486,B
-2027-02-07,20434,12019,34742,22317,21328,0.958,,tight,same weekday last year,894,B
-2027-02-08,20459,14879,28133,19937,21435,0.954,,tight,same weekday last year,976,B
-2027-02-09,20292,14757,27903,19550,21331,0.951,,tight,same weekday last year,1039,B
-2027-02-10,20156,14658,27716,19253,21325,0.945,event,,same weekday last year,1169,B
-2027-02-11,20085,14606,27618,19247,21382,0.939,,,same weekday last year,1297,B
-2027-02-12,19646,14287,27015,18804,20486,0.959,,tight,same weekday last year,840,B
-2027-02-13,21826,15873,30013,19725,22467,0.971,,tight,same weekday last year,641,B
-2027-02-14,22016,16011,30274,18850,23295,0.945,event,,same weekday last year,1279,B
-2027-02-15,21990,15992,30238,19271,23472,0.937,,,same weekday last year,1482,B
-2027-02-16,21948,15961,30180,18917,23388,0.938,,,same weekday last year,1440,B
-2027-02-17,21987,15989,30233,18657,23448,0.938,event,,same weekday last year,1461,B
-2027-02-18,22007,16004,30262,18689,23331,0.943,,,same weekday last year,1324,B
-2027-02-19,21151,15382,29085,18195,21409,0.988,,tight,same weekday last year,258,B
-2027-02-20,20734,15078,28511,17836,21343,0.971,,tight,same weekday last year,609,B
-2027-02-21,20370,14814,28011,17005,21404,0.952,,tight,same weekday last year,1034,B
-2027-02-22,18701,13600,25715,21582,21534,0.868,,,same weekday last year,2833,B
-2027-02-23,18598,13525,25574,21275,21430,0.868,,,same weekday last year,2832,B
-2027-02-24,18771,13651,25812,21062,21372,0.878,,,same weekday last year,2601,B
-2027-02-25,19073,13870,26227,21142,21446,0.889,,,same weekday last year,2373,B
-2027-02-26,19004,13820,26132,20697,20571,0.924,,,same weekday last year,1567,B
-2027-02-27,19170,13941,26361,20568,21436,0.894,,,same weekday last year,2266,B
-2027-02-28,17909,13024,24626,19785,20037,0.894,,,same weekday last year,2128,B
-2027-03-01,17917,10539,30462,17034,20171,0.888,,,same weekday last year,2254,B
-2027-03-02,17683,10401,30064,16818,20014,0.884,,,same weekday last year,2331,B
-2027-03-03,18020,10599,30638,16680,19889,0.906,,,same weekday last year,1869,B
-2027-03-04,18407,10826,31294,16786,20002,0.92,,,same weekday last year,1595,B
-2027-03-05,18526,10897,31497,16413,19624,0.944,,,same weekday last year,1098,B
-2027-03-06,18277,10750,31074,16343,19804,0.923,,,same weekday last year,1527,B
-2027-03-07,16912,9947,28754,15727,19650,0.861,,,same weekday last year,2738,B
-2027-03-08,16718,9833,28424,16569,19791,0.845,,,same weekday last year,3073,B
-2027-03-09,17096,10056,29067,16386,19572,0.873,,,same weekday last year,2476,B
-2027-03-10,17366,10214,29525,16280,19360,0.897,,,same weekday last year,1994,B
-2027-03-11,17861,10505,30366,16416,19651,0.909,,,same weekday last year,1790,B
-2027-03-12,18102,10647,30776,16073,19419,0.932,,,same weekday last year,1317,B
-2027-03-13,18036,10609,30665,15878,19807,0.911,event,,same weekday last year,1771,B
-2027-03-14,15743,9260,26765,15289,19297,0.816,event,,same distance from Easter last year,3554,B
-2027-03-15,13777,8103,23423,15233,19533,0.705,event,spare_capacity,same distance from Easter last year,5756,B
-2027-03-16,13305,7826,22620,15073,19690,0.676,event,spare_capacity,same distance from Easter last year,6385,B
-2027-03-17,13687,8050,23270,14988,19611,0.698,event,spare_capacity,same distance from Easter last year,5924,B
-2027-03-18,13967,8215,23746,15143,19369,0.721,event,spare_capacity,same distance from Easter last year,5402,B
-2027-03-19,14892,10830,20477,18835,19180,0.776,event,spare_capacity,same distance from Easter last year,4288,B
-2027-03-20,17839,12973,24531,18808,20580,0.867,event,,same distance from Easter last year,2741,B
-2027-03-21,16378,11910,22521,18232,20721,0.79,event,spare_capacity,same distance from Easter last year,4343,B
-2027-03-22,16189,11773,22261,17951,21035,0.77,,spare_capacity,same distance from Easter last year,4846,B
-2027-03-23,17079,12420,23485,17802,24098,0.709,,spare_capacity,same distance from Easter last year,7019,B
-2027-03-24,16357,11896,22493,17727,21034,0.778,event,spare_capacity,same distance from Easter last year,4677,B
-2027-03-25,18027,13110,24789,18166,21081,0.855,,,same distance from Easter last year,3054,B
-2027-03-26,18288,13299,25147,16937,20677,0.884,event,,same distance from Easter last year,2389,B
-2027-03-27,17964,13064,24702,18821,20114,0.893,event,,same distance from Easter last year,2150,B
-2027-03-28,17241,12538,23707,18146,20249,0.851,event,,same distance from Easter last year,3008,B
-2027-03-29,15634,11370,21499,14571,19767,0.791,event,spare_capacity,same distance from Easter last year,4133,B
-2027-03-30,15525,11290,21349,10585,19579,0.793,,spare_capacity,same distance from Easter last year,4054,B
-2027-03-31,15227,11073,20938,10513,19514,0.78,,spare_capacity,same distance from Easter last year,4287,B
-2027-04-01,15032,10931,20670,11833,19371,0.776,,spare_capacity,same distance from Easter last year,4339,B
-2027-04-02,15582,11332,21427,11641,18638,0.836,,,same distance from Easter last year,3056,B
-2027-04-03,13664,9937,18789,11623,17701,0.772,event,spare_capacity,same distance from Easter last year,4037,B
-2027-04-04,9541,6938,13119,9870,15285,0.624,event,spare_capacity,same distance from Easter last year,5744,B
-2027-04-05,7792,5667,10715,9828,15089,0.516,event,spare_capacity,same distance from Easter last year,7297,B
-2027-04-06,7702,4530,13094,9690,14949,0.515,event,spare_capacity,same distance from Easter last year,7247,B
-2027-04-07,7935,4667,13490,9624,14838,0.535,,spare_capacity,same distance from Easter last year,6903,B
-2027-04-08,8823,5189,15000,8994,14820,0.595,,spare_capacity,same distance from Easter last year,5997,B
-2027-04-09,9880,5811,16798,8806,14934,0.662,event,spare_capacity,same distance from Easter last year,5054,B
-2027-04-10,9572,5630,16273,8793,14670,0.652,event,spare_capacity,same distance from Easter last year,5098,B
-2027-04-11,6637,3903,11283,8103,13781,0.482,,spare_capacity,same distance from Easter last year,7144,B
-2027-04-12,4822,2836,8198,7639,13241,0.364,,spare_capacity,same distance from Easter last year,8419,B
-2027-04-13,4646,2733,7899,7509,13102,0.355,,spare_capacity,same distance from Easter last year,8456,B
-2027-04-14,4886,2874,8308,7452,12996,0.376,,spare_capacity,same distance from Easter last year,8110,B
-2027-04-15,4273,2513,7265,7627,13216,0.323,,spare_capacity,same distance from Easter last year,8943,B
-2027-04-16,5361,3153,9114,7452,13100,0.409,,spare_capacity,same distance from Easter last year,7739,B
-2027-04-17,5132,3019,8726,10425,12995,0.395,event,spare_capacity,same distance from Easter last year,7863,B
-2027-04-18,3269,1923,5558,9796,12352,0.265,,spare_capacity,same distance from Easter last year,9083,B
-2027-04-19,3176,1868,5400,5259,12457,0.255,,spare_capacity,same distance from Easter last year,9281,B
-2027-04-20,3018,1775,5130,4440,13047,0.231,,spare_capacity,same distance from Easter last year,10029,B
-2027-04-21,3283,1931,5582,4404,13457,0.244,,spare_capacity,same distance from Easter last year,10174,B
-2027-04-22,3793,2231,6448,4603,15691,0.242,,spare_capacity,same distance from Easter last year,11898,B
-2027-04-23,4773,2807,8114,4453,13895,0.344,event,spare_capacity,same distance from Easter last year,9122,B
-2027-04-24,5566,3274,9462,4481,13995,0.398,event,spare_capacity,same distance from Easter last year,8429,B
-2027-04-25,3657,2151,6217,3982,5646,0.648,,spare_capacity,same distance from Easter last year,1989,B
-2027-04-26,4412,2595,7501,3358,12457,0.354,,spare_capacity,same weekday last year,8045,B
-2027-04-27,4265,2509,7252,3281,13047,0.327,,spare_capacity,same weekday last year,8782,B
-2027-04-28,6020,3541,10236,3280,13457,0.447,,spare_capacity,same weekday last year,7437,B
-2027-04-29,10150,5970,17256,3516,15691,0.647,,spare_capacity,same weekday last year,5541,B
-2027-04-30,12154,7149,20664,6378,13895,0.875,,,same weekday last year,1741,B
+2026-11-02,1074,632,1827,432,1280,0.839,,tvb_forecast_outside_our_80pct_band,same weekday last year,206,B
+2026-11-03,608,357,1033,559,1292,0.471,,tvb_forecast_outside_our_80pct_band,same weekday last year,684,B
+2026-11-04,611,359,1039,750,1277,0.478,,tvb_forecast_outside_our_80pct_band,same weekday last year,666,B
+2026-11-05,623,366,1059,1143,1626,0.383,,tvb_forecast_outside_our_80pct_band,same weekday last year,1003,B
+2026-11-06,724,426,1231,1015,1610,0.45,,tvb_forecast_zero,same weekday last year,886,B
+2026-11-07,595,350,1011,1263,1595,0.373,,tvb_forecast_zero,same weekday last year,1000,B
+2026-11-08,474,279,805,1065,1553,0.305,,tvb_forecast_zero,same weekday last year,1079,B
+2026-11-09,432,254,735,0,1574,0.274,,tvb_forecast_zero,same weekday last year,1142,B
+2026-11-10,434,255,737,160,1588,0.273,,tvb_forecast_outside_our_80pct_band,same weekday last year,1154,B
+2026-11-11,439,258,746,385,1496,0.293,,tvb_forecast_zero,same weekday last year,1057,B
+2026-11-12,452,266,768,811,1543,0.293,,tvb_forecast_zero,same weekday last year,1091,B
+2026-11-13,517,304,879,716,1619,0.319,,,same weekday last year,1102,B
+2026-11-14,533,313,905,997,1761,0.303,,,same weekday last year,1228,B
+2026-11-15,415,244,705,830,1825,0.227,,tvb_forecast_outside_our_80pct_band,same weekday last year,1410,B
+2026-11-16,426,251,725,431,1885,0.226,,tvb_forecast_outside_our_80pct_band,same weekday last year,1459,B
+2026-11-17,409,241,696,621,1982,0.206,,tvb_forecast_outside_our_80pct_band,same weekday last year,1573,B
+2026-11-18,546,321,928,875,1981,0.276,,tvb_forecast_outside_our_80pct_band,same weekday last year,1435,B
+2026-11-19,463,273,788,1329,2097,0.221,,tvb_forecast_outside_our_80pct_band,same weekday last year,1634,B
+2026-11-20,529,311,900,1260,2186,0.242,,tvb_forecast_outside_our_80pct_band,same weekday last year,1657,B
+2026-11-21,558,328,949,1566,2339,0.239,,tvb_forecast_outside_our_80pct_band,same weekday last year,1781,B
+2026-11-22,439,258,747,1423,2419,0.181,,,same weekday last year,1980,B
+2026-11-23,443,260,753,712,2485,0.178,,,same weekday last year,2042,B
+2026-11-24,471,277,800,3272,2587,0.182,,tvb_forecast_outside_our_80pct_band,same weekday last year,2116,B
+2026-11-25,1167,687,1985,3543,7460,0.156,,tvb_forecast_outside_our_80pct_band,same weekday last year,6293,B
+2026-11-26,5542,3259,9422,4136,12912,0.429,event,,same weekday last year,7370,B
+2026-11-27,7871,4629,13382,6608,15061,0.523,,,same weekday last year,7190,B
+2026-11-28,8706,5121,14802,6713,15639,0.557,event,,same weekday last year,6933,B
+2026-11-29,4806,2827,8171,4737,13459,0.357,,,same weekday last year,8653,B
+2026-11-30,3184,1873,5414,5811,15093,0.211,,,same weekday last year,11909,B
+2026-12-01,4948,2911,8413,5505,15021,0.329,,,same weekday last year,10073,B
+2026-12-02,5796,3409,9855,5852,15061,0.385,,,same weekday last year,9265,B
+2026-12-03,7943,4672,13505,6449,16255,0.489,event,,same weekday last year,8312,B
+2026-12-04,10899,6411,18530,9629,17034,0.64,event,,same weekday last year,6135,B
+2026-12-05,11664,6860,19830,10022,17018,0.685,event,,same weekday last year,5354,B
+2026-12-06,7385,4344,12555,9826,16416,0.45,,,same weekday last year,9031,B
+2026-12-07,6445,3791,10958,7918,16188,0.398,,,same weekday last year,9743,B
+2026-12-08,6052,3559,10289,8192,15987,0.379,,,same weekday last year,9935,B
+2026-12-09,7164,4214,12180,7706,15918,0.45,,,same weekday last year,8754,B
+2026-12-10,9798,5763,16658,8266,16946,0.578,event,,same weekday last year,7148,B
+2026-12-11,12586,7403,21398,11406,17761,0.709,event,,same weekday last year,5175,B
+2026-12-12,13674,8043,23248,11752,18213,0.751,event,,same weekday last year,4539,B
+2026-12-13,9326,5485,15856,11507,17277,0.54,,,same weekday last year,7951,B
+2026-12-14,9844,5790,16737,9544,17670,0.557,,,same weekday last year,7826,B
+2026-12-15,9589,5640,16302,9730,17703,0.542,,,same weekday last year,8114,B
+2026-12-16,10007,5886,17013,9982,17720,0.565,,,same weekday last year,7713,B
+2026-12-17,11422,6718,19419,10476,17982,0.635,,,same weekday last year,6560,B
+2026-12-18,13129,7722,22321,13545,18595,0.706,,,same weekday last year,5466,B
+2026-12-19,18838,11080,32028,14568,21206,0.888,event,,same weekday last year,2368,B
+2026-12-20,17857,10503,30360,14245,21381,0.835,event,,same weekday last year,3524,B
+2026-12-21,16302,9588,27715,14204,21406,0.762,,,same weekday last year,5104,B
+2026-12-22,16061,9447,27306,14305,21134,0.76,,,same weekday last year,5073,B
+2026-12-23,19165,11273,32584,15789,20998,0.913,event,,same weekday last year,1833,B
+2026-12-24,19161,13934,26348,17089,20993,0.913,,,same weekday last year,1832,B
+2026-12-25,19048,13852,26193,21093,20809,0.915,,,same weekday last year,1761,B
+2026-12-26,19284,14024,26517,20130,22634,0.852,,,same weekday last year,3350,B
+2026-12-27,20819,15140,28627,21795,23166,0.899,,,same weekday last year,2347,B
+2026-12-28,20896,15196,28734,19074,23335,0.895,,,same weekday last year,2439,B
+2026-12-29,21697,15778,29835,19073,23347,0.929,event,,same weekday last year,1650,B
+2026-12-30,21584,15697,29680,19135,23364,0.924,,,same weekday last year,1780,B
+2026-12-31,21565,15682,29653,20674,23098,0.934,,,same weekday last year,1533,B
+2027-01-01,21065,15319,28966,24072,21687,0.971,event,tight,same weekday last year,622,B
+2027-01-02,20483,14895,28165,21796,21606,0.948,,,same weekday last year,1123,B
+2027-01-03,20157,14659,27718,21219,21578,0.934,,,same weekday last year,1421,B
+2027-01-04,19076,13873,26232,20307,21463,0.889,,,same weekday last year,2387,B
+2027-01-05,18884,13733,25967,20190,20878,0.904,,,same weekday last year,1994,B
+2027-01-06,17995,13087,24745,18321,20892,0.861,event,,same weekday last year,2897,B
+2027-01-07,17739,10434,30160,22350,20529,0.864,,,same weekday last year,2790,B
+2027-01-08,17677,10397,30054,18192,19779,0.894,,,same weekday last year,2102,B
+2027-01-09,17884,10519,30405,18157,19529,0.916,,,same weekday last year,1645,B
+2027-01-10,17162,10094,29179,16299,19539,0.878,event,,same weekday last year,2377,B
+2027-01-11,15729,9252,26743,14656,19659,0.8,event,,same weekday last year,3930,B
+2027-01-12,15539,9140,26419,14432,19486,0.797,event,spare_capacity,same weekday last year,3947,B
+2027-01-13,16125,9484,27415,14104,19450,0.829,event,,same weekday last year,3325,B
+2027-01-14,16797,9880,28558,14214,19640,0.855,event,,same weekday last year,2843,B
+2027-01-15,17170,10099,29191,14918,19610,0.876,event,,same weekday last year,2440,B
+2027-01-16,17774,10454,30219,14788,19887,0.894,event,,same weekday last year,2113,B
+2027-01-17,16325,9602,27756,14008,19515,0.837,event,,same weekday last year,3190,B
+2027-01-18,16283,9578,27685,15588,19483,0.836,event,,same weekday last year,3200,B
+2027-01-19,16196,9526,27536,15279,19427,0.834,event,,same weekday last year,3231,B
+2027-01-20,16830,9899,28613,15045,19522,0.862,event,,same weekday last year,2692,B
+2027-01-21,17430,10252,29634,15078,19826,0.879,event,,same weekday last year,2396,B
+2027-01-22,17590,10346,29906,15710,19615,0.897,,,same weekday last year,2025,B
+2027-01-23,18286,10755,31089,15511,20539,0.89,,,same weekday last year,2253,B
+2027-01-24,17154,10089,29164,14667,20117,0.853,,,same weekday last year,2963,B
+2027-01-25,16994,9996,28893,17081,20238,0.84,,,same weekday last year,3244,B
+2027-01-26,16808,9886,28576,16718,20009,0.84,,,same weekday last year,3201,B
+2027-01-27,17227,10132,29288,16434,20138,0.855,,,same weekday last year,2911,B
+2027-01-28,17601,10353,29925,16423,20125,0.875,event,,same weekday last year,2524,B
+2027-01-29,18001,10588,30604,20406,19952,0.902,,,same weekday last year,1951,B
+2027-01-30,19288,11345,32792,19996,20956,0.92,,,same weekday last year,1668,B
+2027-01-31,18782,11047,31933,19122,20838,0.901,,,same weekday last year,2056,B
+2027-02-01,19517,11479,33182,20349,20961,0.931,,,same weekday last year,1444,B
+2027-02-02,19341,11376,32882,19951,21023,0.92,,,same weekday last year,1682,B
+2027-02-03,19628,11545,33371,19641,20894,0.939,,,same weekday last year,1266,B
+2027-02-04,19903,11706,33838,19617,20904,0.952,,tight,same weekday last year,1001,B
+2027-02-05,19531,11488,33205,21712,20081,0.973,,tight,same weekday last year,550,B
+2027-02-06,20490,12052,34836,23401,21158,0.968,,tight,same weekday last year,668,B
+2027-02-07,20430,12017,34735,22317,21328,0.958,,tight,same weekday last year,898,B
+2027-02-08,20437,14862,28103,19937,21435,0.953,,tight,same weekday last year,998,B
+2027-02-09,20269,14740,27872,19550,21331,0.95,,tight,same weekday last year,1062,B
+2027-02-10,20092,14611,27628,19253,21325,0.942,event,,same weekday last year,1233,B
+2027-02-11,20042,14575,27559,19247,21382,0.937,,,same weekday last year,1340,B
+2027-02-12,19608,14259,26963,18804,20486,0.957,,tight,same weekday last year,878,B
+2027-02-13,21799,15853,29976,19725,22467,0.97,,tight,same weekday last year,668,B
+2027-02-14,21900,15926,30114,18850,23295,0.94,event,,same weekday last year,1395,B
+2027-02-15,21952,15964,30187,19271,23472,0.935,,,same weekday last year,1520,B
+2027-02-16,21910,15934,30129,18917,23388,0.937,,,same weekday last year,1478,B
+2027-02-17,21949,15962,30182,18657,23448,0.936,event,,same weekday last year,1499,B
+2027-02-18,21965,15974,30204,18689,23331,0.941,,,same weekday last year,1366,B
+2027-02-19,21114,15355,29034,18195,21409,0.986,,tight,same weekday last year,295,B
+2027-02-20,20677,15037,28433,17836,21343,0.969,,tight,same weekday last year,666,B
+2027-02-21,20363,14808,28000,17005,21404,0.951,,tight,same weekday last year,1041,B
+2027-02-22,18849,13708,25919,21582,21534,0.875,,,same weekday last year,2685,B
+2027-02-23,18742,13630,25772,21275,21430,0.875,,,same weekday last year,2688,B
+2027-02-24,18926,13763,26025,21062,21372,0.886,,,same weekday last year,2446,B
+2027-02-25,19228,13983,26440,21142,21446,0.897,,,same weekday last year,2218,B
+2027-02-26,19139,13918,26317,20697,20571,0.93,,,same weekday last year,1432,B
+2027-02-27,19289,14028,26525,20568,21436,0.9,,,same weekday last year,2147,B
+2027-02-28,18043,13121,24810,19785,20037,0.9,,,same weekday last year,1994,B
+2027-03-01,17701,10411,30094,17034,20171,0.878,,,same weekday last year,2470,B
+2027-03-02,17442,10259,29654,16818,20014,0.871,,,same weekday last year,2572,B
+2027-03-03,17845,10496,30340,16680,19889,0.897,,,same weekday last year,2044,B
+2027-03-04,18235,10725,31002,16786,20002,0.912,,,same weekday last year,1767,B
+2027-03-05,18361,10800,31217,16413,19624,0.936,,,same weekday last year,1263,B
+2027-03-06,18316,10773,31140,16343,19804,0.925,,,same weekday last year,1488,B
+2027-03-07,16992,9995,28890,15727,19650,0.865,,,same weekday last year,2658,B
+2027-03-08,16624,9778,28264,16569,19791,0.84,,,same weekday last year,3167,B
+2027-03-09,16856,9914,28658,16386,19572,0.861,,,same weekday last year,2716,B
+2027-03-10,17170,10099,29192,16280,19360,0.887,,,same weekday last year,2190,B
+2027-03-11,17649,10381,30006,16416,19651,0.898,,,same weekday last year,2002,B
+2027-03-12,17896,10526,30426,16073,19419,0.922,,,same weekday last year,1523,B
+2027-03-13,17838,10492,30327,15878,19807,0.901,event,,same weekday last year,1969,B
+2027-03-14,15545,9143,26430,15289,19297,0.806,event,,same distance from Easter last year,3752,B
+2027-03-15,13599,7999,23120,15233,19533,0.696,event,spare_capacity,same distance from Easter last year,5934,B
+2027-03-16,13160,7740,22374,15073,19690,0.668,event,spare_capacity,same distance from Easter last year,6530,B
+2027-03-17,13584,7990,23095,14988,19611,0.693,event,spare_capacity,same distance from Easter last year,6027,B
+2027-03-18,13793,8113,23450,15143,19369,0.712,event,spare_capacity,same distance from Easter last year,5576,B
+2027-03-19,14898,10834,20486,18835,19180,0.777,event,spare_capacity,same distance from Easter last year,4282,B
+2027-03-20,17663,12845,24288,18808,20580,0.858,event,,same distance from Easter last year,2917,B
+2027-03-21,16210,11788,22290,18232,20721,0.782,event,spare_capacity,same distance from Easter last year,4511,B
+2027-03-22,16564,12046,22777,17951,21035,0.787,,spare_capacity,same distance from Easter last year,4471,B
+2027-03-23,17412,12663,23943,17802,24098,0.723,,spare_capacity,same distance from Easter last year,6686,B
+2027-03-24,16755,12184,23039,17727,21034,0.797,event,spare_capacity,same distance from Easter last year,4279,B
+2027-03-25,18321,13324,25193,18166,21081,0.869,,,same distance from Easter last year,2760,B
+2027-03-26,18486,13443,25420,16937,20677,0.894,event,,same distance from Easter last year,2191,B
+2027-03-27,18258,13278,25107,18821,20114,0.908,event,,same distance from Easter last year,1856,B
+2027-03-28,17526,12745,24100,18146,20249,0.866,event,,same distance from Easter last year,2723,B
+2027-03-29,15884,11551,21842,14571,19767,0.804,event,,same distance from Easter last year,3883,B
+2027-03-30,15843,11521,21785,10585,19579,0.809,,,same distance from Easter last year,3736,B
+2027-03-31,15615,11356,21472,10513,19514,0.8,,,same distance from Easter last year,3899,B
+2027-04-01,15102,10982,20766,11833,19371,0.78,,spare_capacity,same distance from Easter last year,4269,B
+2027-04-02,15633,11369,21496,11641,18638,0.839,,,same distance from Easter last year,3005,B
+2027-04-03,13734,9988,18885,11623,17701,0.776,event,spare_capacity,same distance from Easter last year,3967,B
+2027-04-04,9487,6900,13046,9870,15285,0.621,event,spare_capacity,same distance from Easter last year,5798,B
+2027-04-05,7657,5568,10529,9828,15089,0.507,event,spare_capacity,same distance from Easter last year,7432,B
+2027-04-06,7531,4430,12805,9690,14949,0.504,event,spare_capacity,same distance from Easter last year,7418,B
+2027-04-07,7834,4608,13319,9624,14838,0.528,,spare_capacity,same distance from Easter last year,7004,B
+2027-04-08,8630,5076,14673,8994,14820,0.582,,spare_capacity,same distance from Easter last year,6190,B
+2027-04-09,9689,5699,16473,8806,14934,0.649,event,spare_capacity,same distance from Easter last year,5245,B
+2027-04-10,9397,5527,15976,8793,14670,0.641,event,spare_capacity,same distance from Easter last year,5273,B
+2027-04-11,6475,3808,11008,8103,13781,0.47,,spare_capacity,same distance from Easter last year,7306,B
+2027-04-12,5021,2953,8536,7639,13241,0.379,,spare_capacity,same distance from Easter last year,8220,B
+2027-04-13,4834,2843,8219,7509,13102,0.369,,spare_capacity,same distance from Easter last year,8268,B
+2027-04-14,5113,3007,8693,7452,12996,0.393,,spare_capacity,same distance from Easter last year,7883,B
+2027-04-15,4338,2551,7375,7627,13216,0.328,,spare_capacity,same distance from Easter last year,8878,B
+2027-04-16,5413,3184,9203,7452,13100,0.413,,spare_capacity,same distance from Easter last year,7687,B
+2027-04-17,5157,3033,8767,10425,12995,0.397,event,spare_capacity,same distance from Easter last year,7838,B
+2027-04-18,3326,1956,5655,9796,12352,0.269,,spare_capacity,same distance from Easter last year,9026,B
+2027-04-19,3219,1893,5473,5259,12457,0.258,,spare_capacity,same distance from Easter last year,9238,B
+2027-04-20,3059,1799,5201,4440,13047,0.234,,spare_capacity,same distance from Easter last year,9988,B
+2027-04-21,3321,1953,5646,4404,13457,0.247,,spare_capacity,same distance from Easter last year,10136,B
+2027-04-22,3870,2276,6580,4603,15691,0.247,,spare_capacity,same distance from Easter last year,11821,B
+2027-04-23,4877,2869,8292,4453,13895,0.351,event,spare_capacity,same distance from Easter last year,9018,B
+2027-04-24,5524,3249,9392,4481,13995,0.395,event,spare_capacity,same distance from Easter last year,8471,B
+2027-04-25,3629,2134,6170,3982,5646,0.643,,spare_capacity,same distance from Easter last year,2017,B
+2027-04-26,4439,2611,7547,3358,12457,0.356,,spare_capacity,same weekday last year,8018,B
+2027-04-27,4172,2454,7093,3281,13047,0.32,,spare_capacity,same weekday last year,8875,B
+2027-04-28,6048,3557,10283,3280,13457,0.449,,spare_capacity,same weekday last year,7409,B
+2027-04-29,10107,5945,17183,3516,15691,0.644,,spare_capacity,same weekday last year,5584,B
+2027-04-30,12178,7163,20704,6378,13895,0.876,,,same weekday last year,1717,B

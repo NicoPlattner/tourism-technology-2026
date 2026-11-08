@@ -172,75 +172,156 @@ def still_bookable(days_ahead: int, month: int, lt: pd.DataFrame) -> float:
     return float((r * part).sum())
 
 
+# Assumptions of the action ranking (documented in results/c04/README.md):
+FREE_MIN = .5          # a day is free for a market when at least half of its population is free
+REACH = {2: {"76", "77"},                                    # Tyrol, Vorarlberg: a weekend is enough
+         3: {"01", "70", "71", "72", "73", "74", "75", "32", "80", "81"},  # rest of AT, CH/LI, BY, BW
+         4: {"82", "83", "84", "85", "53", "20", "09"}}      # rest of DE, IT, CZ; all others: 7 days
+GAMMA_L = {2: .5, 3: .3, 4: .15, 7: 0.}  # long-weekend effect: not measurable in the TVB totals -> cautious prior
+HOLIDAY_CAP = 1.0      # holiday part <= 1.0 x the market's expected nights in the window (at most double)
+BASE_CAP = .15         # base part (regulars, no trigger) <= 15 % of the market's expected nights
+BASE_WEIGHT = .3       # share-driven nights count 30 % in the score
+PUSH_DAY = 1.3         # a day with trip push >= 1.3 counts as a holiday day of the market
+
+
+def reach_of(code: str) -> int:
+    return next((k for k, v in REACH.items() if code in v), 7)
+
+
+def trip_push(push: pd.DataFrame, org: pd.DataFrame) -> pd.DataFrame:
+    """Per origin and day: free share, free-day block length, trip push (school + long weekend in a block)."""
+    from m3_daily import GAMMA
+    cc = org.set_index("origin_code").calendar_country
+    out = []
+    for o, g in push.sort_values("date").groupby("origin_code"):
+        g = g.copy()
+        sch, pub = g.school_holiday_share.fillna(0), g.public_holiday_share.fillna(0)
+        lw = pd.concat([g.long_weekend_share.fillna(0), g.bridge_day_share.fillna(0)], axis=1).max(axis=1)
+        wkend = (g.date.dt.dayofweek >= 5).astype(float)
+        free = pd.concat([sch, pub, g.bridge_day_share.fillna(0), wkend], axis=1).max(axis=1)
+        run = (free >= FREE_MIN)
+        rid = (run != run.shift()).cumsum()
+        block = run.groupby(rid).transform("sum").where(run, 0)
+        k = reach_of(o)
+        gs, gl = GAMMA.get(cc.get(o), 1.0) if isinstance(cc.get(o), str) else 1.0, GAMMA_L[k]
+        g["school_term"] = gs * sch
+        g["longwe_term"] = gl * lw * (block >= k) * (1 - sch)
+        g["trip_push"] = 1 + g.school_term + g.longwe_term
+        g["free_block_days"], g["reach_days"] = block.astype(int), k
+        out.append(g)
+    return pd.concat(out)
+
+
 def export_actions(d: pd.DataFrame, w: pd.DataFrame) -> pd.DataFrame:
     mo = pd.read_csv(GUI / "monthly_origin.csv", dtype={"origin_code": str})
     org = pd.read_csv(GUI / "origins.csv", dtype=str)
     base = set(org[org.kind == "Statistik Austria origin"].origin_code)  # non-overlapping origins
     mo = mo[(mo.destination == "Paznaun-Ischgl") & mo.origin_code.isin(base)]
     push = pd.read_csv(GUI / "push_reasons.csv", dtype={"origin_code": str}, parse_dates=["date"])
-    push = push[push.origin_code.isin(base)]
+    push = trip_push(push[push.origin_code.isin(base) & (push.date >= "2026-10-01") & (push.date <= "2027-05-31")], org)
     lt = pd.read_csv(GUI / "lead_time_by_arrival_month.csv").set_index("arrival_month")
-    rows = []
-    def weekly(gs):  # long windows -> calendar weeks, so actions follow each market's holiday week
+    easter_note = lambda a: (f"after the early Easter ({pd.Timestamp(easter(a.year)):%d %b}) some hotels may close earlier "
+                             "than last year: confirm open beds with partners before spending"
+                             if a > pd.Timestamp(easter(a.year)) + pd.Timedelta(days=7) else "")
+
+    def weekly(gs):  # long windows -> calendar weeks first; consecutive weeks with the same reason are merged later
         for g in gs:
-            if len(g) <= 9:
-                yield g
-            else:
-                yield from (x for _, x in g.groupby(g.date.dt.to_period("W-SUN")))
-    for kind in ("spare_capacity", "tight"):
-        for g in weekly(windows(d, kind)):
-            a, b = g.date.min(), g.date.max()
-            months = sorted(set(g.date.dt.strftime("%Y-%m")))
-            m = mo[mo.month.isin(months)].groupby(["origin_code", "origin_name"]).agg(
-                nights=("nights", "sum"), grade=("grade", "max")).reset_index()
-            m["share"] = m.nights / m.nights.sum()
-            m = m[m.share >= .01]
-            p = push[(push.date >= a) & (push.date <= b)].groupby("origin_code").agg(
-                push=("push_multiplier", "mean"), school=("school_holiday_share", "mean"),
-                holidays=("holiday_names", lambda s: "; ".join(sorted({x for v in s.dropna() for x in v.split("; ") if x}))))
-            m = m.join(p, on="origin_code")
-            m["push"] = m.push.fillna(1.0)
-            m["weight"] = m.share * m.push  # who comes anyway x who is free to travel then
-            m["weight"] /= m.weight.sum()
-            spare = float(g.spare_beds.sum())
-            mid = a + (b - a) / 2
-            med = int(lt.loc[mid.month, "median_days_ahead"])
-            launch = max(a - pd.Timedelta(days=med), AS_OF)
-            bookable = still_bookable((a - AS_OF).days, a.month, lt)
-            for r in m.itertuples():
-                if kind == "spare_capacity":
-                    addr = spare * r.weight
-                    act = (f"Campaign for {r.origin_name}: stay {a:%d %b}–{b:%d %b %Y}"
-                           + (f" ({r.holidays})" if isinstance(r.holidays, str) and r.holidays else ""))
-                    score = addr * bookable * (1.15 if r.push > 1.2 else 1.0)
-                else:
-                    addr = float(g.forecast_ours.sum()) * r.share
-                    act = (f"Yield for {r.origin_name}: {a:%d %b}–{b:%d %b %Y} near full: no discounts, "
-                           "minimum stay, offer the shoulder days before/after")
-                    score = addr * .05  # yield actions rank below demand actions of the same size
-                grade = max(["B", str(r.grade)[0]], key="ABCD".index)
-                rows.append({
-                    "kind": "win demand" if kind == "spare_capacity" else "protect yield",
-                    "action": act, "market": r.origin_name, "market_code": r.origin_code,
-                    "from": str(a.date()), "to": str(b.date()), "days": len(g),
-                    "launch_by": str(launch.date()), "median_lead_days": med,
-                    "share_still_bookable": round(bookable, 3),
-                    "market_share": round(float(r.share), 3), "holiday_push": round(float(r.push), 2),
-                    "school_holiday_share": None if pd.isna(r.school) else round(float(r.school), 2),
-                    "addressable_nights": round(addr), "score": round(score),
-                    "grade": grade,
-                    "note": (f"after the early Easter ({pd.Timestamp(easter(a.year)):%d %b}) some hotels may close "
-                             "earlier than last year: confirm open beds with partners before spending")
-                    if kind == "spare_capacity" and a > pd.Timestamp(easter(a.year)) + pd.Timedelta(days=7) else "",
-                    "basis": ("spare beds = capacity (stays + free beds last year, same weekday; around Easter same distance from Easter) - our forecast; "
-                              "split by market share (M1, Paznaun) x holiday push (origin calendars); "
-                              "still bookable = TVB lead-time mix of the arrival month"
-                              if kind == "spare_capacity" else
-                              "forecast >= 95 % of capacity; market share from M1 (Paznaun)")})
-    a = pd.DataFrame(rows).sort_values("score", ascending=False)
-    a.insert(0, "rank", range(1, len(a) + 1))
-    a.to_csv(OUT / "actions.csv", index=False)
-    return a
+            yield from ([g] if len(g) <= 9 else (x for _, x in g.groupby(g.date.dt.to_period("W-SUN"))))
+
+    def shares(g):
+        months = sorted(set(g.date.dt.strftime("%Y-%m")))
+        m = mo[mo.month.isin(months)].groupby(["origin_code", "origin_name"]).agg(
+            nights=("nights", "sum"), grade=("grade", "max")).reset_index()
+        m["share"] = m.nights / m.nights.sum()
+        return m
+
+    weeks = []
+    for g in weekly(windows(d, "spare_capacity")):
+        a, b = g.date.min(), g.date.max()
+        m = shares(g)
+        P = push[(push.date >= a) & (push.date <= b)].pivot(index="date", columns="origin_code", values="trip_push")
+        P = P.reindex(index=g.date.values, columns=m.origin_code).fillna(1.0)
+        s = m.set_index("origin_code").share
+        D = (P * s).sum(axis=1)                                     # sum_k s_k * push_k(t)
+        spare = pd.Series(g.spare_beds.values, index=g.date.values)
+        fc = pd.Series(g.forecast_ours.values, index=g.date.values)
+        midweek = float(spare[spare.index.dayofweek.isin([6, 0, 1, 2, 3])].sum() / max(spare.sum(), 1))
+        bookable = still_bookable((a - AS_OF).days, a.month, lt)
+        med = int(lt.loc[(a + (b - a) / 2).month, "median_days_ahead"])
+        for r in m[m.share >= .01].itertuples():
+            pm = P[r.origin_code]
+            E = float((fc * r.share).sum())
+            H = min(float((spare * r.share * (pm - 1) / D).sum()), HOLIDAY_CAP * E)
+            B = min(float((spare * r.share / D).sum()), BASE_CAP * E)
+            pdays = push[(push.origin_code == r.origin_code) & (push.date >= a) & (push.date <= b)]
+            hot = pdays[pdays.trip_push >= PUSH_DAY]
+            weeks.append(dict(code=r.origin_code, market=r.origin_name, a=a, b=b, days=len(g), E=E, H=H, B=B,
+                              hdays=len(hot), school=float(hot.school_term.sum()), longwe=float(hot.longwe_term.sum()),
+                              names={x for v in hot.holiday_names.dropna() for x in v.split("; ") if x},
+                              block=int(pdays.free_block_days.max()), reach=int(pdays.reach_days.max()),
+                              share=float(r.share), push=float(pm.mean()), midweek=midweek, bookable=bookable, med=med,
+                              grade=max(["B", str(r.grade)[0]], key="ABCD".index)))
+    for x in weeks:
+        x["reason"] = "holiday-driven" if x["hdays"] >= 2 else "share-driven"
+        x["type"] = ("short-trip package" if x["longwe"] > x["school"] else "holiday campaign") \
+            if x["reason"] == "holiday-driven" else ("midweek offer" if x["midweek"] >= .7 else "short-stay offer")
+        x["score"] = (x["H"] + BASE_WEIGHT * x["B"]) * x["bookable"]
+    # merge consecutive weeks of the same market with the same reason and action type
+    merged = []
+    for x in sorted(weeks, key=lambda x: (x["code"], x["a"])):
+        y = merged[-1] if merged else None
+        if y and y["code"] == x["code"] and (y["reason"], y["type"]) == (x["reason"], x["type"]) \
+                and x["a"] - y["b"] <= pd.Timedelta(days=1):
+            for k in ("days", "E", "H", "B", "hdays", "score", "school", "longwe"):
+                y[k] += x[k]
+            y["b"], y["names"] = x["b"], y["names"] | x["names"]
+            y["block"], y["push"] = max(y["block"], x["block"]), max(y["push"], x["push"])
+            y["midweek"] = min(y["midweek"], x["midweek"])
+            y["grade"] = max(y["grade"], x["grade"], key="ABCD".index)
+        else:
+            merged.append(dict(x))
+    rows = []
+    for x in merged:
+        a, b, names = x["a"], x["b"], "; ".join(sorted(x["names"]))
+        span = f"{a:%d %b}–{b:%d %b %Y}"
+        act = {"holiday campaign": f"Holiday campaign for {x['market']}: stay {span}" + (f" ({names})" if names else ""),
+               "short-trip package": f"Short-trip package for {x['market']}: long weekend {span}" + (f" ({names})" if names else ""),
+               "midweek offer": f"Midweek offer (Sun–Thu) for regular guests from {x['market']}: {span}",
+               "short-stay offer": f"Short-stay offer for regular guests from {x['market']}: {span}"}[x["type"]]
+        rows.append({
+            "kind": "win demand", "reason_type": x["reason"], "action_type": x["type"], "action": act,
+            "market": x["market"], "market_code": x["code"], "from": str(a.date()), "to": str(b.date()),
+            "days": x["days"], "holiday_days": x["hdays"], "holidays": names,
+            "free_block_days_max": x["block"], "reach_days": x["reach"],
+            "launch_by": str(max(a - pd.Timedelta(days=x["med"]), AS_OF).date()), "median_lead_days": x["med"],
+            "share_still_bookable": round(x["bookable"], 3), "market_share": round(x["share"], 3),
+            "trip_push_max": round(x["push"], 2), "midweek_share_of_spare": round(x["midweek"], 2),
+            "expected_nights": round(x["E"]), "holiday_part_nights": round(x["H"]), "base_part_nights": round(x["B"]),
+            "addressable_nights": round(x["H"] + x["B"]), "score": round(x["score"]),
+            "grade": x["grade"] if x["reason"] == "holiday-driven" and x["school"] >= x["longwe"] else "C",
+            "note": easter_note(a),
+            "basis": ("spare beds = capacity (stays + free beds last year; around Easter same distance from Easter) - our "
+                      "forecast; holiday part = spare x s_m (push_m - 1) / sum_k s_k push_k, capped at the market's expected "
+                      "nights; base part = spare x s_m / sum_k s_k push_k, capped at 15 %; trip push = school holidays + "
+                      "long weekends inside a free-day block of at least the market's reach; score = (holiday + 0.3 base) x "
+                      "share still bookable (TVB lead times)")})
+    for g in weekly(windows(d, "tight")):
+        a, b = g.date.min(), g.date.max()
+        for r in shares(g).query("share >= .01").itertuples():
+            addr = float(g.forecast_ours.sum()) * r.share
+            rows.append({"kind": "protect yield", "reason_type": "capacity tight", "action_type": "yield",
+                         "action": (f"Yield for {r.origin_name}: {a:%d %b}–{b:%d %b %Y} near full: no discounts, "
+                                    "minimum stay, offer the shoulder days before/after"),
+                         "market": r.origin_name, "market_code": r.origin_code, "from": str(a.date()), "to": str(b.date()),
+                         "days": len(g), "launch_by": str(AS_OF.date()), "market_share": round(float(r.share), 3),
+                         "expected_nights": round(addr), "addressable_nights": round(addr),
+                         "score": round(addr * .05),  # yield actions rank below demand actions of the same size
+                         "grade": max(["B", str(r.grade)[0]], key="ABCD".index), "note": "",
+                         "basis": "forecast >= 95 % of capacity; market share from M1 (Paznaun)"})
+    out = pd.DataFrame(rows).sort_values("score", ascending=False)
+    out.insert(0, "rank", range(1, len(out) + 1))
+    out.to_csv(OUT / "actions.csv", index=False)
+    return out
 
 
 def main():
@@ -251,8 +332,8 @@ def main():
     export_deviations()
     shutil.copy(ROOT / "docs" / "challenge-04" / "C04-RESULTS-README.md", OUT / "README.md")
     print(w.groupby("kind").size().to_dict())
-    print(a.head(12)[["rank", "kind", "market", "from", "to", "launch_by", "addressable_nights",
-                      "share_still_bookable", "score", "grade"]].to_string(index=False))
+    print(a.head(20)[["rank", "reason_type", "action_type", "market", "from", "to", "holiday_days", "launch_by",
+                      "holiday_part_nights", "base_part_nights", "score", "grade"]].to_string(index=False))
 
 
 if __name__ == "__main__":

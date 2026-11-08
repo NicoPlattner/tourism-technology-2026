@@ -31,6 +31,7 @@ from m3_daily import GAMMA
 
 sys.path.insert(0, str(ROOT / "data"))
 from build_origin_panel import AT_HOL, DE_POP, HH, public_daily, school_daily  # noqa: E402
+from holiday_corrections import fix  # noqa: E402
 
 RAW = ROOT / "data" / "raw" / "open" / "snow"
 DATES = pd.date_range("2024-01-01", "2027-12-31")
@@ -68,7 +69,7 @@ def holiday_names(origin: str) -> pd.Series:
     elif country == "AT":
         codes = {f"AT-{s}" for s in subs}
     if p.exists():
-        for h in json.loads(p.read_text()):
+        for h in fix(country, json.loads(p.read_text())):
             hc = {s["code"] for s in (h.get("subdivisions") or [])} | {g["code"] for g in (h.get("groups") or [])}
             if codes and hc and not any(c == k or c.startswith(k + "-") or k.startswith(c + "-") for c in hc for k in codes):
                 continue

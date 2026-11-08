@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-08T01:02:38",
+ "generated": "2026-11-08T07:24:13",
  "mode": "real (TVB data)",
  "level": "Paznaun-Ischgl total, TVB / feratel",
  "model": "monthly anchor (2-season avg, Easter-corrected, TVB level) x daily shape (mean of holiday-aligned previous year and LightGBM)",

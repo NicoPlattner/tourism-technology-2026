@@ -30,6 +30,8 @@ import numpy as np
 import pandas as pd
 from dateutil.easter import easter
 
+from holiday_corrections import fix
+
 ROOT = pathlib.Path(__file__).resolve().parent
 RAW = ROOT / "raw" / "open"
 HH = RAW / "holidays_hist"
@@ -88,7 +90,7 @@ def school_daily(country: str, subs: list | None, days: pd.DatetimeIndex) -> pd.
     p = HH / f"{country}_School.json"
     if not p.exists():
         return out
-    recs = json.loads(p.read_text())
+    recs = fix(country, json.loads(p.read_text()))
     if not recs:
         return out
     if country is None:
