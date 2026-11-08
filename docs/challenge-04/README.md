@@ -111,8 +111,10 @@ models/
   backtest_v2.py       comparison: push-pull, compact LightGBM, sample weights, ensembles
   forecast_winter.py   winter 26/27 forecast -> out/c04_forecast.json
   export_gui.py, export_reasons.py   -> results/gui/ (tracked GUI tables, push/pull reasons)
+  export_challenge.py  -> results/c04/ (forecast, deviations, warnings, ranked actions)
   probe_*.py           research probes (monthly baselines, Chronos-2, macro drivers, mobile data and guest cards)
 results/gui/           GUI tables for the front end (see its README.md)
+results/c04/           challenge answers: forecast, deviations, warnings, actions (see its README.md)
 api/c04/               read-only data API (FastAPI, Dockerfile -> ghcr.io/nicoplattner/c04-api, Helm template c04-api.yaml)
 ```
 

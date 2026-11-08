@@ -6,7 +6,13 @@ on:
     paths:
       - api/c04/**
       - results/gui/**
+      - results/c04/**
       - .github/workflows/c04-api-image.yaml
+  pull_request:
+    paths:
+      - api/c04/**
+      - results/gui/**
+      - results/c04/**
   workflow_dispatch:
 
 permissions:
@@ -18,19 +24,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Image name
-        id: img
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api" >> "$GITHUB_OUTPUT"
-      - uses: docker/login-action@v3
+      - uses: actions/setup-python@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: api/c04/Dockerfile
-          push: true
-          tags: |
-            ${{ steps.img.outputs.name }}:latest
-            ${{ steps.img.outputs.name }}:${{ github.sha }}
+          python-version: "3.13"
+      - name: Route tests
+        run: |
+          pip install -q -r api/c04/requirements-dev.txt
+          pytest -q api/c04/tests
+      - name: Build image
+        run: docker build -f api/c04/Dockerfile -t c04-api:test .
+      - name: Smoke test the container (same layout and user as in the cluster)
+        run: |
+          set -euo pipefail
+          docker run -d --name c04 --read-only --tmpfs /tmp -e BASE_PATH=/smoke/c04-api -p 18080:8080 c04-api:test
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:18080/smoke/c04-api/health && break; sleep 1; done
+          curl -fsS "http://127.0.0.1:18080/smoke/c04-api/query?destination=Tirol&origin=80&start=2027-01-15&end=2027-03-15" | python3 -c "import json,sys; d=json.load(sys.stdin); assert d['nights']['value'] > 0"
+          curl -fsS "http://127.0.0.1:18080/smoke/c04-api/actions?limit=3" | python3 -c "import json,sys; assert len(json.load(sys.stdin)) == 3"
+          curl -fsS "http://127.0.0.1:18080/smoke/c04-api/forecast?start=2027-02-01&end=2027-02-01" > /dev/null
+      - name: Container logs
+        if: failure()
+        run: docker logs c04 || true
+      - name: Push
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          img="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker tag c04-api:test "$img:latest"
+          docker tag c04-api:test "$img:${GITHUB_SHA}"
+          docker push "$img:latest"
+          docker push "$img:${GITHUB_SHA}"

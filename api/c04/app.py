@@ -10,11 +10,16 @@ GET {BASE}/query?destination=Tirol&origin=80&start=2027-01-15&end=2027-03-15
                                           guests, nights, range, length of stay, weekly nights, lead time,
                                           age profile, push and pull reasons; every field {value, is_estimate,
                                           method, grade}
+GET {BASE}/forecast?start=&end=           Paznaun winter 26/27: daily forecast, 80 % band, capacity, flags
+GET {BASE}/deviations?season=             why actual differed from the TVB forecast (drivers, grades)
+GET {BASE}/warnings?kind=                 windows with spare capacity, tight capacity, forecast disagreement
+GET {BASE}/actions?kind=&market=&limit=   ranked marketing actions (launch date, addressable nights, grade)
 GET {BASE}/tables                         list of tables
-GET {BASE}/tables/{name}                  one table as CSV (e.g. monthly_origin.csv)
+GET {BASE}/tables/{name}                  one table as CSV (e.g. monthly_origin.csv, c04/actions.csv)
 """
 from __future__ import annotations
 
+import json
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -27,6 +32,7 @@ from fastapi.responses import FileResponse
 
 DATA = Path(os.environ["DATA_DIR"]) if os.environ.get("DATA_DIR") else \
     Path(__file__).resolve().parent.parent.parent / "results" / "gui"  # repo layout when run locally
+C04 = Path(os.environ["C04_DIR"]) if os.environ.get("C04_DIR") else DATA.parent / "c04"  # challenge answers
 BASE = "/" + os.environ.get("BASE_PATH", "/c04-api").strip("/")
 CLASSES = ["0d", "8d", "31d", "61d", "90d", "180d"]
 MID = np.array([3, 19, 45, 75, 135, 240])
@@ -45,6 +51,27 @@ def table(name: str) -> pd.DataFrame:
     if not p.exists():
         raise HTTPException(404, f"table {name} not found")
     return pd.read_csv(p, dtype={"origin_code": str, "destination_code": str, "origin_country": str}, keep_default_na=True)
+
+
+@lru_cache(maxsize=None)
+def c04(name: str) -> pd.DataFrame:
+    p = C04 / f"{name}.csv"
+    if not p.exists():
+        raise HTTPException(404, f"table c04/{name} not found")
+    return pd.read_csv(p, dtype={"market_code": str})
+
+
+@lru_cache(maxsize=None)
+def c04_json(name: str) -> dict:
+    p = C04 / f"{name}.json"
+    if not p.exists():
+        raise HTTPException(404, f"c04/{name} not found")
+    return json.loads(p.read_text())
+
+
+def records(df: pd.DataFrame) -> list[dict]:
+    """JSON-safe rows: NaN -> null, numpy scalars -> Python."""
+    return json.loads(df.to_json(orient="records", force_ascii=False))
 
 
 def worst(gs) -> str:
@@ -183,7 +210,8 @@ router = APIRouter(prefix=BASE if BASE != "/" else "")
 
 @router.get("/health")
 def health():
-    return {"ok": True, "service": "c04-data-api", "tables": len(list(DATA.glob("*.csv")))}
+    return {"ok": True, "service": "c04-data-api", "tables": len(list(DATA.glob("*.csv"))),
+            "c04_tables": len(list(C04.glob("*.csv")))}
 
 
 @router.get("/meta")
@@ -200,19 +228,68 @@ def query(destination: str = Query("Tirol"), origin: str = Query(..., descriptio
     return answer(destination, origin, start, end)
 
 
+@router.get("/forecast")
+def forecast(start: str | None = Query(None, description="YYYY-MM-DD"),
+             end: str | None = Query(None, description="YYYY-MM-DD")):
+    d = c04("forecast_daily")
+    if start:
+        d = d[d.date >= start]
+    if end:
+        d = d[d.date <= end]
+    return {"meta": c04_json("forecast_meta"), "monthly": records(c04("forecast_monthly")), "daily": records(d)}
+
+
+@router.get("/deviations")
+def deviations(season: str | None = Query(None, description='"winter 25/26" or "summer 26"')):
+    m, dr, sm = c04("deviations_monthly"), c04("deviations_drivers"), c04_json("deviations_summary")
+    if season:
+        if season not in set(m.season):
+            raise HTTPException(404, f"unknown season {season}; use one of {sorted(set(m.season))}")
+        m, dr = m[m.season == season], dr[dr.season == season]
+        sm = {season: sm[season], "method": sm["method"]}
+    return {"summary": sm, "monthly": records(m), "drivers": records(dr)}
+
+
+@router.get("/warnings")
+def warnings(kind: str | None = Query(None, description="spare_capacity, tight, tvb_forecast_outside_our_80pct_band")):
+    w = c04("warnings")
+    if kind:
+        w = w[w.kind == kind]
+    return records(w)
+
+
+@router.get("/actions")
+def actions(kind: str | None = Query(None, description='"win demand" or "protect yield"'),
+            market: str | None = Query(None, description="market name or code, e.g. Belgium or 62"),
+            start: str | None = Query(None, description="windows ending on or after YYYY-MM-DD"),
+            end: str | None = Query(None, description="windows starting on or before YYYY-MM-DD"),
+            limit: int = Query(20, ge=1, le=500)):
+    a = c04("actions")
+    if kind:
+        a = a[a.kind == kind]
+    if market:
+        a = a[(a.market.str.lower() == market.lower()) | (a.market_code == market)]
+    if start:
+        a = a[a.to >= start]
+    if end:
+        a = a[a["from"] <= end]
+    return records(a.head(limit))
+
+
 @router.get("/tables")
 def tables():
-    return sorted(p.name for p in DATA.glob("*.csv"))
+    return sorted(p.name for p in DATA.glob("*.csv")) + sorted(f"c04/{p.name}" for p in C04.glob("*.csv"))
 
 
-@router.get("/tables/{name}")
+@router.get("/tables/{name:path}")
 def get_table(name: str):
-    p = DATA / name
-    if p.suffix != ".csv" or not p.exists() or p.parent != DATA:
+    root, file = (C04, name[4:]) if name.startswith("c04/") else (DATA, name)
+    p = root / file
+    if p.suffix != ".csv" or "/" in file or not p.exists():
         raise HTTPException(404, "unknown table")
-    return FileResponse(p, media_type="text/csv", filename=name)
+    return FileResponse(p, media_type="text/csv", filename=p.name)
 
 
-app = FastAPI(title="Challenge 04 data API", version="1.0")
+app = FastAPI(title="Challenge 04 data API", version="1.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
 app.include_router(router)
