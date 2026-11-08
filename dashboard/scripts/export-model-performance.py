@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / 'models/results_real_backtest.csv'
+SOURCE = ROOT / 'c04/evaluation/real_backtest.csv'
 WINDOWS = {
     'winter 25/26': ('Winter 2025/26', '2025-11-01', '2026-04-30'),
     'May-Oct 2026': ('May–October 2026', '2026-05-01', '2026-10-31'),
@@ -32,7 +32,7 @@ def export(source=SOURCE):
                 scores[metric] = score
             models[model] = {'source_model': identifier, 'metrics': scores}
         windows.append({'id': key, 'label': label, 'start': start, 'end': end, 'training_cutoff': '2025-10-31', 'matched_day_count': None, 'models': models})
-    return {'source': 'models/results_real_backtest.csv', 'evaluator': 'models/real_backtest.py',
+    return {'source': 'c04/evaluation/real_backtest.csv', 'evaluator': 'c04/models/real_backtest.py',
             'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'windows': windows}
 
 if __name__ == '__main__':

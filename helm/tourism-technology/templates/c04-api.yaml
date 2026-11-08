@@ -1,5 +1,5 @@
 # Challenge 04 data API (read-only): demand by origin with reasons and flags.
-# Image built by .github/workflows/c04-api-image.yaml from api/c04/Dockerfile
+# Image built by .github/workflows/c04-api-image.yaml from c04/api/Dockerfile
 # (code + results/gui tables baked in). Served under <ingress.path>/c04-api.
 {{- if .Values.c04Api.enabled }}
 {{- $base := printf "%s/c04-api" (trimSuffix "/" .Values.ingress.path) }}

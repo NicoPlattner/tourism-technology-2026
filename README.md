@@ -1,217 +1,121 @@
-# tourism-technology-2026
+# Demand Radar Paznaun-Ischgl
 
-## Demand Radar — Paznaun-Ischgl (TTF Hackathon 2026, challenge 04)
+Team project from the **Tourism Technology Festival 2026 hackathon** (TTF, 7–8 November 2026),
+challenge 04 **"Overnight data without explanation"** by TVB Paznaun-Ischgl and feratel.
 
-**“Overnight data without explanation”** — TVB Paznaun-Ischgl and Feratel provide
-244 days of overnight stays (summer 2026 → winter 2026/27: actual, forecast,
-previous year) and 88 days of bed capacity for the early winter. They are reported
-side by side and rarely analysed together. The Demand Radar
-(`dashboard/`, React + TypeScript + Vite) puts them together, explains the gaps
-and turns them into next steps, in plain language and in the Paznaun-Ischgl look.
+> Destinations track overnight stays, forecasts and available beds, but deviations often remain
+> unexplained. How can teams find meaningful patterns, understand the gaps between forecast and actual
+> demand, and react early enough to make better decisions?
 
-| View | Shows |
-| --- | --- |
-| Overview | 4 KPIs, season chart, top 3 next steps |
-| Season | Actual, forecast, last year, beds (+ open model) per day; NL/BE school holidays, weather and events underneath |
-| Deviations | Stretches >10% off the forecast with the most likely reason (weather, NL/BE holidays, events, data gaps) and confidence |
-| Beds | Month calendar of expected bed occupancy, paged by month |
-| Actions | Ranked next steps (what, when, where, why), CSV / print |
-| Integrations | Google Analytics connection kept by the server (24/7, all devices), live website data, sources |
+We answered with three connected parts:
 
-Partner markets: **Netherlands and Belgium** (holidays, explanations and actions focus on them).
+| Part | What it does | Where |
+|---|---|---|
+| **Demand Radar** (web app) | Season view, deviations, beds, ranked campaigns per source market with AI-written social posts, Google Analytics integration | [`dashboard/`](dashboard/) |
+| **Demand models and data API** | Forecast for Paznaun-Ischgl, explanation of past deviations, demand by origin market for every Austrian state, ranked marketing actions; every value graded by evidence | [`c04/`](c04/) |
+| **Data products on the TTF Data Space** | The API published as two products for other teams (nexyo TTF Space) | [`docs/data-space.md`](docs/data-space.md) |
 
-**Data.** Forecast, weather, holidays and events are **real open data**: the open
-overnight-stay forecast for region TR53 Paznaun-Ischgl (JOANNEUM RESEARCH /
-TU Wien / Uni Klagenfurt / Austria Tourism), Open-Meteo for Ischgl, the
-OpenHolidays API for the partner markets NL and BE. The partner data (stays,
-beds) is a **sample in the shape of the challenge data**, calibrated to the
-official monthly totals, until the TTF Data Space export is connected. `npm run data:open` refreshes the open-data snapshots;
-`npm run data:sample` rebuilds the sample. The app also refreshes the forecast
-and weather live when it loads.
+Live (while the hackathon cluster runs): <https://hackathon.daria-and-nico.com/>, data API at
+<https://hackathon.daria-and-nico.com/c04-api/docs>.
 
-**Google Analytics.** Two services per deployment: the static frontend (nginx)
-and a small Node API (`dashboard/server/server.mjs`, no dependencies) that the
-ingress routes `<path>/api` to. *Connect Google Analytics* opens Google's
-sign-in popup (authorization code flow) for `openid email analytics.readonly`;
-the API exchanges the code for a refresh token, stores it AES-GCM encrypted under
-`/data` and refreshes access hourly, so the connection stays up 24/7 and is the
-same on every device until someone disconnects it. **Storage:** `/data` is a PersistentVolumeClaim of the
-`microk8s-retain-hostpath` class (the cluster has no default class), so the
-connection survives restarts and redeploys. With
-`api.persistence.enabled: false` it is an emptyDir instead and the dashboard
-says the connection is temporary; it also warns if the store is not writable. Several
-Google accounts and properties can be added; properties are always picked
-explicitly. *Website data* shows the Realtime report (last 30 minutes —
-Google's realtime limit), refreshed every minute.
+## Results in short
 
-Setup: OAuth web client with `https://hackathon.daria-and-nico.com` (and
-`http://localhost:5173`) as authorised JavaScript origins — no redirect URIs
-needed; Analytics Admin and Data APIs enabled; the consent screen **published
-("In production")**, because in "Testing" Google expires refresh tokens after
-7 days. Repository settings: Actions variable `GOOGLE_CLIENT_ID` and Actions
-secret `GOOGLE_CLIENT_SECRET`; the deploy workflow turns them into a
-Kubernetes secret for the API. Local dev: `npm run server` (with
-`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in the environment) next to
-`npm run dev`, which proxies `/api` (data in `dashboard/data/`).
-`npm run test:server` tests the API against a fake Google.
+Evaluated on the real TVB data (winter 2025/26, summer 2026), ex ante from 31 October 2025:
 
-**Analytics API (`/api/v1`).** Other tools can read the connected GA4
-properties through `https://hackathon.daria-and-nico.com/<path>/api/v1/…` with
-`Authorization: Bearer <ANALYTICS_API_TOKEN>`. It is switched on and off for
-everyone under *Integrations → Google Analytics → Analytics API* (off by
-default). `GET /api/v1` (public) lists the endpoints, `GET /api/v1/openapi.json` is the OpenAPI 3.1 description and `GET /api/v1/docs` a Swagger UI to try them (both public, no data); use `default` or a
-property id from `/api/v1/properties`:
+| | Daily error (winter) | Monthly error | Bias summer 2026 |
+|---|---|---|---|
+| TVB forecast | 5.5 % | 6.1 % | +11.9 % |
+| previous year, holiday-aligned | 10.8 % | 5.9 % | +4.0 % |
+| **our ensemble** | **8.5 %** | **3.7 %** | **+2.6 %** |
 
-| Endpoint | Data |
-| --- | --- |
-| `GET properties/{id}/realtime` | Last 30 min: active users (30 and 5 min), per-minute trend, country, city, device, platform, pages, events, audiences |
-| `GET properties/{id}/history?days=7` | The realtime data, recorded by the server every 10 min while the API is on (kept 180 days): daily, hourly, by country, city, device, platform, page, event |
-| `GET properties/{id}/insights?startDate=28daysAgo&endDate=today` | Standard reports: overview, daily trend, demographics (age, gender, age×gender, interests, language, new vs returning), geography (country, region, city), device/OS/browser, acquisition (channel, source/medium, campaign, first-user channel), landing pages, pages, events, weekday/hour/weekday×hour, `highlights` and `nextSteps` |
-| `GET properties/{id}/metadata` | Every dimension and metric the property supports, incl. custom ones |
-| `POST properties/{id}/report`, `POST properties/{id}/realtime` | Any GA4 query, e.g. `{"dimensions":["country","userAgeBracket"],"metrics":["activeUsers"],"startDate":"7daysAgo"}` |
+- **Why forecasts miss:** the TVB forecast was too high in 11 of 12 months (+50 % in October 2026); the
+  graded drivers are low snow, Friday/Saturday nights and German school holidays (grade A).
+- **Who comes when:** guests and nights per origin market and month for all nine Austrian states (pooled
+  LightGBM, 10.2 % monthly error per origin), split to days with each market's holidays (validated on
+  mobile network data), with booking lead time and age profiles.
+- **What to do first:** marketing actions ranked by spare beds × market share × holiday push in free-day
+  blocks, with launch dates from booking lead times. Winter 2026/27: the gap after the early Easter.
 
-Rows are flat objects (`{"country":"Netherlands","activeUsers":12,"share":0.4}`);
-each section has a `status` (`ok`, `empty`, `error`) and a `note` saying why
-data is missing. On a new property the standard reports fill in after 24–48 h,
-so `realtime` and `history` carry the data until then. Demographics (age, gender,
-interests) need **Google signals** on (GA Admin → Data collection; not
-retroactive) and are withheld below GA's privacy thresholds (`thresholded: true`).
-Responses are cached (realtime 30 s, insights 10 min; `?fresh=1` skips it), and
-the API allows cross-origin requests, as it needs the token.
+Details: [c04/docs/results.md](c04/docs/results.md).
 
-**Adding a source.** Sources are adapters in `dashboard/src/data/sources.ts`
-that fill one day-by-day model (`Day`); analyses in `src/analysis/insights.ts`
-read only that model. Mobile-network presence, guest nationality, prices and
-lift counts are listed as next connectors.
+## Architecture
 
-```sh
-cd dashboard && npm ci && npm run dev     # local development
-npm run build                             # builds into helm/tourism-technology/site
+```
+ open data (Statistik Austria, forecast API, holidays, snow, weather)   TTF Data Space (TVB, guest cards)
+                         │                                                        │
+                         ▼                                                        ▼
+               c04/data  fetch + build features ───► c04/models  train, forecast, explain, rank
+                                                              │
+                                                              ▼
+                                         c04/results  published tables (CSV, graded, no raw data)
+                                                              │
+                     ┌────────────────────────────────────────┼─────────────────────────────┐
+                     ▼                                        ▼                             ▼
+          c04/api  FastAPI /c04-api            dashboard/  React app + Node API     TTF Data Space products
+          (Docker image, Helm)                 (nginx, Helm)                         (c04/dataspace)
 ```
 
-## Deployment
+Kubernetes (Helm chart in [`helm/`](helm/tourism-technology)): nginx for the app, a Node service for Google
+Analytics and AI captions, the data API, and an opt-in refresh pipeline that re-fetches the sources and
+re-runs models only on request. See [docs/architecture.md](docs/architecture.md).
 
+## Repository
 
-The [deployment workflow](.github/workflows/deploy.yaml) deploys to the existing
-`tourism-technology-2026` Kubernetes namespace through Pangolin. It uses the
-GitHub → Authentik OIDC credential helper embedded in the supplied kubeconfig.
-No permanent Kubernetes token is required.
-
-The [Helm chart](helm/tourism-technology) runs two services: the built
-dashboard on unprivileged nginx (files from a ConfigMap) and the Node API
-(code from a ConfigMap; data on a PersistentVolumeClaim when
-`api.persistence.enabled`, else an emptyDir); the workflow builds both first. Each branch gets an isolated Helm release and URL under
-`https://hackathon.daria-and-nico.com/<branch-name>`.
-
-## Repository setup
-
-Set these repository secrets under **Settings → Secrets and variables → Actions**:
-
-| Secret | Value |
-| --- | --- |
-| `KUBE_CONFIG` | Complete kubeconfig, including its embedded exec helper |
-| `PANGOLIN_ID` | Pangolin machine client ID with access to the private Kubernetes API |
-| `PANGOLIN_SECRET` | That machine client's secret |
-| `PANGOLIN_ENDPOINT` | Pangolin dashboard URL |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret, used by the API service |
-| `ANALYTICS_API_TOKEN` | Bearer token for the analytics API (`/api/v1`); without it the API answers 503 |
-
-The workflow selects its `microk8s` context, and `id-token: write` lets the helper
-request short-lived credentials. The namespace and its RBAC must already exist;
-CI does not create them. Helm also needs permission to manage release secrets in
-that namespace, and the API needs secrets (and PersistentVolumeClaims with
-persistence on) there.
-
-Optional Actions variables:
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `KUBECTL_VERSION` | `v1.31.14` | Matches the cluster version recorded in the reference repo; adjust if upgraded |
-
-## Run the pipeline
-
-After the workflow exists on the default branch, open **Actions → Deploy to
-Kubernetes → Run workflow**, select the branch to deploy, and run it. Any branch
-can be selected; deploying is manual so unfinished pushes are not published.
-By default the branch is available at
-`https://hackathon.daria-and-nico.com/<branch-name>`. Branch names containing
-characters outside letters, digits, `.`, `_`, `-`, and `/` receive a generated,
-hashed path instead; the run summary reports the exact URL. Branch deployments
-have separate release and resource names and can coexist.
-
-Select **Deploy to the domain root** only when the user explicitly requests a
-root deployment. It updates a separate `tourism-root` release at
-`https://hackathon.daria-and-nico.com/`; normal runs never update that release.
-
-The job validates configuration, connects Pangolin with private DNS, installs
-or upgrades the release, waits for rollout, verifies the Service, and checks the
-public URL. It collects diagnostics on failure and attempts to disconnect and
-delete its temporary kubeconfig. A failed HTTP check does not automatically
-roll back an already applied deployment. Public verification requires DNS,
-Pangolin, and its authentication policy to allow access from GitHub Actions.
-
-The `pangolin-ci` concurrency group serializes this repository's connections.
-GitHub does not share concurrency locks across repositories: use a separate
-Pangolin machine client here if another repository may deploy simultaneously.
-Existing releases and legacy resources are not automatically removed.
-
-## Public access through Pangolin
-
-Configure a Pangolin public HTTP/HTTPS resource on the existing site:
-
-- Domain: `hackathon.daria-and-nico.com`.
-- Target: `http://<ingress-controller-LAN-IP>:80`, using the reachable controller
-  address and port from your existing deployment.
-- Custom Host Header: `hackathon.daria-and-nico.com`; forward all paths unchanged.
-- HTTPS: terminate TLS at Pangolin. Choose the desired Pangolin authentication policy.
-- DNS: point the public hostname to your Pangolin server.
-
-Requests then follow Pangolin → ingress controller → Service → application.
-The workflow checks both the Service and the public route after deployment.
-
-## Troubleshooting
-
-With an authenticated cluster connection, inspect the release named in the run:
-
-```sh
-kubectl -n tourism-technology-2026 get deployments,pods,services,ingresses
-helm -n tourism-technology-2026 list
-helm -n tourism-technology-2026 history <release>
-helm -n tourism-technology-2026 rollback <release> <revision>
+```
+dashboard/        Demand Radar web app (React, TypeScript, Vite) and its Node API
+fanpage/          Paznaun-Ischgl fan page, test site for Google Analytics
+c04/              Challenge 04 data product (Python)
+  data/             fetch and build scripts, static inputs (raw data is never committed)
+  models/           production models, exports, refresh pipeline
+  research/         experiments that informed the model choice
+  evaluation/       backtest and evaluation results
+  results/          published tables served by the API
+  api/              FastAPI service (Dockerfile, tests)
+  pipeline/         refresh job image
+  dataspace/        publishing to the TTF Data Space
+  docs/             data sources, models, results, table schemas
+docs/             architecture, deployment, Data Space products
+helm/             Helm chart for the whole deployment
+.github/          deploy workflow, image builds
 ```
 
-Rollback requires an earlier Helm revision. Private DNS failures usually
-require checking the machine client's access to `k8s.daria-and-nico.private`.
-Authentication failures require checking the supplied kubeconfig and Authentik
-trust for this repository. An ingress 404 requires checking the hostname and class;
-a Pangolin 502 requires checking its target address and port.
+## Quick start
 
-Protocol references:
-[GitHub OIDC](https://docs.github.com/en/actions/reference/security/oidc) and
-[Pangolin machine clients](https://docs.pangolin.net/manage/clients/machine-clients).
+Web app:
 
-## Development workflow
+```bash
+cd dashboard && npm ci && npm run dev
+```
 
-- Work on a feature branch; small, finished changes such as repository rules may go directly to `main`.
-  Everything that should go live ends up on `main`.
-- Production: `main` is deployed to the root domain `https://hackathon.daria-and-nico.com/` with the workflow
-  "Deploy to Kubernetes" (branch `main`, option `deploy_root`). Merge the latest `main` before pushing, so a
-  deploy never drops another team's work.
-- Branch deployments (`https://hackathon.daria-and-nico.com/<branch-name>`) are possible but not the default.
-  Decide per change, for example to test a larger feature in the cluster or for a requested preview. Each one
-  runs its own pods on the shared server.
-- Use a short, URL-safe branch name (lowercase letters, digits, hyphens) when a branch may be deployed: it
-  becomes the path. Other names get a generated path, shown in the run summary.
-- Check a deployed URL and share the branch or commit, URL and result. If the deployment or the public check
-  is blocked, say so instead of announcing the deployment.
+Data API with the published tables:
 
-## Shared server: no heavy jobs by default
+```bash
+pip install -r c04/api/requirements.txt && cd c04/api && uvicorn app:app --port 8080
+```
 
-- Nothing heavy runs on deploy. Model training, data refreshes and other batch jobs run only on request, or
-  when a schedule is explicitly switched on.
-- The Challenge 04 refresh (`models/refresh.py`, Helm `templates/c04-pipeline.yaml`) exists only in the root
-  release; its CronJobs are deployed suspended (`c04Pipeline.schedule.fast` / `.full` = `false`). A root
-  deploy with the input `c04_refresh` starts one manual run: `fast` (snow and weather, no training, about
-  10 s) or `full` (all sources, retrains the models whose inputs changed).
-- New jobs need resource limits, `backoffLimit: 0` unless retries are really needed, and default to off,
-  also in branch releases.
+Tests:
+
+```bash
+cd dashboard && npm run test:unit
+```
+
+```bash
+pip install -r c04/api/requirements-dev.txt && pytest -q c04/api/tests
+```
+
+Rebuilding data and models needs the TTF Data Space key for the partner data: see
+[c04/README.md](c04/README.md). Deployment: [docs/deployment.md](docs/deployment.md).
+
+## Data and licences
+
+Partner data (TVB Paznaun-Ischgl with feratel, Salzburger Sportwelt, Hutchison Drei) came through the TTF
+Data Space under TTF 2026 data licences: raw files are never committed; the repository holds derived
+aggregates only, with attribution. Open data: Statistik Austria, Österreich Werbung / Nächtigungsprognose,
+GeoSphere Austria, Open-Meteo (CC BY 4.0), OpenHolidays (ODbL), Landesstatistik Tirol. Full list:
+[c04/docs/data-sources.md](c04/docs/data-sources.md).
+
+## Fan page
+
+[`fanpage/`](fanpage/) is a small static Paznaun-Ischgl fan page (plain HTML, CSS and JavaScript) that we
+deployed during the hackathon as a test site for the Google Analytics integration. It is kept for reference;
+the current deploy workflow does not publish it.
