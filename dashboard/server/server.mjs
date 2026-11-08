@@ -305,7 +305,8 @@ export function createApp() {
     // drop whatever prefix comes before /api/ (e.g. /my-branch/api/ga).
     const full = new URL(req.url, 'http://x').pathname;
     const at = full.indexOf('/api/');
-    const path = at >= 0 ? full.slice(at) : full;
+    // A trailing slash (…/history/) means the same as none.
+    const path = (at >= 0 ? full.slice(at) : full).replace(/(.)\/+$/, '$1');
     // The analytics API is for other tools, also in browsers: it allows any
     // origin, which is safe because it needs the bearer token (no cookies).
     // The dashboard's own routes stay same-origin.

@@ -167,7 +167,7 @@ test('analytics API: token, on/off switch, realtime, insights, history, queries'
   // History: collected minutes add up once, however often they are seen.
   await collectAnalytics();
   await collectAnalytics();
-  r = await v1('GET', '/properties/111/history?days=1');
+  r = await v1('GET', '/properties/111/history/?days=1');
   assert.equal(r.status, 200);
   assert.equal(r.body.status, 'ok');
   assert.equal(r.body.totals.eventCount, 10, 'minutes 3 and 12; the running minute 0 is skipped');
