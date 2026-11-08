@@ -152,28 +152,20 @@ test("all periods update all market contexts without stale recommendations", asy
     }
   }
 });
-test("existing navigation, Data upload and Actions export remain functional", async ({
+test("existing navigation, Google Analytics connect and Actions export remain functional", async ({
   page,
 }) => {
+  await page.route(/\/api\/ga$/, (r) => r.fulfill({ json: { configured: true, accounts: [], connections: [] } }));
   await page.goto("./");
-  await page.getByRole("link", { name: "Data", exact: true }).click();
-  await expect(page).toHaveURL(/#data$/);
+  await page.getByRole("link", { name: "Integrations", exact: true }).click();
+  await expect(page).toHaveURL(/#integrations$/);
   await expect(
-    page.getByRole("heading", { name: "Upload export", exact: true }),
+    page.getByRole("heading", { name: "Google Analytics", exact: true }),
   ).toBeVisible();
-  await expect(page.locator('input[type="file"]')).toHaveCount(1);
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "overview-regression.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        "date;actual;forecast;previous_year;beds\n2026-11-06;100;120;110;800",
-      ),
-    });
   await expect(
-    page.getByText("✓ overview-regression.csv", { exact: true }),
+    page.getByRole("button", { name: "Connect Google Analytics" }),
   ).toBeVisible();
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
   await page.getByRole("link", { name: /^Actions/ }).click();
   await expect(page).toHaveURL(/#actions$/);
   await expect(page.locator(".actions-min > li").first()).toBeVisible();

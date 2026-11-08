@@ -87,7 +87,7 @@ export default function Overview({
         <span className="status sample">Campaign demo</span>
         <p>
           Fictional audiences, booking patterns and campaign recommendations.
-          Independent of the dashboard’s real and uploaded data.
+          Independent of the dashboard’s real and connected data.
         </p>
       </div>
       <div className="cp-layout">

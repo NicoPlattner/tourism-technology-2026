@@ -109,6 +109,14 @@ spec:
     - host: hackathon.daria-and-nico.com
       http:
         paths:
+          # The API service gets <path>/api; it strips the prefix itself.
+          - path: {{ printf "%s/api" (trimSuffix "/" .Values.ingress.path) | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-api
+                port:
+                  number: 80
           # nginx in the pod resolves assets by file name, so no rewrite is needed.
           - path: {{ .Values.ingress.path | quote }}
             pathType: Prefix
