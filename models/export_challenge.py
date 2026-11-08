@@ -324,6 +324,39 @@ def export_actions(d: pd.DataFrame, w: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def write_manifest():
+    """When each source was last updated: shown by the API in /meta and on its landing page."""
+    from datetime import datetime, timezone
+    raw = ROOT / "data" / "raw"
+
+    def mtime(p):
+        p = raw / p
+        return datetime.fromtimestamp(p.stat().st_mtime, timezone.utc).strftime("%Y-%m-%d") if p.exists() else None
+    src = {}
+    mo = pd.read_csv(GUI / "monthly_origin.csv", usecols=["month", "method"])
+    obs = mo[mo.method.str.startswith("observed")]
+    src["Statistik Austria, last observed month"] = obs.month.max() if len(obs) else None
+    try:
+        from common import load
+        f = load()
+        if "real_actual" in f:
+            src["TVB overnight stays, last actual day"] = str(f.real_actual.dropna().index.max().date())
+        if "free_beds" in f:
+            src["TVB available beds, last day"] = str(f.free_beds.dropna().index.max().date())
+    except Exception:
+        pass
+    pr = pd.read_csv(GUI / "pull_reasons.csv", usecols=["date", "forecast_snowfall_cm", "snow_depth_is_typical_not_observed"])
+    fc = pr[pr.forecast_snowfall_cm.notna()]
+    src["weather forecast (Open-Meteo), first forecast day"] = fc.date.min() if len(fc) else None
+    ob = pr[pr.snow_depth_is_typical_not_observed == False]  # noqa: E712
+    src["snow depth (GeoSphere SNOWGRID), last observed day"] = ob.date.max() if len(ob) else None
+    src["school and public holidays (OpenHolidays), fetched"] = mtime("open/holidays_hist/DE_School.json")
+    src["official forecast (Nächtigungsprognose), fetched"] = mtime("open/TR53_day.json")
+    man = {"generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"), "sources": src}
+    (OUT / "manifest.json").write_text(json.dumps(man, ensure_ascii=False, indent=1))
+    return man
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     d = export_forecast()
@@ -331,6 +364,7 @@ def main():
     a = export_actions(d, w)
     export_deviations()
     shutil.copy(ROOT / "docs" / "challenge-04" / "C04-RESULTS-README.md", OUT / "README.md")
+    print(write_manifest())
     print(w.groupby("kind").size().to_dict())
     print(a.head(20)[["rank", "reason_type", "action_type", "market", "from", "to", "holiday_days", "launch_by",
                       "holiday_part_nights", "base_part_nights", "score", "grade"]].to_string(index=False))
