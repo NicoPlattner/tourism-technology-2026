@@ -71,8 +71,22 @@ jobs:
           set -euo pipefail
           docker run --rm --entrypoint python c04-pipeline:test -c "
           import sys, os; sys.path.insert(0, '/app/models'); sys.path.insert(0, '/app/data')
+          import io, importlib, glob
           import lightgbm, sklearn, statsmodels, pandas, holidays, refresh, build_origin_panel, holiday_corrections
-          assert os.getuid() == 1000 and os.path.isdir('/app/baked-results/gui')
+          # every pipeline script's imports must resolve (a missing parser broke fetch_tirol_stats once)
+          local = {os.path.basename(x)[:-3] for x in glob.glob('/app/data/*.py') + glob.glob('/app/models/*.py')}
+          for f in sorted(glob.glob('/app/data/*.py') + glob.glob('/app/models/*.py')):
+              name = os.path.basename(f)[:-3]
+              if name.startswith('probe_') or name in ('refresh',):
+                  continue
+              src = open(f).read()
+              for line in src.splitlines():
+                  if line.startswith(('import ', 'from ')) and ' import ' in line or line.startswith('import '):
+                      mod = line.split()[1].split('.')[0]
+                      if mod not in local and mod not in ('__future__', 'chronos', 'torch'):
+                          importlib.import_module(mod)
+          pandas.read_html(io.StringIO('<table><tr><th>a</th></tr><tr><td>1</td></tr></table>'))
+          assert os.getuid() == 1000 and os.path.isdir('/app/baked-results/gui') and os.path.isdir('/app/pipeline/c04/seed')
           print('ok', lightgbm.__version__, pandas.__version__)"
       - name: Push
         if: github.event_name != 'pull_request'
