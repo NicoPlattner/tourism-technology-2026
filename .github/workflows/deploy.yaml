@@ -68,6 +68,7 @@ jobs:
         env:
           # Public OAuth client ID for "Connect Google Analytics" (Actions variable, not a secret).
           VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          VITE_CAMPAIGN_AWARENESS_DAYS: ${{ vars.CAMPAIGN_AWARENESS_DAYS || '7' }}
         run: |
           npm ci --no-audit --no-fund
           npm run build

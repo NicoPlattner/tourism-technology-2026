@@ -43,7 +43,7 @@ export default function TravelPeriodSelector({value,onChange}: {value:TravelDate
   return <fieldset className="cp-travel-dates cp-calendar-control" ref={root} aria-describedby={invalid?`${id}-help`:undefined}
     onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setOpen(false);}}
     onKeyDown={event=>{if(event.key==="Escape"&&open){event.preventDefault();event.stopPropagation();close();}}}>
-    <legend>Target travel period</legend>
+    <legend>Analysis period</legend>
     <div className="cp-date-fields">
       {(["start","end"] as const).map(field=><label key={field}>
         <span>{field==="start"?"Start":"End"}</span>

@@ -1,8 +1,11 @@
+import type { WindowEvidence } from "../opportunity/ranking";
+import { validTravelDates } from "../travelDates";
 import type { TourismContext } from "../demand/contracts";
 import { socialProfile } from "../socialProfile";
 import { creativeCandidates, seasonFromTravelDate, type AssetCandidate } from "../assetCatalog";
 import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
+  opportunityEvidence?: WindowEvidence;
   tourismContext?: TourismContext;
   country: string;
   language: string;
@@ -79,7 +82,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
@@ -169,6 +172,20 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     const originForCountry: Record<string,string> = {Germany:"DE",Netherlands:"25",Belgium:"62",Austria:"AT"};
     if (context.origin !== originForCountry[result.country as string]) throw new CaptionError("Tourism evidence must match the selected country.");
     result.tourismContext = { ...context, reasons: [...context.reasons] };
+  }
+  if (value.opportunityEvidence !== undefined) {
+    const evidence = value.opportunityEvidence;
+    if (!object(evidence) || Object.keys(evidence).sort().join(",") !== "analysisEnd,analysisStart,awarenessBufferDays,days,end,estimatedOccupancy,leadOpportunityPassed,marketEvidence,spareBedNights,start" ||
+        !object(value.travelDates) || !value.tourismContext || evidence.start !== value.travelDates.start || evidence.end !== value.travelDates.end ||
+        typeof evidence.analysisStart !== "string" || typeof evidence.analysisEnd !== "string" || !validTravelDates({start:evidence.analysisStart,end:evidence.analysisEnd}) ||
+        evidence.analysisStart > (evidence.start as string) || evidence.analysisEnd < (evidence.end as string) ||
+        ![3,5,7].includes(evidence.days as number) || (Date.parse(evidence.end as string)-Date.parse(evidence.start as string))/86400000+1 !== evidence.days ||
+        typeof evidence.estimatedOccupancy !== "number" || !Number.isFinite(evidence.estimatedOccupancy) || evidence.estimatedOccupancy < 0 || evidence.estimatedOccupancy >= 1 ||
+        typeof evidence.spareBedNights !== "number" || !Number.isFinite(evidence.spareBedNights) || evidence.spareBedNights < 0 || evidence.spareBedNights > 1e10 ||
+        !Number.isInteger(evidence.awarenessBufferDays) || (evidence.awarenessBufferDays as number) < 0 || (evidence.awarenessBufferDays as number) > 30 ||
+        typeof evidence.marketEvidence !== "boolean" || typeof evidence.leadOpportunityPassed !== "boolean")
+      throw new CaptionError("Provide valid forecast-window evidence within the selected analysis period.");
+    result.opportunityEvidence = {...evidence};
   }
   return result as unknown as CaptionMetadata;
 }

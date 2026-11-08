@@ -37,7 +37,7 @@ test('transfer, edit, approve, schedule, reschedule and refresh keep the exact c
   await page.reload();
   await expect(page.locator('.am-campaign.is-open .am-status')).toHaveText('SCHEDULED');
   await expect(page.locator('.am-campaign.is-open .am-post').first()).toContainText('Unser nächstes Alpenabenteuer');
-  await expect(page.locator('.am-campaign')).toHaveCount(4);
+  await expect(page.locator('.am-campaign')).toHaveCount(5);
   await expect(page.locator('.am-stats')).toContainText('9Scheduled posts');
   expect(calls).toBe(0);
 });

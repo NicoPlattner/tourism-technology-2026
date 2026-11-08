@@ -1,5 +1,7 @@
 import { useDemand } from "../campaigns/demand/useDemand";
-import { withDemand } from "../campaigns/demand/recommendation";
+import { withTravelWindow } from "../campaigns/opportunity/recommendation";
+import { useTravelOpportunity, AWARENESS_DAYS } from "../campaigns/opportunity/useTravelOpportunity";
+import { viennaToday } from "../campaigns/opportunity/ranking";
 import { DEFAULT_TRAVEL_DATES } from "../campaigns/travelDates";
 import { SEASONAL_ASSETS } from "../campaigns/seasonalAssets";
 import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
@@ -69,7 +71,8 @@ export default function Overview({
   const demand = useDemand(travelDates);
   const query = demand.data[market];
   const dataStatus = query ? query.nights.value > 0 && query.guests.value > 0 ? "ready" : "empty" : demand.errors[market] ? "error" : "loading";
-  const currentCampaign = baseCampaign ? withDemand(baseCampaign,query,dataStatus) : null;
+  const opportunity = useTravelOpportunity(market,travelDates,query,retry);
+  const currentCampaign = baseCampaign ? withTravelWindow(baseCampaign,query,dataStatus,opportunity,viennaToday(),AWARENESS_DAYS) : null;
   const assistant = useCaptionAssistant(currentCampaign);
   const selectedAsset = assistant.result?.assetId ? SEASONAL_ASSETS.find(asset => asset.id === assistant.result?.assetId) : undefined;
   const visibleCampaign = currentCampaign
@@ -114,7 +117,7 @@ export default function Overview({
         <p role={dataStatus === "error" ? "alert" : undefined} aria-live="polite">
           {dataStatus === "ready" ? "Data-informed planning · estimates and proxy methods apply. Creative images and initial captions remain illustrative." : dataStatus === "loading" ? "Loading evidence for the selected market and dates. The creative preview is available immediately." : demand.errors[market] || "No guest nights for this market and period. Choose different dates."}
         </p>
-        {dataStatus === "error" && <button className="link" onClick={demand.retry}>Retry demand data</button>}
+        {dataStatus === "error" && <button className="link" onClick={() => { demand.retry(); setRetry(n=>n+1); }}>Retry demand data</button>}
       </div>
       <div className="cp-layout">
         <SourceMarketMap selected={market} onSelect={setMarket} demand={demand.data} dates={travelDates} loading={demand.loading} />

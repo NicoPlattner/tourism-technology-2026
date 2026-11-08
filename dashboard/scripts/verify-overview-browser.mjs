@@ -9,10 +9,10 @@ page.on('pageerror',error=>errors.push(error.message));
 try {
  await page.goto(process.env.VERIFY_URL || 'http://127.0.0.1:5175/');
  await expect(page.locator('.cp-summary')).toContainText('135 days');
- await expect(page.locator('.cp-summary')).toContainText('61,143');
+ await expect(page.getByRole('button',{name:'Select Germany',exact:true})).toHaveAttribute('data-nights','61143');
  evidence.push({context:'Germany February',summary:await page.locator('.cp-summary').innerText()});
  await page.getByRole('button',{name:'Select Netherlands',exact:true}).click();
- await expect(page.locator('.cp-summary')).toContainText('41,208');
+ await expect(page.getByRole('button',{name:'Select Netherlands',exact:true})).toHaveAttribute('data-nights','41208');
  await page.getByLabel('Travel start date',{exact:true}).fill('2027-07-12');
  await page.getByLabel('Travel end date',{exact:true}).fill('2027-07-18');
  await expect(page.locator('.cp-summary')).toContainText('19 days');

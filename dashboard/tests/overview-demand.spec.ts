@@ -31,7 +31,7 @@ test('date and country filters synchronize heatmap, stay, lead time and actual L
   await page.getByRole('button',{name:'Select Germany',exact:true}).click();
   await page.getByRole('button',{name:'Regenerate',exact:true}).click();
   await expect(page.locator('.cp-reason-source')).toHaveText('AI reasoning');
-  await expect(page.locator('.cp-reasoning > p')).toContainText('135-day');
+  await expect(page.locator('.cp-reasoning > p:not(.cp-window-reason)')).toContainText('135-day');
   await expect(page.locator('.cp-caption-text')).toContainText('längeren Auszeit');
   await selectPeriod(page,'q3-2027');
   await expect(page.locator('.cp-summary')).toContainText('19 days');
@@ -41,7 +41,7 @@ test('date and country filters synchronize heatmap, stay, lead time and actual L
   await expect(page.locator('.cp-reason-source')).toHaveText('Data summary');
   await page.getByRole('button',{name:'Regenerate',exact:true}).click();
   await expect(page.locator('.cp-caption-text')).toContainText('Kleine Auszeit');
-  await expect(page.locator('.cp-reasoning > p')).toContainText('19-day');
+  await expect(page.locator('.cp-reasoning > p:not(.cp-window-reason)')).toContainText('19-day');
   expect(requests).toHaveLength(2);
   expect(requests[1].tourismContext).toMatchObject({origin:'DE',start:'2027-07-12',leadTimeDays:19,averageStayNights:2.1,guestNights:850});
   expect(requests[1].tourismContext.reasons.join(' ')).toContain('Summer holidays');
@@ -97,7 +97,7 @@ test('late prior-period demand cannot overwrite a newer filter, and delayed AI s
   const completed=page.waitForResponse(r=>r.url().includes('/api/marketing/generate-caption'));
   releaseAI(); await completed;
   await expect(page.locator('.cp-reason-source')).toHaveText('Data summary');
-  await expect(page.locator('.cp-reasoning > p')).not.toContainText('Germany July evidence');
+  await expect(page.locator('.cp-reasoning > p:not(.cp-window-reason)')).not.toContainText('Germany July evidence');
   await page.getByRole('button',{name:'Select Germany',exact:true}).click();
-  await expect(page.locator('.cp-reasoning > p')).toContainText('Germany July evidence');
+  await expect(page.locator('.cp-reasoning > p:not(.cp-window-reason)')).toContainText('Germany July evidence');
 });

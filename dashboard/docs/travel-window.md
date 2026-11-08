@@ -1,0 +1,55 @@
+# Recommended travel window
+
+The Overview keeps the selected **analysis period** for the country heatmap. The Campaign Planner separately displays **Recommended travel dates**: a supported future 3-, 5- or 7-day opportunity span inside that period. Dates are inclusive calendar spans, not quoted reservation lengths or inferred modal booking durations.
+
+## Data and scope
+
+The existing API is documented in `api/c04/README.md` and `docs/challenge-04/C04-RESULTS-README.md`.
+
+- `/query` supplies selected-origin demand, average stay, arrival-period median lead time, methods and reasoning. It is queried again for the chosen shorter window. Planner metrics and AI evidence then refer to that window; the map still shows the full analysis period.
+- `/forecast?start=&end=` supplies **destination-wide** daily guest-night forecasts, estimated capacity and an official reference forecast. Daily forecasts by origin are not exposed. We never present the regional occupancy as the selected country's occupancy.
+- `/actions?start=&end=&limit=500` supplies market/region marketing-opportunity scores. The frontend filters the selected country: NL→25, BE→62; Germany includes the documented German origin regions; Austria includes Austrian states. Different origin rows are not mixed. If a country aggregate exists, it takes precedence over its constituent regions.
+- Capacity is estimated using stays plus free beds on the equivalent prior-year weekday. It is not confirmed open inventory. Relevant closure notes remain in detailed reasoning. Daily actual historical demand and daily TVB target figures are not publicly exposed by this endpoint; no historical or target gap is fabricated. A positive gap against the available official reference forecast is a secondary signal, not an observed booking shortfall.
+
+The current daily forecast covers 1 Nov 2026–30 Apr 2027. A broader analysis can still yield a window inside its supported portion. Summer analyses without daily forecast/capacity show **No supported window**, with an explanation. Their analysis-period creative preview and optional AI generation remain available; Review & Schedule requires a supported window.
+
+## Ranking
+
+`src/campaigns/opportunity/ranking.ts` is a pure, tested calculation:
+
+1. Enumerate contiguous inclusive 3-, 5- and 7-day spans, wholly inside the analysis range.
+2. Exclude starts before today's date in **Europe/Vienna**. Every day must have finite forecast nights, positive estimated capacity and positive estimated spare capacity. Missing days and unknown capacity cannot imply low occupancy.
+3. Compute capacity-weighted destination occupancy, spare bed-nights, per-day selected-country action opportunity, and positive reference-forecast gap.
+4. Rank by a transparent planning heuristic: 65% vacancy ratio, 15% normalized country action score per day, 10% normalized spare bed-nights per day, 5% proximity to the origin's mean stay and 5% normalized positive reference-forecast gap. Country action scores already represent backend addressable-night allocations; they are not daily country guest-night forecasts. No claim of a proven optimum is made.
+5. Prefer candidates whose provisional arrival-period booking median is not yet past. This screening uses the analysis query's median. The chosen window is queried again, and the final flag/timing uses that narrower window's median. Ties are deterministic: earlier start, then shorter duration.
+
+Missing optional action scores do not block regional capacity ranking. The explanation states when no matching country scores are available. Missing forecast/capacity or no eligible future span yields an explicit unsupported state, never an invented optimal window.
+
+## Campaign timing and AI
+
+For recommended arrival `R`, window-specific booking-lead median `L` and awareness buffer `B`:
+
+```
+median booking date = R − L days
+campaign end        = median booking date
+campaign start      = campaign end − B days
+```
+
+Proposed posts fall at the start, midpoint and end of the awareness period, using correct Vienna DST offsets. A zero-day buffer produces one distinct proposed date. A past booking median is flagged **Booking lead-time opportunity has passed**; an awareness period already underway is also identified. Dates are not silently clamped to today. Local demo scheduling still allows human editing and review.
+
+The public build setting `VITE_CAMPAIGN_AWARENESS_DAYS` configures 0–30 days, default 7. Invalid values fall back to 7. The deployment workflow passes repository Actions variable `CAMPAIGN_AWARENESS_DAYS` into that build setting. Changes require rebuilding/redeploying.
+
+The chosen dates, analysis bounds, occupancy, spare-capacity estimate, availability of country action evidence, buffer and passed-opportunity flag are included in `opportunityEvidence` alongside window-specific `tourismContext`. The caption endpoint validates their bounds and alignment. The image/season follows the recommended arrival date. AI caches include this evidence; late forecast or AI results cannot replace another context.
+
+When no daily window is supported, the request explicitly describes the dates as analysis-only creative context. It must not call them optimized or recommended dates. The existing immediate preview and optional Regenerate workflow are retained.
+
+## Verification
+
+- `npm run test:unit`: **66 passed**, including ranking, missing data, country/region filtering, date boundaries, booking opportunity flags, configurable buffers, year/leap-day transitions, Vienna DST, selected-window metadata and AI evidence validation.
+- Browser suite: **39 passed** at 1440, 1920, 768 and 390px through the existing tests, including three new travel-window flows. Country changes produce different supported dates in controlled equal-occupancy fixtures; the test also verifies transfer to Actions uses the shorter window and recalculated publishing dates.
+- Backend API tests: **11 passed** (one upstream test-client deprecation warning).
+- Analytics server tests: **3 passed**.
+- Production build/TypeScript and Helm lint passed; no lint script exists in the app.
+- Real-data browser verification used the actual FastAPI service over the repository tables and the configured live AI service, without demand/forecast/AI mocks. A Dutch analysis of **1 Jan–30 Apr 2027** selected **18–22 Apr 2027**: a five-day window with approximately **25% estimated regional occupancy**, **50,465 spare bed-nights**, and campaign dates **23–30 Mar 2027** (19-day lead proxy plus seven-day awareness buffer). Summer without forecast coverage correctly produced no supported window. Generated artifact: `test-results/travel-window-real-api.png`.
+
+These figures are model/capacity estimates, not live available rooms or guarantees. The selected age remains a marketing preference, not a measured demographic segment of the forecast.

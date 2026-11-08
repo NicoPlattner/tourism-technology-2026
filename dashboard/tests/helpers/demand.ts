@@ -10,7 +10,17 @@ export function demandFixture(origin='DE', start='2027-02-15', end='2027-02-21',
       pull:field({destination_used:'Paznaun-Ischgl',events:[],season_open_days:7,days:7,snow_depth_cm_mean:74,snow_is_typical_not_observed:true,easter_window_days:0,christmas_window_days:0})},
     sources:['Statistik Austria (CC BY 4.0)','TVB Paznaun-Ischgl (TTF 2026 data licence)']};
 }
+export function forecastFixture(start:string,end:string,occupancy=.5) {
+  const daily=[];
+  for(let date=start;date<=end;date=new Date(Date.parse(date)+86400000).toISOString().slice(0,10)) daily.push({date,forecast_ours:1000*occupancy,capacity_est:1000,forecast_official_tr53:600,capacity_basis:'same weekday last year'});
+  return {meta:{destination:'Paznaun-Ischgl'},daily};
+}
 export async function mockDemand(page:Page) {
+  await page.route('**/c04-api/forecast?**',route=>{
+    const p=new URL(route.request().url()).searchParams;
+    return route.fulfill({json:forecastFixture(p.get('start')!,p.get('end')!)});
+  });
+  await page.route('**/c04-api/actions?**',route=>route.fulfill({json:[]}));
   await page.route('**/c04-api/query?**', route => {
     const params = new URL(route.request().url()).searchParams;
     return route.fulfill({json:demandFixture(params.get('origin')!,params.get('start')!,params.get('end')!)});

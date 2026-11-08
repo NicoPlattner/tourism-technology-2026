@@ -1,3 +1,4 @@
+import type { WindowRecommendation } from "./opportunity/ranking";
 import type { TourismContext } from "./demand/contracts";
 import type { SocialPlatform } from "./socialProfile";
 import type { CaptionMetadata } from "./captions/contracts";
@@ -40,6 +41,8 @@ export interface CampaignCaption {
   generatedAt?: string;
 }
 export interface CampaignRecommendation {
+  analysisPeriod?: DateRange;
+  windowRecommendation?: WindowRecommendation;
   reasoningSource?: "data" | "ai";
   dataStatus?: "loading" | "ready" | "error" | "empty";
   tourismContext?: TourismContext;

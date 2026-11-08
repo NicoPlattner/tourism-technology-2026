@@ -283,7 +283,7 @@ test("calendar date range accepts exact dates, rejects a reversed range and send
  await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
  await expect(start).toHaveValue("15.07.2027");await expect(end).toHaveValue("22.07.2027");expect(calls).toBe(0);
  await page.getByRole("button",{name:"Regenerate",exact:true}).click();await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
- expect(request.travelPeriod).toBe("custom");expect(request.travelDates).toEqual({start:"2027-07-15",end:"2027-07-22"});expect(request.season).toBe("summer");
+ expect(request.travelPeriod).toBe("custom");expect(request.travelDates).toEqual({start:"2027-07-15",end:"2027-07-19"});expect(request.season).toBe("summer");
  await end.fill("");await expect(page.getByText("Choose both dates to update the campaign.")).toBeVisible();
  await expect(page.locator(".cp-summary")).toContainText("15 Jul 2027 – 22 Jul 2027");
 });
@@ -322,7 +322,7 @@ test("March–April guest dates change the picture, caption and AI season immedi
  await page.getByLabel("Travel start date",{exact:true}).fill("2027-03-18");
  await page.getByLabel("Travel end date",{exact:true}).fill("2027-04-20");
  await expect(page.locator(".cp-summary")).toContainText("18 Mar 2027 – 20 Apr 2027");
- await expect(page.locator(".cp-summary")).toContainText("17 Jan 2027 – 24 Jan 2027");
+ await expect(page.locator(".cp-summary")).toContainText("10 Jan 2027 – 17 Jan 2027");
  await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/flower-lined green Alpine trail/);
  expect(await page.locator(".cp-social-image").getAttribute("src")).not.toBe(winter);
  await expect(page.locator(".cp-caption-text")).not.toContainText("Winter");expect(calls).toBe(0);
