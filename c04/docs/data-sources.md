@@ -8,7 +8,7 @@ not only on its description), access, licence, and whether it helps.
 Licence "TVB Paznaun-Ischgl TTF 2026 data licence": use, derive, share
 allowed, **attribute TVB Paznaun-Ischgl**. Access: TTF member with
 challenge 04 → contract per product (auto-approved) → download
-(`data/fetch_partner.py`). Raw files are git-ignored.
+(`c04/data/fetch_partner.py`). Raw files are git-ignored.
 
 | Product | Columns | What the data shows (verified 8 Nov) |
 |---|---|---|
@@ -27,7 +27,7 @@ but counts only hotels and holiday flats).
 | Source | Content | Use |
 |---|---|---|
 | API naechtigungen.pol.joanneum.at, region **TR53** = Galtür, Ischgl, Kappl, Pians, See | Monthly stays since Nov 1999 (actuals to Aug 2026, then forecast), daily forecast since 2023 | 26-year monthly history, level anchor, official baseline |
-| Repo kan-jr/Naechtigungsprognose `data/` | Daily index 2022–2025 for 100 regions (feratel + mobile data), calendar matrix, event flags, bed cap, model parameters | Daily history before Nov 2024 (matches real data: corr 0.993, 5.7 % error), pooling across regions |
+| Repo kan-jr/Naechtigungsprognose `c04/data/` | Daily index 2022–2025 for 100 regions (feratel + mobile data), calendar matrix, event flags, bed cap, model parameters | Daily history before Nov 2024 (matches real data: corr 0.993, 5.7 % error), pooling across regions |
 
 What the official model does not contain: weather, snow, sentiment, the real
 season-opening date. Its daily series sets the lowest day of the year to 0
@@ -35,7 +35,7 @@ and can exceed its own bed cap (22,078), which itself is not a real limit.
 
 ## 2a. Landesstatistik Tirol (free HTML tables, the Paznaun market mix)
 
-`data/fetch_tirol_stats.py` parses "Der Tourismus im Winter/Sommer …" tables
+`c04/data/fetch_tirol_stats.py` parses "Der Tourismus im Winter/Sommer …" tables
 (statistik.tirol.gv.at; credit: Amt der Tiroler Landesregierung, Landesstatistik
 Tirol). Available: winters 2023/24–2025/26, summers 2023–2025.
 
@@ -55,14 +55,14 @@ overall (Denmark ×3, Belgium ×1.8, Austria ×0.4). Beds winter 23/24: Ischgl
 12,076, Kappl 5,357, Galtür 4,046, See 2,039 (total 23,518; TVB table 23,373).
 
 **Market weights now = Paznaun season mix × Tirol's monthly pattern**
-(`data/market_mix.py`). Monthly or weekly Paznaun data by origin still needs
+(`c04/data/market_mix.py`). Monthly or weekly Paznaun data by origin still needs
 the TVB (STATcube municipality tables need a paid subscription).
 
 ## 2b. Statistik Austria (open data, CC BY 4.0, no login)
 
 | Dataset | Content | Use |
 |---|---|---|
-| `OGD_touextsai_Tour_HKL_1` (data.statistik.gv.at) | arrivals and nights by **federal state × country of origin × month since Nov 1973**, updated monthly; Germany split into 6 origin regions (Bavaria, Baden-Württemberg, NRW, Central, North, East) + Berlin since 05/2003; Austria by state | **market weights now come from here** (`data/market_mix.py`): Tirol's monthly mix replaces the assumed mix; German holidays weighted by where German guests come from (Bavaria 26 %, NRW 17 %, Central 15 %, BW 15 %, East 13 %, North 10 %, Berlin 4 % in recent winters) |
+| `OGD_touextsai_Tour_HKL_1` (data.statistik.gv.at) | arrivals and nights by **federal state × country of origin × month since Nov 1973**, updated monthly; Germany split into 6 origin regions (Bavaria, Baden-Württemberg, NRW, Central, North, East) + Berlin since 05/2003; Austria by state | **market weights now come from here** (`c04/data/market_mix.py`): Tirol's monthly mix replaces the assumed mix; German holidays weighted by where German guests come from (Bavaria 26 %, NRW 17 %, Central 15 %, BW 15 %, East 13 %, North 10 %, Berlin 4 % in recent winters) |
 | `OGD_touextsai_Tour_UA_1` | same by accommodation type | not used yet |
 | statistik.at monthly releases (ODS per month by origin / accommodation type) | Austria and states | context |
 | STATcube (guest access) | Tirol × origin × month (same as the open file); municipality tables need a paid subscription | not needed: Landesstatistik Tirol (2a) gives the municipality mix per season |
@@ -78,27 +78,27 @@ will differ; it replaces Tirol as soon as the municipality data is in.
 | Daily actuals before Nov 2024 | open daily index × monthly actuals (corr 0.993 with real data) | high, weight 0.5 in training |
 | Market mix per month | Paznaun season mix × Tirol monthly pattern | medium |
 | Market mix 2026/27 | last season + ½ linear trend of 3 seasons | medium |
-| Stays per market per day | push–pull split raked to daily totals and season market totals (`models/market_split.py`) | low (grade C) |
+| Stays per market per day | push–pull split raked to daily totals and season market totals (`c04/models/market_split.py`) | low (grade C) |
 | Big concerts before 2026 | rules: opening concert (season dates), Easter concert = Easter Sunday (confirmed for 2026, 2027), closing / spring concert | medium |
-| School holidays DK, GB, SE and gaps IT/PL/FR | rule-based calendars (`data/make_static_holidays.py`) | medium |
+| School holidays DK, GB, SE and gaps IT/PL/FR | rule-based calendars (`c04/data/make_static_holidays.py`) | medium |
 | Capacity 2026/27 | stays + free beds on the same weekday last year; beds per municipality (Landesstatistik) as a check | medium |
 
 ## 3. Explanatory drivers (open, fetched)
 
 | Driver | Source | Tested value |
 |---|---|---|
-| School holidays, 13 markets, year-specific, population-weighted per state / canton / community / voivodeship | OpenHolidays (ODbL) + `data/static/school_holidays_extra.csv` (generated by `data/make_static_holidays.py`: DK, GB, SE 2021/22–2026/27; IT, PL, FR gaps 2026/27) | Corrected data cut LightGBM daily error 14.1 → 11.5 %; German holidays: actual above TVB forecast (grade A) |
+| School holidays, 13 markets, year-specific, population-weighted per state / canton / community / voivodeship | OpenHolidays (ODbL) + `c04/data/static/school_holidays_extra.csv` (generated by `c04/data/make_static_holidays.py`: DK, GB, SE 2021/22–2026/27; IT, PL, FR gaps 2026/27) | Corrected data cut LightGBM daily error 14.1 → 11.5 %; German holidays: actual above TVB forecast (grade A) |
 | Public holidays national + regional (German states, Swiss cantons, Austrian states, Belgian communities, UK nations), long weekends, bridge days | python `holidays` package (rule-based, any year) | Explanation layer: bridge-day weekends over-forecast in summer (grade A); no forecast gain |
 | Austrian patron-saint days (19 Mar Tirol/Vorarlberg/Kärnten/Steiermark, 4 May Upper Austria, …) | OpenHolidays AT school holidays (school-free days) | included in `school_AT` |
 | Snow depth, ski area Idalpe and village, daily since 1999 | GeoSphere SNOWGRID 1 km (CC BY 4.0) | **Season level: +0.45 pp growth per +10 cm Dec–Mar mean snow vs last season (r = 0.50, 20 seasons)**; 1 SD (32 cm) ≈ ±1.4 %, in line with the literature (0.6–1.9 %). Known only during the season → explanation and scenario, not a point forecast |
 | Weather forecast 16 days | Open-Meteo (CC BY 4.0) | Short-term trigger only |
 | Events | TVB event calendar (2026–27 only) + forecast-repo flags (none for Paznaun) | Event days: actual below TVB forecast on smaller event days (grade A) |
-| Season dates | press + TVB calendar, `data/static/season_dates.csv` | Opening ramp is the biggest error of the official daily forecast |
+| Season dates | press + TVB calendar, `c04/data/static/season_dates.csv` | Opening ramp is the biggest error of the official daily forecast |
 
 ## 4. Economy, inflation, currencies, geopolitics (fetched and tested)
 
-`data/fetch_macro.py` → `data/processed/macro_monthly.parquet`;
-test `models/probe_macro.py`, 20 winter seasons 2001/02–2025/26 without COVID
+`c04/data/fetch_macro.py` → `c04/data/processed/macro_monthly.parquet`;
+test `c04/models/probe_macro.py`, 20 winter seasons 2001/02–2025/26 without COVID
 years, drivers as change vs last year in Sep–Oct before the season.
 
 | Driver | Source | Correlation with season growth |
@@ -121,8 +121,8 @@ like in 2022"), not inside the forecast.
 
 ## 5. Other products in the TTF Data Space (checked 8 Nov, 25 products)
 
-Fetched with `data/fetch_other.py` (raw files git-ignored; licences forbid
-redistribution), analysed in `models/probe_mobile_guestcards.py`. None covers
+Fetched with `c04/data/fetch_other.py` (raw files git-ignored; licences forbid
+redistribution), analysed in `c04/models/probe_mobile_guestcards.py`. None covers
 Paznaun except TOURDATA; the Salzburg data serves as a comparable ski region.
 
 | Product | Content | What we found | Use for Challenge 04 |

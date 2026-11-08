@@ -10,14 +10,14 @@ results from the 26-year monthly history and open data.
 Reproduce (needs the TTF Space key in the environment):
 
 ```bash
-python3 data/fetch_partner.py && python3 data/build_features.py
+python3 c04/data/fetch_partner.py && python3 c04/data/build_features.py
 ```
 
 ```bash
-cd models && python3 real_backtest.py && python3 explain.py && python3 early_warning.py && python3 forecast_winter.py
+cd c04/models && python3 real_backtest.py && python3 explain.py && python3 early_warning.py && python3 forecast_winter.py
 ```
 
-## A1. What the data is (verified, see DATA-PROFILE.md)
+## A1. What the data is (verified, see [partner-data-profile.md](partner-data-profile.md))
 
 - Daily actual stays 4 Nov 2025 – 31 Oct 2026; `previous_year` is exactly the
   actual 365 days earlier, so **real daily history runs from 4 Nov 2024**.
@@ -121,7 +121,7 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
   market**. For summer, bookings on hand weeks ahead say little, which fits
   the TVB forecast's summer over-forecast.
 
-## A6. Winter 26/27 (`forecast_winter.py` → `out/c04_forecast.json`)
+## A6. Winter 26/27 (`forecast_winter.py` → `c04/out/c04_forecast.json`)
 
 | Month | Ours | TVB forecast | TVB vs ours | Note |
 |---|---|---|---|---|
@@ -145,7 +145,7 @@ Ex ante as of 31 Oct 2025 (our models) vs the TVB columns:
 
 ## A7. Holiday data rebuild (8 Nov)
 
-What changed (`data/holiday_features.py`, `data/make_static_holidays.py`):
+What changed (`c04/data/holiday_features.py`, `c04/data/make_static_holidays.py`):
 - School holidays population-weighted per state / canton / language community
   / voivodeship; Belgian communities separated (the French-speaking community
   has a two-week Carnival break since the 2022 reform); French overseas
@@ -183,16 +183,16 @@ weekends show a small, significant summer over-forecast.
 
 # C. GUI models (Tirol × origin × time frame)
 
-Built 8 Nov from open data plus the TVB lead-time file; plan in PLAN.md §7–8.
-Tables in `out/gui/` (git-ignored; regenerate with the commands below); one
-answer per request via `models/gui_outputs.py: query(origin, start, end)`.
+Built 8 Nov from open data plus the TVB lead-time file.
+Tables in `c04/out/gui/` (git-ignored; regenerate with the commands below); one
+answer per request via `c04/models/gui_outputs.py: query(origin, start, end)`.
 
 ```bash
-python3 data/fetch_holidays_history.py && python3 data/build_origin_panel.py && python3 data/build_tirol_daily.py
+python3 c04/data/fetch_holidays_history.py && python3 c04/data/build_origin_panel.py && python3 c04/data/build_tirol_daily.py
 ```
 
 ```bash
-cd models && python3 m1_origin.py && python3 m4_leadtime.py && python3 m3_daily.py && python3 gui_outputs.py
+cd c04/models && python3 m1_origin.py && python3 m4_leadtime.py && python3 m3_daily.py && python3 gui_outputs.py
 ```
 
 | Model | Output | Data | Test | Result | Grade |
@@ -226,15 +226,15 @@ M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
   9.9–10.1 % (62 origins incl. small ones and country groups; the origin code
   mapping was corrected against the official list); intervals use the 0.85
   quantile (84–85 % coverage).
-- Complete GUI table `out/gui/complete_origin_month.parquet`: 10 destinations
+- Complete GUI table `c04/out/gui/complete_origin_month.parquet`: 10 destinations
   (9 states + Paznaun-Ischgl) × 84 origins (incl. Germany and Austria totals
   and the 16 German states) × months 2024-01 … 2027-12 = 40,320 rows, **no
   empty cells**: 22,344 observed / model grade A, 3,900 model grade B, 14,076
   estimates grade C (2-year average for small origins, carried forward after
   the horizon, population split of German regions, Paznaun share).
-- `models/gui_api.py: query(destination, origin, start, end)` returns every
+- `c04/models/gui_api.py: query(destination, origin, start, end)` returns every
   field as `{value, is_estimate, method, grade, note}`. Examples in
-  `out/gui/example_*.json`, e.g. Tirol ← Hesse, Feb 2027: 186k nights,
+  `c04/out/gui/example_*.json`, e.g. Tirol ← Hesse, Feb 2027: 186k nights,
   estimate (Central Germany split by population), grade C.
 
 # B. Supporting results (long history and open data)

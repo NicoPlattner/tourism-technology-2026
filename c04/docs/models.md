@@ -1,8 +1,8 @@
 # Challenge 04: models
 
 What we tested, what the real TVB data says about it, and the model mix we
-build from here. Numbers come from [RESULTS.md](RESULTS.md); scripts are in
-`models/`.
+build from here. Numbers come from [results.md](results.md); scripts are in
+`c04/models/`.
 
 ## 1. What the data allows
 
@@ -100,7 +100,7 @@ PUSH: why people travel at time t, per source market m     PULL: why they choose
   -> ADD across markets                                      -> MULTIPLY on top
 ```
 
-How each data source enters (`data/`, `models/`):
+How each data source enters (`c04/data/`, `c04/models/`):
 
 | Data | Kind | How it is combined / weighted |
 |---|---|---|
@@ -130,7 +130,7 @@ separate; collapsing them into one push index loses information).
 1. explanations are reported as push (source-market free time) vs pull
    (destination) vs level; winter 25/26 deviations of the TVB forecast: level
    −101k, pull +30k, push +11k stays;
-2. `models/market_split.py` splits each day's stays into markets (push–pull
+2. `c04/models/market_split.py` splits each day's stays into markets (push–pull
    parts raked to the daily actuals and to the Landesstatistik season totals),
    the only daily nationality view we can get (grade C). Winter 25/26 weekly
    peaks: NL 28 % in its spring-break week (22–28 Feb), DK 9 % in week 7,
@@ -152,7 +152,7 @@ data will change (more real seasons, other destinations, other users):
 Missing values are never left empty: a fallback ladder (observed → model →
 sum of parts → population split → 2-year average → carried forward →
 destination share; proxies for lead time and age) fills every cell and marks
-it with `is_estimate`, `method` and `grade` (`models/gui_api.py`).
+it with `is_estimate`, `method` and `grade` (`c04/models/gui_api.py`).
 
 ## 4. Extra data: decision
 

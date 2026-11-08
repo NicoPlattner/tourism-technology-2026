@@ -18,6 +18,10 @@
 - Use a short, URL-safe branch name (lowercase letters, digits, hyphens) when
   a branch may be deployed: it becomes the path. For other names the workflow
   generates a unique path, reported in the run summary.
+- Repository layout: `dashboard/` (web app), `c04/` (Challenge 04 data, models,
+  data API, refresh pipeline), `docs/` (architecture, deployment, Data Space),
+  `helm/` (chart). Raw partner data never goes into git; `c04/results`,
+  `c04/evaluation` and `c04/pipeline/seed` hold derived aggregates only.
 - Verify a deployed URL and report the branch or commit, URL, and verification
   result. If deployment or public verification is blocked, report the blocker
   rather than claiming the deployment is available.
@@ -27,7 +31,7 @@
 - Nothing heavy may run on deploy. Model training, data refreshes and other
   batch jobs run only when a person asks for them, or when an explicit
   switch for a schedule is turned on.
-- The Challenge 04 data refresh (`models/refresh.py`, Helm
+- The Challenge 04 data refresh (`c04/models/refresh.py`, Helm
   `templates/c04-pipeline.yaml`) follows this rule. It exists only in the root
   release, and its CronJobs are deployed suspended
   (`c04Pipeline.schedule.fast` / `.full` = `false`). One manual run is started

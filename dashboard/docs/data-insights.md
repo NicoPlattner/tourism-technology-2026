@@ -1,10 +1,9 @@
 # Data page: tourism analysis
 
-Branch: `feature/data-insights`. This change is local/branch-only; no deployment, refresh, training or live AI generation is needed.
 
 ## Outputs inspected
 
-Read `api/c04/README.md`, `results/gui/README.md`, `results/c04/README.md`, the API implementation, and its actual responses before building the page. The read-only C04 endpoints do **not** need an API key. Caption/provider and Data Space credentials remain server-side and are not needed by this page.
+Read `c04/api/README.md`, `c04/results/gui/README.md`, `c04/results/c04/README.md`, the API implementation, and its actual responses before building the page. The read-only C04 endpoints do **not** need an API key. Caption/provider and Data Space credentials remain server-side and are not needed by this page.
 
 The available November 2026 snapshot contains:
 

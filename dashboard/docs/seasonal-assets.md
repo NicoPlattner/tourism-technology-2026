@@ -1,6 +1,6 @@
 # Seasonal AI campaign visuals
 
-Sixteen original campaign images were generated in this session with the available image-generation tool, in four seasonal batches starting with winter. Each batch was visually inspected before the next was generated. Files are optimized, local portrait WebPs under `src/campaigns/assets/seasonal/` (approximately 960 × 1200, 4:5; about 3.9 MB total). Raw PNG outputs remain in `/workspace/generated_images` for this execution workspace.
+Sixteen original campaign images were generated with an image-generation model, in four seasonal batches starting with winter. Each batch was visually inspected before the next was generated. Files are optimized, local portrait WebPs under `src/campaigns/assets/seasonal/` (approximately 960 × 1200, 4:5; about 3.9 MB total). Raw PNG outputs remain in `/workspace/generated_images` for this execution workspace.
 
 | Audience | Winter | Spring | Summer | Autumn |
 | --- | --- | --- | --- | --- |
