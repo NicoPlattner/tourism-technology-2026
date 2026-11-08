@@ -1,7 +1,9 @@
+import { mockDemand } from "./helpers/demand";
 import { selectPeriod } from "./helpers/travel";
 import { test, expect } from "@playwright/test";
 // Isolate Overview tests from the pre-existing dashboard's optional live refresh and remote logo/fonts.
 test.beforeEach(async ({ page }) => {
+  await mockDemand(page);
   await page.route("https://naechtigungen.pol.joanneum.at/**", (route) =>
     route.fulfill({
       status: 200,

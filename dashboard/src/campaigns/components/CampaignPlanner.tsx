@@ -23,7 +23,7 @@ export default function CampaignPlanner({
           <h2 id="cp-planner-heading">Campaign planner</h2>
         </div>
         <span className={`status ${approval ? "connected" : "snapshot"}`}>
-          {approval ? "Approved · demo" : "Mock proposal"}
+          {approval ? "Approved · demo" : campaign.windowRecommendation?.status === "unavailable" ? "Analysis-only preview" : campaign.dataStatus === "ready" ? "Data-informed proposal" : "Creative preview"}
         </span>
       </div>
       <div className="cp-plan-title">
@@ -42,20 +42,25 @@ export default function CampaignPlanner({
         </div>
         <div>
           <dt>Booking lead time</dt>
-          <dd>{campaign.assumedLeadDays} days</dd>
+          <dd>{(campaign.dataStatus && campaign.dataStatus !== "ready") || campaign.windowRecommendation?.status === "loading" ? "—" : `${campaign.assumedLeadDays} days`}</dd>
         </div>
         <div>
-          <dt>Guests travel</dt>
-          <dd>{displayRange(campaign.travel)}</dd>
+          <dt>Recommended travel dates</dt>
+          <dd>{campaign.windowRecommendation?.status === "ready" ? displayRange(campaign.travel) : campaign.windowRecommendation?.status === "loading" ? "Finding a window…" : campaign.windowRecommendation ? "No supported window" : displayRange(campaign.travel)}</dd>
         </div>
         <div className="cp-campaign-dates">
           <dt>Recommended campaign</dt>
-          <dd>{displayRange(campaign.campaign)}</dd>
+          <dd>{(campaign.dataStatus && campaign.dataStatus !== "ready") || (campaign.windowRecommendation && campaign.windowRecommendation.status !== "ready") ? "—" : displayRange(campaign.campaign)}</dd>
         </div>
+        {campaign.dataStatus && <><div><dt>Average stay</dt><dd>{campaign.tourismContext?.averageStayNights != null ? `${campaign.tourismContext.averageStayNights.toFixed(1)} nights` : "—"}</dd></div><div><dt>{campaign.windowRecommendation?.status === "ready" ? "Window guest nights · estimate" : "Analysis guest nights · estimate"}</dt><dd>{campaign.tourismContext ? campaign.tourismContext.guestNights.toLocaleString("en-GB") : "—"}</dd></div></>}
+        {campaign.analysisPeriod && <div><dt>Analysis period</dt><dd>{displayRange(campaign.analysisPeriod)}</dd></div>}
       </dl>
+      {campaign.windowRecommendation?.leadOpportunityPassed && <p className="cp-window-status" role="status">Booking lead-time opportunity has passed. Review a shorter-lead campaign strategy.</p>}
+      {!campaign.windowRecommendation?.leadOpportunityPassed && campaign.windowRecommendation?.awarenessStarted && <p className="cp-window-status" role="status">The awareness period has already started.</p>}
+      {campaign.windowRecommendation?.status === "unavailable" && <p className="cp-window-status" role="status">{campaign.windowRecommendation.message} Analysis-period creative preview only.</p>}
       <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
-        <button className="btn" onClick={onReview}>
+        <button className="btn" disabled={(!!campaign.dataStatus && campaign.dataStatus !== "ready") || (!!campaign.windowRecommendation && campaign.windowRecommendation.status !== "ready")} onClick={onReview}>
           Review &amp; Schedule <ArrowIcon />
         </button>
         <span className={approval ? "cp-approved" : "muted"} role="status">

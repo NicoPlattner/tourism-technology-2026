@@ -1,7 +1,12 @@
+import type { WindowEvidence } from "../opportunity/ranking";
+import { validTravelDates } from "../travelDates";
+import type { TourismContext } from "../demand/contracts";
 import { socialProfile } from "../socialProfile";
 import { creativeCandidates, seasonFromTravelDate, type AssetCandidate } from "../assetCatalog";
 import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
+  opportunityEvidence?: WindowEvidence;
+  tourismContext?: TourismContext;
   country: string;
   language: string;
   ageMin: number;
@@ -30,11 +35,13 @@ export interface GeneratedCreative extends GeneratedCaption {
   assetId: string;
   platform: "tiktok" | "instagram" | "facebook";
   creativeReason: string;
+  campaignReasoning?: string;
 }
 export interface AiCaption extends GeneratedCaption {
   assetId?: string;
   platform?: GeneratedCreative["platform"];
   creativeReason?: string;
+  campaignReasoning?: string;
   source: "ai";
 }
 export class CaptionError extends Error {
@@ -75,7 +82,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
@@ -148,6 +155,37 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     result.travelPeriod = value.travelPeriod;
     result.travelDates = { start:value.travelDates.start, end:value.travelDates.end };
     result.candidateAssets = candidates;
+  }
+  if (value.tourismContext !== undefined) {
+    const context = value.tourismContext;
+    const keys = "averageStayNights,demandGrade,destination,end,guestNights,guests,isEstimate,leadTimeDays,leadTimeGrade,leadTimeMethod,origin,reasons,source,start,stayGrade,stayMethod";
+    if (!object(context) || Object.keys(context).sort().join(",") !== keys || context.source !== "c04-api" || context.destination !== "Paznaun-Ischgl" ||
+        typeof context.origin !== "string" || !["DE","25","62","AT"].includes(context.origin) ||
+        !object(value.travelDates) || context.start !== value.travelDates.start || context.end !== value.travelDates.end ||
+        !["demandGrade","leadTimeGrade","stayGrade"].every(key => ["A","B","C","D"].includes(String(context[key]))) || typeof context.isEstimate !== "boolean" ||
+        !["guestNights","guests","leadTimeDays"].every(key => typeof context[key] === "number" && Number.isFinite(context[key]) && (context[key] as number) >= 0 && (context[key] as number) <= 1e9) ||
+        !Number.isInteger(context.leadTimeDays) || (context.leadTimeDays as number) > 730 ||
+        !(context.averageStayNights === null || (typeof context.averageStayNights === "number" && Number.isFinite(context.averageStayNights) && context.averageStayNights >= 0 && context.averageStayNights <= 1000)) ||
+        !["leadTimeMethod","stayMethod"].every(key => typeof context[key] === "string" && (context[key] as string).length <= 300) ||
+        !Array.isArray(context.reasons) || context.reasons.length > 5 || context.reasons.some(reason => typeof reason !== "string" || reason.length > 240))
+      throw new CaptionError("Provide bounded tourism evidence for the selected period.");
+    const originForCountry: Record<string,string> = {Germany:"DE",Netherlands:"25",Belgium:"62",Austria:"AT"};
+    if (context.origin !== originForCountry[result.country as string]) throw new CaptionError("Tourism evidence must match the selected country.");
+    result.tourismContext = { ...context, reasons: [...context.reasons] };
+  }
+  if (value.opportunityEvidence !== undefined) {
+    const evidence = value.opportunityEvidence;
+    if (!object(evidence) || Object.keys(evidence).sort().join(",") !== "analysisEnd,analysisStart,awarenessBufferDays,days,end,estimatedOccupancy,leadOpportunityPassed,marketEvidence,spareBedNights,start" ||
+        !object(value.travelDates) || !value.tourismContext || evidence.start !== value.travelDates.start || evidence.end !== value.travelDates.end ||
+        typeof evidence.analysisStart !== "string" || typeof evidence.analysisEnd !== "string" || !validTravelDates({start:evidence.analysisStart,end:evidence.analysisEnd}) ||
+        evidence.analysisStart > (evidence.start as string) || evidence.analysisEnd < (evidence.end as string) ||
+        ![3,5,7].includes(evidence.days as number) || (Date.parse(evidence.end as string)-Date.parse(evidence.start as string))/86400000+1 !== evidence.days ||
+        typeof evidence.estimatedOccupancy !== "number" || !Number.isFinite(evidence.estimatedOccupancy) || evidence.estimatedOccupancy < 0 || evidence.estimatedOccupancy >= 1 ||
+        typeof evidence.spareBedNights !== "number" || !Number.isFinite(evidence.spareBedNights) || evidence.spareBedNights < 0 || evidence.spareBedNights > 1e10 ||
+        !Number.isInteger(evidence.awarenessBufferDays) || (evidence.awarenessBufferDays as number) < 0 || (evidence.awarenessBufferDays as number) > 30 ||
+        typeof evidence.marketEvidence !== "boolean" || typeof evidence.leadOpportunityPassed !== "boolean")
+      throw new CaptionError("Provide valid forecast-window evidence within the selected analysis period.");
+    result.opportunityEvidence = {...evidence};
   }
   return result as unknown as CaptionMetadata;
 }
@@ -241,7 +279,8 @@ export function validateAiCaption(value: unknown, language: string, length?: Cap
 }
 export function validateCreative(value: unknown, metadata: CaptionMetadata): GeneratedCreative {
   const fail = () => new CaptionError("The AI returned an invalid or incompatible creative. Your previous post is unchanged.","INVALID_AI_RESPONSE",502);
-  if (!object(value) || Object.keys(value).sort().join(",") !== "assetId,caption,creativeReason,hashtags,language,platform") throw fail();
+  if (!object(value) || Object.keys(value).sort().join(",") !== (metadata.tourismContext ? "assetId,campaignReasoning,caption,creativeReason,hashtags,language,platform" : "assetId,caption,creativeReason,hashtags,language,platform")) throw fail();
+  if (metadata.tourismContext && (typeof value.campaignReasoning !== "string" || Array.from(value.campaignReasoning.trim()).length < 160 || Array.from(value.campaignReasoning.trim()).length > 420)) throw fail();
   const asset = metadata.candidateAssets?.find(candidate => candidate.id === value.assetId);
   if (!asset || value.platform !== metadata.platform?.toLowerCase() || typeof value.creativeReason !== "string" ||
       !value.creativeReason.trim() || Array.from(value.creativeReason.trim()).length > 240) throw fail();
@@ -251,7 +290,7 @@ export function validateCreative(value: unknown, metadata: CaptionMetadata): Gen
   const catPattern = metadata.language.startsWith("fr") ? /\b(?:chat|chats|chaton|miaou)\b/u : metadata.language.startsWith("nl") ? /\b(?:kat|katten|kitten|miauw)\b/u : /\b(?:cat|cats|kitten|katze|katzen|kater|miau)\b/u;
   if (!asset.ageGroup.startsWith("18–") && catPattern.test(text)) throw fail();
   if (asset.season !== "winter" && /\b(?:ski|skiing|skifahren|skifahrt|skifahrer|snowboard|snowboarding|piste|pisten|pistes|skien|skiën)\b/u.test(text)) throw fail();
-  return { ...caption, assetId:asset.id, platform:value.platform as GeneratedCreative["platform"],creativeReason:value.creativeReason.trim() };
+  return { ...caption, assetId:asset.id, platform:value.platform as GeneratedCreative["platform"],creativeReason:value.creativeReason.trim(), ...(metadata.tourismContext ? { campaignReasoning:(value.campaignReasoning as string).trim() } : {}) };
 }
 export function validateProviderResult(value: unknown, metadata: CaptionMetadata): GeneratedCaption | GeneratedCreative {
   return metadata.generationMode === "creative" ? validateCreative(value,metadata) : validateGenerated(value,metadata.language,metadata.targetCaptionLength);

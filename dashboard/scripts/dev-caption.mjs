@@ -15,7 +15,7 @@ const api = spawn(
     env: {
       ...process.env,
       CAPTION_PORT: "8788",
-      CAPTION_ALLOWED_ORIGINS:
+      CAPTION_ALLOWED_ORIGINS: process.env.CAPTION_ALLOWED_ORIGINS ||
         "http://localhost:5174,http://127.0.0.1:5174,http://localhost:5173,http://127.0.0.1:5173",
     },
   },
