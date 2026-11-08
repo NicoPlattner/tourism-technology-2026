@@ -43,3 +43,26 @@ test('a failed image shows a useful retry state and can recover without showing 
  await page.getByRole('button',{name:'Retry image',exact:true}).click();
  await expect(page.locator('.cp-social-image')).toBeVisible();expect(requests).toBe(2);
 });
+
+test('campaign creatives remain centered beside short and long captions at all layouts',async({page})=>{
+ await page.goto('./');
+ await expect(page.locator('.cp-social-image')).toBeVisible();
+ for(const width of [1920,1440,951,950,768,390]){
+  await page.setViewportSize({width,height:1000});
+  for(const group of ['18–24','35–44','45–60']){
+   await age(page,group);
+   await expect(page.locator('.cp-social-image')).toBeVisible();
+   const alignment=await page.locator('.cp-social-media').evaluate(container=>{
+    const image=container.querySelector('img')!,outer=container.getBoundingClientRect(),inner=image.getBoundingClientRect();
+    const style=getComputedStyle(image);
+    return {dx:Math.abs((inner.left+inner.right-outer.left-outer.right)/2),dy:Math.abs((inner.top+inner.bottom-outer.top-outer.bottom)/2),fits:inner.width<=outer.width+1,fit:style.objectFit,position:style.objectPosition,backgroundMatches:style.backgroundColor===getComputedStyle(container).backgroundColor};
+   });
+   expect(alignment.dx).toBeLessThan(1);
+   expect(alignment.dy).toBeLessThan(1);
+   expect(alignment.fits).toBeTruthy();
+   expect(alignment.fit).toBe('contain');
+   expect(alignment.position).toBe('50% 50%');
+   expect(alignment.backgroundMatches).toBeTruthy();
+  }
+ }
+});

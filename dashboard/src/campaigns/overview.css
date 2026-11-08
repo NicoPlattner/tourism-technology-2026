@@ -1160,7 +1160,8 @@
 .cp-window-status { font-size:12px; line-height:1.6; color:var(--muted); margin:-4px 0 14px; }
 .cp-window-reason { font-weight:600; }
 
-.cp-social-media { position:relative; min-height:170px; background:#e0edf2; }
+.cp-social-media { position:relative; min-width:0; min-height:170px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#eef1f2; }
+.cp-social-media > .cp-social-image { align-self:center; flex:0 1 100%; min-width:0; max-width:100%; margin:0; object-position:50% 50%; }
 .cp-image-placeholder { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:20px; color:var(--muted); text-align:center; font-size:12px; }
 .cp-image-spinner { width:26px; height:26px; border:2px solid #d3dce2; border-top-color:var(--red); border-radius:50%; animation:cp-image-turn .8s linear infinite; }
 @keyframes cp-image-turn { to { transform:rotate(360deg); } }
