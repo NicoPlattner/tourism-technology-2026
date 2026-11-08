@@ -59,7 +59,9 @@ export function googleSignIn(oauth2: GoogleOAuth2, opts: { selectAccount?: boole
 export interface GaProperty { id: string; name: string; account: string }
 export interface GaAccount { id: string; email: string; error?: string }
 export interface GaConnection { property: GaProperty; accountId: string }
-export interface GaState { configured: boolean; persistent?: boolean; storageError?: string; accounts: GaAccount[]; connections: GaConnection[] }
+/** The token-protected analytics API (/api/v1) for other tools, switched on and off here. */
+export interface GaAnalyticsApi { enabled: boolean; tokenConfigured: boolean; collectingSince: string | null }
+export interface GaState { configured: boolean; persistent?: boolean; storageError?: string; accounts: GaAccount[]; connections: GaConnection[]; analyticsApi?: GaAnalyticsApi }
 export interface GaRealtime { activeUsers: number; countries: { name: string; value: number }[]; pages: { name: string; value: number }[]; updated: string }
 
 // Relative, so it resolves under the deployment path (e.g. /my-branch/api/…).
@@ -85,5 +87,6 @@ export const gaApi = {
   removeConnection: (propertyId: string) => api<GaState>(`ga/connections/${encodeURIComponent(propertyId)}`, { method: 'DELETE' }),
   disconnectAccount: (accountId: string) => api<GaState>(`ga/accounts/${encodeURIComponent(accountId)}`, { method: 'DELETE' }),
   disconnectAll: () => api<GaState>('ga', { method: 'DELETE' }),
+  setAnalyticsApi: (enabled: boolean) => api<GaState>('ga/analytics-api', { method: 'POST', body: { enabled } }),
   realtime: (propertyId: string) => api<GaRealtime>(`ga/realtime/${encodeURIComponent(propertyId)}`),
 };
