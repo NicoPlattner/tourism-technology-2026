@@ -160,6 +160,11 @@ if __name__ == "__main__":
             res = explain(A.loc[sl], F.loc[sl], f, season_only=so)
             print(f"\n=== {lab}: R² {res['r2']:.2f}; Theil", {k: round(v, 3) for k, v in res["theil"].items()})
             print(res["summary"].round(0).to_string())
+            grp = res["summary"].assign(kind=[("push (source-market free time)" if i.startswith(("hol_", "longwe"))
+                                               else "pull (destination)") for i in res["summary"].index])
+            print("By kind:", grp.groupby("kind").stays_total.sum().round(0).to_dict(),
+                  "| unexplained:", round(float(res["daily"]["unexplained"].sum())),
+                  "| level:", round(float(res["daily"]["level (all days)"].sum())))
             res["summary"].to_csv(ROOT / "models" / f"results_explain_real_{'winter' if so else 'summer'}.csv")
             worst = res["daily"].drop(columns=["level (all days)"]).sum(axis=1).abs()
             wk = res["daily"]["unexplained"].abs().groupby(res["daily"].index.to_period("W")).sum().idxmax()

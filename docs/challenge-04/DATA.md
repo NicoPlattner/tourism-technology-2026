@@ -71,6 +71,18 @@ Tirol winter 24/25 (average of monthly shares): DE 51 %, NL 12 %, AT 9 %,
 CH 4 %, BE 4 %, GB 3.5 %, PL 2.4 %, CZ 2.2 %, DK 1.2 %. Paznaun's own mix
 will differ; it replaces Tirol as soon as the municipality data is in.
 
+## 2c. Interpolation and gap filling (what is estimated, not measured)
+
+| Gap | How it is filled | Confidence |
+|---|---|---|
+| Daily actuals before Nov 2024 | open daily index × monthly actuals (corr 0.993 with real data) | high, weight 0.5 in training |
+| Market mix per month | Paznaun season mix × Tirol monthly pattern | medium |
+| Market mix 2026/27 | last season + ½ linear trend of 3 seasons | medium |
+| Stays per market per day | push–pull split raked to daily totals and season market totals (`models/market_split.py`) | low (grade C) |
+| Big concerts before 2026 | rules: opening concert (season dates), Easter concert = Easter Sunday (confirmed for 2026, 2027), closing / spring concert | medium |
+| School holidays DK, GB, SE and gaps IT/PL/FR | rule-based calendars (`data/make_static_holidays.py`) | medium |
+| Capacity 2026/27 | stays + free beds on the same weekday last year; beds per municipality (Landesstatistik) as a check | medium |
+
 ## 3. Explanatory drivers (open, fetched)
 
 | Driver | Source | Tested value |

@@ -81,7 +81,7 @@ def ours(origin: str, idx: pd.DatetimeIndex):
     w = w.union(h.index[(f.loc[h.index, "month"].isin([6, 7, 8, 9])) & h.notna()])  # summer too
     gbm = lgb.LGBMRegressor(objective="poisson", n_estimators=400, learning_rate=.03, num_leaves=15,
                             min_child_samples=10, subsample=.8, subsample_freq=1, colsample_bytree=.8,
-                            random_state=0, verbose=-1).fit(X.loc[w], h[w])
+                            random_state=0, verbose=-1).fit(X.loc[w], h[w], sample_weight=f.loc[w, "sample_weight"])
     g = pd.Series(gbm.predict(X.loc[idx]), index=idx)
     py = py_holiday(h, idx)
     months = pd.DatetimeIndex(sorted(set(idx.to_period("M").to_timestamp())))
