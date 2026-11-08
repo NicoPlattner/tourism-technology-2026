@@ -136,6 +136,8 @@ test('analytics API: token, on/off switch, realtime, insights, history, queries'
   assert.equal(r.body.summary.activeUsers5Minutes, 2);
   assert.deepEqual(r.body.breakdowns.city.rows[0], { country: 'Netherlands', city: 'Amsterdam', activeUsers: 2, eventCount: 5, screenPageViews: 5, keyEvents: 5, share: 1 });
   assert.equal(r.body.breakdowns.perMinute.rows.length, 3);
+  for (const [k, sec] of Object.entries(r.body.breakdowns)) assert.equal(sec.status, 'ok', `realtime ${k}: ${sec.error}`);
+  assert.deepEqual(r.body.breakdowns.event.rows[0], { eventName: 'page_view', eventCount: 5, keyEvents: 5, share: 1 });
   assert.ok(r.body.breakdowns.perMinute.rows[0].minute);
   r = await v1('GET', '/properties/333/realtime');
   assert.equal(r.status, 404);
@@ -173,6 +175,8 @@ test('analytics API: token, on/off switch, realtime, insights, history, queries'
   assert.equal(r.body.totals.peakActiveUsers, 2);
   assert.deepEqual(r.body.breakdowns.city[0], { city: 'Amsterdam', country: 'Netherlands', activeUserMinutes: 4, eventCount: 10, screenPageViews: 10, keyEvents: 10, share: 1 });
   assert.equal(r.body.daily.reduce((s, d) => s + d.eventCount, 0), 10);
+  assert.equal(r.body.collector.lastError, undefined);
+  assert.deepEqual(r.body.breakdowns.event[0], { eventName: 'page_view', activeUserMinutes: 0, eventCount: 10, screenPageViews: 0, keyEvents: 10, share: 1 });
   assert.ok((await readFile(join(dataDir, 'analytics-history.json'), 'utf8')).includes('Amsterdam'));
 
   // Any query, passed through.
