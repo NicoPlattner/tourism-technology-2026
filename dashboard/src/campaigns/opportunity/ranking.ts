@@ -14,7 +14,7 @@ export interface WindowEvidence {
   estimatedOccupancy:number; spareBedNights:number; marketEvidence:boolean; awarenessBufferDays:number; leadOpportunityPassed:boolean;
 }
 export interface WindowRecommendation {
-  status:'loading'|'ready'|'unavailable';window?:TravelWindow;message:string;explanation:string;
+  status:'loading'|'ready'|'suggested'|'unavailable';suggestedDates?:TravelDates;timingAvailable?:boolean;window?:TravelWindow;message:string;explanation:string;
   leadOpportunityPassed?:boolean; awarenessStarted?:boolean;
 }
 // The API publishes Germany and Austria as origin regions, not country totals, in /actions.

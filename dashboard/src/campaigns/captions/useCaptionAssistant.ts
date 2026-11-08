@@ -23,7 +23,7 @@ export function useCaptionAssistant(
   const pending = useRef(new Set<string>());
   const cached = campaign ? client.getCached(requestMetadata!, campaign.id) : undefined;
   const visible = states[key] || { result: cached, pending: false, error: "" };
-  const unavailable = (!!campaign?.dataStatus && campaign.dataStatus !== "ready") || campaign?.windowRecommendation?.status === "loading";
+  const unavailable = (!!campaign?.dataStatus && campaign.dataStatus !== "ready") || campaign?.windowRecommendation?.status === "loading" || campaign?.windowRecommendation?.timingAvailable === false;
   const regenerate = useCallback(() => {
     if (unavailable || !campaign || !requestMetadata || pending.current.has(key)) return;
     pending.current.add(key);

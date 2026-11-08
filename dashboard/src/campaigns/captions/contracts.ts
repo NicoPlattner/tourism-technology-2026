@@ -1,3 +1,4 @@
+import type {WindowSuggestion} from "../opportunity/suggestion";
 import type { WindowEvidence } from "../opportunity/ranking";
 import { validTravelDates } from "../travelDates";
 import type { TourismContext } from "../demand/contracts";
@@ -5,6 +6,7 @@ import { socialProfile } from "../socialProfile";
 import { creativeCandidates, seasonFromTravelDate, type AssetCandidate } from "../assetCatalog";
 import type { SocialPlatform, CaptionLength } from "../socialProfile";
 export interface CaptionMetadata {
+  windowSuggestion?: WindowSuggestion;
   sourceSnapshot?: string;
   opportunityEvidence?: WindowEvidence;
   tourismContext?: TourismContext;
@@ -83,7 +85,7 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
     !object(value) ||
     required.some((key) => !(key in value)) ||
     Object.keys(value).some(
-      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence", "sourceSnapshot"].includes(key),
+      (key) => ![...required, "visualDescription", "assetId", "platform", "targetCaptionLength", "tone", "generationMode", "travelPeriod", "travelDates", "candidateAssets", "tourismContext", "opportunityEvidence", "sourceSnapshot", "windowSuggestion"].includes(key),
     )
   )
     throw new CaptionError("Provide the supported campaign metadata fields.");
@@ -187,6 +189,11 @@ export function normalizeMetadata(value: unknown): CaptionMetadata {
         typeof evidence.marketEvidence !== "boolean" || typeof evidence.leadOpportunityPassed !== "boolean")
       throw new CaptionError("Provide valid forecast-window evidence within the selected analysis period.");
     result.opportunityEvidence = {...evidence};
+  }
+  if(value.windowSuggestion !== undefined){
+    const suggestion=value.windowSuggestion;
+    if(!object(suggestion)||Object.keys(suggestion).sort().join(',')!=='analysisEnd,analysisStart,basis,end,start'||suggestion.basis!=='heuristic-not-extracted'||value.opportunityEvidence||!object(value.travelDates)||!value.tourismContext||suggestion.start!==value.travelDates.start||suggestion.end!==value.travelDates.end||typeof suggestion.analysisStart!=='string'||typeof suggestion.analysisEnd!=='string'||!validTravelDates({start:suggestion.analysisStart,end:suggestion.analysisEnd})||suggestion.analysisStart>(suggestion.start as string)||suggestion.analysisEnd<(suggestion.end as string))throw new CaptionError('Provide a clearly identified suggested window within the analysis period.');
+    result.windowSuggestion={...suggestion};
   }
   if(value.sourceSnapshot !== undefined){
     if(typeof value.sourceSnapshot !== "string" || !value.sourceSnapshot.trim() || value.sourceSnapshot.length>400)throw new CaptionError("Provide a valid data snapshot identifier.");
