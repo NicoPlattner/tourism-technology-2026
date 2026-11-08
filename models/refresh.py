@@ -133,7 +133,8 @@ MODELS = [
     ("m1_origin", ("models/m1_origin.py",), ["data/processed/origin_panel.parquet"], "out/gui/m1_origin_month.parquet"),
     ("m3_daily", M3, ["data/processed/tirol_daily.parquet", "data/raw/open/holidays_hist/*.json",
                       "out/gui/m1_origin_month.parquet"], "out/gui/m3_daily_share.parquet"),
-    ("market_split", ("models/market_split.py",), ["data/processed/features_daily.parquet", "data/raw/partner/*.csv"],
+    ("market_split", ("models/market_split.py",), ["data/processed/features_daily.parquet", "data/raw/partner/*.csv",
+                                                   "out/c04_forecast.json"],
      "data/processed/daily_market_split.parquet"),
     ("m4_leadtime", ("models/m4_leadtime.py",), ["data/raw/partner/booking_lead_time*.csv",
                                                  "data/processed/daily_market_split.parquet"], "out/gui/m4_leadtime.parquet"),
@@ -186,6 +187,8 @@ def available() -> dict:
 
 def models(state: dict) -> list[str]:
     ran, have = [], available()
+    if have["partner"]:
+        run("models/forecast_winter.py")  # out/c04_forecast.json: input of market_split (and M4)
     for name, how, inputs, output in MODELS:
         need = NEEDS.get(name)
         if need and not have[need]:
@@ -203,7 +206,6 @@ def models(state: dict) -> list[str]:
         ran.append(name)
     run("models/export_gui.py")        # GUI tables + push and pull reasons
     if have["partner"]:
-        run("models/forecast_winter.py")   # daily inputs (snow, weather, bookings) change every run
         run("models/export_challenge.py")  # forecast, deviations, warnings, actions, manifest
     else:
         WARNINGS.append("Paznaun outlook not rebuilt (no TVB data): the last tables are kept")
