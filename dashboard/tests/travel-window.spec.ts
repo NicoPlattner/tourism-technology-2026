@@ -46,11 +46,11 @@ test('unknown capacity and past periods never become optimized travel dates; AI 
   return route.fulfill({json:{...f,daily:f.daily.map(d=>({...d,capacity_est:null}))}});
  });
  await page.goto('./');
- await expect(definition(page,'Recommended travel dates')).toHaveText('No supported window');
- await expect(definition(page,'Recommended campaign')).toHaveText('—');
- await expect(page.getByRole('button',{name:'Review & Schedule'})).toBeDisabled();
+ await expect(definition(page,'Suggested travel dates')).toHaveText('15 Feb 2027 – 19 Feb 2027');
+ await expect(definition(page,'Suggested campaign')).toHaveText('10 Dec 2026 – 17 Dec 2026');
+ await expect(page.getByRole('button',{name:'Review & Schedule'})).toBeEnabled();
  await expect(page.getByRole('button',{name:'Regenerate',exact:true})).toBeEnabled();
- await expect(page.locator('.cp-window-status')).toContainText('Analysis-period creative preview only');
+ await expect(page.locator('.cp-window-status')).toContainText('could not be extracted from the data');
  await page.unroute('**/c04-api/forecast?**');
  await page.route('**/c04-api/forecast?**',route=>{const p=new URL(route.request().url()).searchParams;return route.fulfill({json:forecastFixture(p.get('start')!,p.get('end')!)});});
  await dates(page,'2026-10-01','2026-10-14');
@@ -72,4 +72,26 @@ test('late forecast results cannot replace a newer recommendation; passed lead-t
  await expect(definition(page,'Recommended travel dates')).toHaveText('1 Apr 2027 – 5 Apr 2027');
  release();
  await expect(definition(page,'Recommended travel dates')).toHaveText('1 Apr 2027 – 5 Apr 2027');
+});
+
+test('autumn with no daily forecast shows explicitly suggested dates, campaign timing and AI provenance',async({page})=>{
+ await page.route('**/c04-api/forecast?**',route=>route.fulfill({json:{meta:{destination:'Paznaun-Ischgl'},daily:[]}}));
+ await page.route('**/c04-api/query?**',route=>{
+  const p=new URL(route.request().url()).searchParams;
+  return route.fulfill({json:demandFixture(p.get('origin')!,p.get('start')!,p.get('end')!,{stay:3.7,lead:3})});
+ });
+ let request:any;
+ await page.route('**/api/marketing/generate-caption',route=>{
+  request=route.request().postDataJSON();
+  return route.fulfill({json:{source:'ai',assetId:request.candidateAssets[0].id,platform:'tiktok',language:'de',caption:'September in Paznaun: Der Kopf braucht mal Bergluft. Komm mit! 🏔️',hashtags:['#Paznaun','#Ischgl'],creativeReason:'Eine passende herbstliche Reiseidee.',campaignReasoning:'These September dates are a heuristic planning suggestion, not a window extracted from daily forecast or capacity data. The supplied average stay guides the suggested span; the API lead-time proxy and awareness buffer guide tentative campaign timing.'}});
+ });
+ await page.goto('./');await dates(page,'2027-09-07','2027-10-31');
+ await expect(definition(page,'Suggested travel dates')).toHaveText('7 Sept 2027 – 10 Sept 2027');
+ await expect(definition(page,'Suggested campaign')).toHaveText('28 Aug 2027 – 4 Sept 2027');
+ await expect(page.locator('.cp-window-status')).toContainText('Suggested — could not be extracted from the data.');
+ await page.getByRole('button',{name:'Regenerate',exact:true}).click();await expect(page.locator('.cp-caption-source')).toHaveText('AI generated');
+ expect(request.windowSuggestion).toMatchObject({basis:'heuristic-not-extracted',start:'2027-09-07',end:'2027-09-10'});
+ expect(request.opportunityEvidence).toBeUndefined();
+ await expect(page.locator('.cp-reasoning')).toContainText('heuristic planning suggestion');
+ await page.screenshot({path:'test-results/suggested-travel-dates.png',fullPage:true});
 });

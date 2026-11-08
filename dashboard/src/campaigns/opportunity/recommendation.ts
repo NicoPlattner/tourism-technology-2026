@@ -1,3 +1,4 @@
+import {suggestTravelDates} from "./suggestion";
 import { campaignDataProvider,displayRange } from '../mockCampaignData';
 import { withDemand } from '../demand/recommendation';
 import type { DemandQuery } from '../demand/contracts';
@@ -11,6 +12,27 @@ export function withTravelWindow(base:CampaignRecommendation,analysisQuery:Deman
   const fallback={...initial,captionMetadata};
   const analysisPeriod={...base.travel,label:'Selected analysis period'};
   const status=opportunity.status;
+  if(dataStatus==='error'||dataStatus==='empty'){
+    const suggestedDates=suggestTravelDates(analysisPeriod,null,today);
+    if(suggestedDates)return {...fallback,analysisPeriod,windowRecommendation:{status:'suggested',suggestedDates,timingAvailable:false,message:'Suggested — could not be extracted from the data. Timing data is unavailable.',explanation:'These are illustrative planning dates, not a data-extracted window.'}};
+  }
+  if(status==='suggested'&&opportunity.suggestedDates){
+    const suggestedDates=opportunity.suggestedDates;
+    const message='Suggested — could not be extracted from the data.';
+    if(!opportunity.query||opportunity.query.nights.value<=0||opportunity.query.guests.value<=0)return {...fallback,analysisPeriod,windowRecommendation:{status:'suggested',suggestedDates,timingAvailable:false,message:opportunity.message,explanation:message}};
+    const template=campaignDataProvider.getImmediateRecommendation!(base.market,base.period,base.marketingPreferences.targetAudience,suggestedDates);
+    const campaign=withDemand(template,opportunity.query,'ready');
+    const schedule=campaignSchedule(suggestedDates.start,campaign.assumedLeadDays,awarenessDays,today);
+    return {...campaign,id:`${base.id}-suggested-${suggestedDates.start}-${suggestedDates.end}`,analysisPeriod,marketingPreferences:base.marketingPreferences,
+      windowRecommendation:{status:'suggested',suggestedDates,timingAvailable:true,message,explanation:'These dates are a planning suggestion, not a window extracted from daily forecast or capacity data.',leadOpportunityPassed:schedule.leadOpportunityPassed,awarenessStarted:schedule.awarenessStarted},
+      campaign:{start:schedule.start,end:schedule.end,label:'Suggested campaign timing'},
+      publishingDates:schedule.postDates.map(date=>`${date}T18:00:00${viennaOffset(date)}`),
+      captionMetadata:{...campaign.captionMetadata,windowSuggestion:{...suggestedDates,analysisStart:analysisPeriod.start,analysisEnd:analysisPeriod.end,basis:'heuristic-not-extracted'}},
+      reasoning:`Suggested dates: ${displayRange({...suggestedDates,label:''})}. A simple planning rule uses the first future dates inside your analysis period and the available average-stay estimate. The window could not be extracted from daily forecast/capacity data. Campaign timing uses the API lead-time proxy and a ${awarenessDays}-day awareness buffer.`,
+      detailedReasoning:[message,'No occupancy, spare-capacity or optimal-window claim is made. The suggested span is a calendar heuristic, not a measured most-common booking duration.',...campaign.detailedReasoning.filter(reason=>!reason.startsWith('Promotion dates are an illustrative'))],
+    };
+  }
+
   if(status!=='ready'||!opportunity.window||!opportunity.query||dataStatus!=='ready')return {...fallback,analysisPeriod,
     windowRecommendation:{status:dataStatus==='error'||dataStatus==='empty'?'unavailable':status==='ready'?'unavailable':status,message:dataStatus==='error'||dataStatus==='empty'?'Country demand evidence is required before recommending travel dates.':opportunity.message||'Insufficient country demand for a recommended window.',explanation:''}};
   const window=opportunity.window,query=opportunity.query;
