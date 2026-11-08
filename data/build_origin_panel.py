@@ -1,7 +1,8 @@
 """Tirol x origin x month panel for the GUI models (M1 guests/nights, M2 length of stay).
 
-Rows: origin (Statistik Austria country / German region / Austrian state) x month, 2004-11 .. 2027-12
-(future months have no target). Origins: >= 50,000 nights per year in Tirol (99 % of all nights).
+Rows: destination state x origin (Statistik Austria country / German region / Austrian state) x month,
+2004-11 .. 2027-12 (future months have no target). All 9 Austrian states (pooled training; Tirol is the
+main destination). Origins: >= 20,000 nights per year in that state.
 
 Columns
   nights, arrivals                Statistik Austria OGD_touextsai_Tour_HKL_1 (CC BY 4.0), Tirol
@@ -149,9 +150,13 @@ def universal(days: pd.DatetimeIndex) -> pd.DataFrame:
                          "weekend_days": (days.dayofweek >= 5).astype(float)}, index=days)
 
 
-def load_tirol() -> pd.DataFrame:
+STATES = {"W96-1": "Burgenland", "W96-2": "Kärnten", "W96-3": "Niederösterreich", "W96-4": "Oberösterreich",
+          "W96-5": "Salzburg", "W96-6": "Steiermark", "W96-7": "Tirol", "W96-8": "Vorarlberg", "W96-9": "Wien"}
+
+
+def load_state(state: str = "W96-7") -> pd.DataFrame:
     d = pd.read_csv(RAW / "statistik_at" / "OGD_touextsai_Tour_HKL_1.csv", sep=";", dtype=str)
-    d = d[d["C-W96-0"] == "W96-7"]
+    d = d[d["C-W96-0"] == state]
     d = d.assign(month=pd.to_datetime(d["C-SDB_TIT-0"], format="%Y%m"), origin=d["C-C93-2"],
                  nights=pd.to_numeric(d["F-UEB"]), arrivals=pd.to_numeric(d["F-ANK"]))
     return d[["month", "origin", "nights", "arrivals"]]
@@ -173,40 +178,48 @@ def lags(s: pd.Series, k: int) -> pd.Series:
     return out
 
 
-def build() -> pd.DataFrame:
-    t = load_tirol()
-    recent = t[(t.month >= "2023-11-01") & (t.month <= "2025-10-01")].groupby("origin").nights.sum() / 2
-    origins = [o for o in recent[recent >= 50000].index if o in ORIGIN]
+def origin_holidays(o: str, days: pd.DatetimeIndex) -> pd.DataFrame:
+    c, subs = ORIGIN[o]
+    sch = school_daily(c, subs, days)
+    pub = public_daily(c, subs, days)
+    g = pd.concat([sch.rename("school_days"), pub], axis=1).groupby(days.to_period("M"))
+    mon = g.sum(min_count=1)
+    mon.loc[g.school_days.count() < g.size() * .9, "school_days"] = np.nan  # partial-coverage months
+    mon.index = mon.index.to_timestamp()
+    return mon.rename(columns={"pub": "pub_weekdays", "longwe": "longwe_days", "bridge": "bridge_days"})
+
+
+def build(states=tuple(STATES), min_nights: float = 20000) -> pd.DataFrame:
+    """Panel for all destination states (pooled training gives ~9x more data; Tirol is the main destination)."""
     names = pd.read_csv(RAW / "statistik_at" / "OGD_touextsai_Tour_HKL_1_C-C93-2.csv", sep=";", dtype=str)
     names = dict(zip(names.code, names.en_name.str.replace(r"\s*\(.*?\)|\s*<.*?>", "", regex=True).str.strip()))
     months = pd.date_range(START, END, freq="MS")
     days = pd.date_range(START, pd.Timestamp(END) + pd.offsets.MonthEnd(0), freq="D")
     uni = universal(days).groupby(days.to_period("M")).sum()
     uni.index = uni.index.to_timestamp()
-    rows = []
-    for o in origins:
-        c, subs = ORIGIN[o]
-        sch = school_daily(c, subs, days)
-        pub = public_daily(c, subs, days)
-        g = pd.concat([sch.rename("school_days"), pub], axis=1).groupby(days.to_period("M"))
-        mon = g.sum(min_count=1)
-        mon.loc[g.school_days.count() < g.size() * .9, "school_days"] = np.nan  # partial-coverage months
-        mon.index = mon.index.to_timestamp()
-        mon = mon.rename(columns={"pub": "pub_weekdays", "longwe": "longwe_days", "bridge": "bridge_days"})
-        obs = t[t.origin == o].set_index("month").reindex(months)
-        df = pd.concat([obs[["nights", "arrivals"]], mon.reindex(months), uni.reindex(months)], axis=1)
-        df["school_days_ly"] = df.school_days.shift(12)
-        for v in ("nights", "arrivals"):
-            s = df[v].where(~df.index.to_series().between(*COVID))
-            for k in (1, 2, 3):
-                df[f"lag{k}_{v}"] = lags(s, k)
-        df["covid"] = df.index.to_series().between(*COVID).astype(int)
-        df["origin"], df["origin_name"], df["country"] = o, names.get(o, o), c
-        df["month_of_year"], df["year"] = df.index.month, df.index.year
-        df["days_in_month"] = df.index.days_in_month
-        rows.append(df)
-    p = pd.concat(rows).rename_axis("month").reset_index()
-    return p
+    hol_cache, rows = {}, []
+    for st in states:
+        t = load_state(st)
+        recent = t[(t.month >= "2023-11-01") & (t.month <= "2025-10-01")].groupby("origin").nights.sum() / 2
+        origins = [o for o in recent[recent >= min_nights].index if o in ORIGIN]
+        for o in origins:
+            if o not in hol_cache:
+                hol_cache[o] = origin_holidays(o, days)
+            obs = t[t.origin == o].set_index("month").reindex(months)
+            df = pd.concat([obs[["nights", "arrivals"]], hol_cache[o].reindex(months), uni.reindex(months)], axis=1)
+            df["school_days_ly"] = df.school_days.shift(12)
+            for v in ("nights", "arrivals"):
+                s_ = df[v].where(~df.index.to_series().between(*COVID))
+                for k in (1, 2, 3):
+                    df[f"lag{k}_{v}"] = lags(s_, k)
+            df["covid"] = df.index.to_series().between(*COVID).astype(int)
+            df["origin"], df["origin_name"], df["country"] = o, names.get(o, o), ORIGIN[o][0]
+            df["dest"], df["dest_name"] = st, STATES[st]
+            df["month_of_year"], df["year"] = df.index.month, df.index.year
+            df["days_in_month"] = df.index.days_in_month
+            rows.append(df)
+        print(STATES[st], len(origins), "origins")
+    return pd.concat(rows).rename_axis("month").reset_index()
 
 
 if __name__ == "__main__":
@@ -216,5 +229,5 @@ if __name__ == "__main__":
     print(p.shape, p.origin.nunique(), "origins", p.month.min().date(), "..", p.month.max().date())
     cov = p.groupby("country").school_days.apply(lambda s: s.notna().mean()).round(2)
     print("school-holiday coverage share by country:", cov.to_dict())
-    print(p[(p.origin == "80") & (p.month >= "2025-12-01") & (p.month <= "2026-04-01")][
+    print(p[(p.origin == "80") & (p.dest == "W96-7") & (p.month >= "2025-12-01") & (p.month <= "2026-04-01")][
         ["month", "nights", "arrivals", "lag1_nights", "school_days", "pub_weekdays", "longwe_days", "easter_days"]].to_string())

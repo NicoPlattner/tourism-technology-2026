@@ -27,6 +27,9 @@ from common import ROOT
 warnings.filterwarnings("ignore")
 P = pd.read_parquet(ROOT / "data" / "processed" / "origin_panel.parquet")
 P["origin_cat"] = P.origin.astype("category")
+P["dest_cat"] = P.dest.astype("category")
+TIROL = P.dest == "W96-7"
+POOLED = True  # train on all 9 Austrian states (destination as a feature); evaluation and SIZE on Tirol
 HOL = ["school_days", "school_days_ly", "school_delta", "pub_weekdays", "longwe_days", "bridge_days",
        "easter_days", "carnival_days", "pentecost_days", "ascension_days", "weekend_days", "days_in_month"]
 P["school_delta"] = P.school_days - P.school_days_ly
@@ -37,6 +40,7 @@ CUTOFFS_POST = [2022, 2023, 2024, 2025]
 def features(v: str, holidays: bool = True) -> pd.DataFrame:
     X = pd.DataFrame(index=P.index)
     X["origin_cat"] = P.origin_cat
+    X["dest_cat"] = P.dest_cat
     X["month"] = P.month_of_year
     for k in (1, 2, 3):
         X[f"log_lag{k}"] = np.log1p(P[f"lag{k}_{v}"])
@@ -55,12 +59,15 @@ def model():
                              random_state=0, verbose=-1)
 
 
-def forecast(v: str, cutoff_year: int, holidays: bool = True) -> pd.DataFrame:
+def forecast(v: str, cutoff_year: int, holidays: bool = True, pooled: bool | None = None) -> pd.DataFrame:
+    pooled = POOLED if pooled is None else pooled
     cut = pd.Timestamp(f"{cutoff_year}-10-01")
     X = features(v, holidays)
     y = np.log1p(P[v]) - X.log_lag1
     train = (P.month <= cut) & (P.covid == 0) & y.notna() & X.log_lag1.notna() & (P[v] > 0)
-    test = (P.month > cut) & (P.month <= cut + pd.DateOffset(months=12)) & X.log_lag1.notna()
+    if not pooled:
+        train &= TIROL
+    test = (P.month > cut) & (P.month <= cut + pd.DateOffset(months=12)) & X.log_lag1.notna() & TIROL
     m = model().fit(X[train], y[train])
     out = P.loc[test, ["month", "origin", "origin_name", v, f"lag1_{v}", f"lag2_{v}", f"lag3_{v}"]].copy()
     out["h"] = (out.month.dt.year - cut.year) * 12 + out.month.dt.month - cut.month
@@ -96,10 +103,10 @@ def evaluate(fc: pd.DataFrame, models) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-TOP10 = P[(P.month >= "2023-11-01") & (P.month <= "2025-10-01")].groupby("origin").nights.sum().nlargest(10).index
+TOP10 = P[TIROL & (P.month >= "2023-11-01") & (P.month <= "2025-10-01")].groupby("origin").nights.sum().nlargest(10).index
 
 if __name__ == "__main__":
-    MODELS = ["last_year", "avg2", "last_year_x_growth", "lgbm", "lgbm_no_hol", "combo"]
+    MODELS = ["last_year", "avg2", "last_year_x_growth", "lgbm", "lgbm_no_hol", "lgbm_tirol_only", "combo"]
     res, store = [], {}
     for v in ("nights", "arrivals"):
         fcs = []
@@ -107,6 +114,7 @@ if __name__ == "__main__":
             for c in cuts:
                 f = forecast(v, c)
                 f["lgbm_no_hol"] = forecast(v, c, holidays=False).lgbm.values
+                f["lgbm_tirol_only"] = forecast(v, c, pooled=False).lgbm.values
                 f["period"] = period
                 fcs.append(f)
         fc = pd.concat(fcs)
@@ -122,90 +130,86 @@ if __name__ == "__main__":
 
 
 # ------------------------------------------------------------------ selection, intervals, M2, production
-SMALL = 500_000  # nights per year: below this the LightGBM/2-year-mean mix is used (better for small origins)
-
-
-def pick(fc: pd.DataFrame, size: pd.Series) -> pd.Series:
-    small = fc.origin.map(size) < SMALL
-    return fc.combo.where(small, fc.lgbm)
+BIG = 500_000  # nights per year: size class for the interval widths
 
 
 def conformal(fc: pd.DataFrame, level=.8) -> pd.DataFrame:
-    """Half-width of log errors per horizon (months ahead) and size class."""
+    """Half-width of absolute log errors per horizon (months ahead) and size class."""
     e = np.log(fc.actual / fc.final).replace([np.inf, -np.inf], np.nan)
-    df = fc.assign(err=e.abs(), big=fc.origin.map(SIZE) >= SMALL).dropna(subset=["err"])
-    q = df.groupby(["h", "big"]).err.quantile(level).unstack()
-    return q
+    df = fc.assign(err=e.abs(), big=fc.size_ >= BIG).dropna(subset=["err"])
+    return df.groupby(["h", "big"]).err.quantile(level).unstack()
+
+
+def sizes() -> pd.Series:
+    r = P[(P.month >= "2023-11-01") & (P.month <= "2025-10-01")]
+    return r.groupby(["dest", "origin"]).nights.sum() / 2
 
 
 def run_final():
-    global SIZE
-    SIZE = P[(P.month >= "2023-11-01") & (P.month <= "2025-10-01")].groupby("origin").nights.sum() / 2
+    size = sizes()
     store = pd.read_pickle(ROOT / "data" / "processed" / "m1_backtest.pkl")
-    summary = []
+    summary, LEVEL = [], {}
     for v, fc in store.items():
-        fc["final"] = pick(fc, SIZE)
+        fc["final"] = fc.lgbm  # pooled LightGBM everywhere (beats the mix also for small origins)
+        fc["size_"] = [size.get(("W96-7", o), 0) for o in fc.origin]
         pre, post = fc[fc.period.str.startswith("pre")], fc[fc.period.str.startswith("post")]
-        q = conformal(pre)
-        post = post.assign(big=post.origin.map(SIZE) >= SMALL)
-        hw = post.apply(lambda r: q.loc[r.h, r.big], axis=1)
-        ok = (np.log(post.actual / post.final).abs() <= hw)
-        summary.append({"target": v, "final wMAPE post-COVID": wmape(post.actual, post.final),
-                        "80% interval coverage post-COVID (calibrated pre-COVID)": float(ok[post.actual > 0].mean())})
+        for level in (.8, .85, .9):
+            q = conformal(pre, level)
+            hw = post.apply(lambda r: q.loc[r.h, r.size_ >= BIG], axis=1)
+            cov = float((np.log(post.actual / post.final).abs() <= hw)[post.actual > 0].mean())
+            summary.append({"target": v, "quantile used": level, "post-COVID coverage of the '80 %' band": cov})
+            if cov >= .8 and v not in LEVEL:
+                LEVEL[v] = level
+        LEVEL.setdefault(v, .9)
         store[v] = fc
-    print(pd.DataFrame(summary).round(3).to_string(index=False))
-    # M2: length of stay from the two forecasts vs 2-year mean of the ratio
+    print(pd.DataFrame(summary).round(3).to_string(index=False), "\nchosen quantile:", LEVEL)
     n, a = store["nights"], store["arrivals"]
     m = n.merge(a, on=["month", "origin", "cutoff", "period"], suffixes=("_n", "_a"))
-    m = m[m.actual_a > 0]
+    m = m[(m.actual_a > 0) & m.period.str.startswith("post")]
     los_true = m.actual_n / m.actual_a
-    los_model = m.final_n / m.final_a
-    los_base = m.avg2_n / m.avg2_a
-    big = m.origin.map(SIZE) >= SMALL
-    for lab, sel in (("all", pd.Series(True, index=m.index)), ("origins >= 500k nights", big)):
-        print(f"M2 length of stay, post-COVID, {lab}: model MAPE",
-              round(float((los_model - los_true).abs()[sel & m.period.str.startswith('post')].div(los_true).median()), 3),
-              "| 2-year-mean ratio", round(float((los_base - los_true).abs()[sel & m.period.str.startswith('post')].div(los_true).median()), 3))
-    # production: cutoff = last observed month, 12 months ahead
+    print("M2 length of stay post-COVID, median abs. % error: forecast ratio",
+          round(float(((m.final_n / m.final_a) - los_true).abs().div(los_true).median()), 3),
+          "| 2-year ratio", round(float(((m.avg2_n / m.avg2_a) - los_true).abs().div(los_true).median()), 3))
+    # production: cutoff = last observed month, 12 months ahead, every destination state
     last = P[P.nights.notna()].month.max()
-    cy = last.year if last.month >= 10 else last.year - 1
     prod = {}
     for v in ("nights", "arrivals"):
-        cut = last
         X = features(v)
         y = np.log1p(P[v]) - X.log_lag1
-        train = (P.month <= cut) & (P.covid == 0) & y.notna() & X.log_lag1.notna() & (P[v] > 0)
-        test = (P.month > cut) & (P.month <= cut + pd.DateOffset(months=12)) & X.log_lag1.notna()
+        train = (P.month <= last) & (P.covid == 0) & y.notna() & X.log_lag1.notna() & (P[v] > 0)
+        test = (P.month > last) & (P.month <= last + pd.DateOffset(months=12)) & X.log_lag1.notna()
         mdl = model().fit(X[train], y[train])
-        out = P.loc[test, ["month", "origin", "origin_name", f"lag1_{v}", f"lag2_{v}"]].copy()
-        out["lgbm"] = np.expm1(X.loc[test, "log_lag1"] + mdl.predict(X[test]))
-        out["avg2"] = out[[f"lag1_{v}", f"lag2_{v}"]].mean(axis=1)
-        out["combo"] = (out.lgbm + out.avg2) / 2
-        out["h"] = (out.month.dt.year - cut.year) * 12 + out.month.dt.month - cut.month
-        out["final"] = pick(out, SIZE)
-        q = conformal(store[v])  # calibrated on all backtests
-        hw = out.apply(lambda r: q.loc[min(r.h, q.index.max()), SIZE.get(r.origin, 0) >= SMALL], axis=1)
-        out[f"{v}"], out[f"{v}_p10"], out[f"{v}_p90"] = out.final, out.final * np.exp(-hw), out.final * np.exp(hw)
+        out = P.loc[test, ["month", "dest", "dest_name", "origin", "origin_name", f"lag1_{v}", f"lag2_{v}"]].copy()
+        out["final"] = np.expm1(X.loc[test, "log_lag1"] + mdl.predict(X[test]))
+        out["h"] = (out.month.dt.year - last.year) * 12 + out.month.dt.month - last.month
+        q = conformal(store[v], LEVEL[v])
+        big = np.array([size.get((d, o), 0) >= BIG for d, o in zip(out.dest, out.origin)])
+        hw = np.array([q.loc[min(h, q.index.max()), b] for h, b in zip(out.h, big)])
+        out[v], out[f"{v}_p10"], out[f"{v}_p90"] = out.final, out.final * np.exp(-hw), out.final * np.exp(hw)
         out[f"{v}_last_year"] = out[f"lag1_{v}"]
-        prod[v] = out[["month", "origin", "origin_name", v, f"{v}_p10", f"{v}_p90", f"{v}_last_year"]]
-    g = prod["nights"].merge(prod["arrivals"], on=["month", "origin", "origin_name"])
-    # arrivals = mean of the direct forecast and nights / 2-year length of stay (backtest: 10.2 % vs 10.5 %)
-    lag = P.set_index(["month", "origin"])[["lag1_nights", "lag2_nights", "lag1_arrivals", "lag2_arrivals"]]
-    lg = lag.reindex(pd.MultiIndex.from_frame(g[["month", "origin"]])).reset_index(drop=True)
-    los2 = (lg.lag1_nights + lg.lag2_nights) / (lg.lag1_arrivals + lg.lag2_arrivals)
-    adj = ((g.arrivals + g.nights / los2.values) / 2) / g.arrivals
+        prod[v] = out[["month", "dest", "dest_name", "origin", "origin_name", v, f"{v}_p10", f"{v}_p90",
+                       f"{v}_last_year", f"lag1_{v}", f"lag2_{v}"]]
+    keys = ["month", "dest", "dest_name", "origin", "origin_name"]
+    g = prod["nights"].merge(prod["arrivals"], on=keys)
+    # arrivals = mean of the direct forecast and nights / 2-year length of stay (backtest 10.2 % vs 10.5 %)
+    los2 = (g.lag1_nights + g.lag2_nights) / (g.lag1_arrivals + g.lag2_arrivals)
+    adj = (((g.arrivals + g.nights / los2) / 2) / g.arrivals).fillna(1)
     for c in ("arrivals", "arrivals_p10", "arrivals_p90"):
-        g[c] = g[c] * adj.fillna(1).values
+        g[c] = g[c] * adj
     g["length_of_stay"] = g.nights / g.arrivals
-    g["destination"] = "Tirol"
+    g = g.drop(columns=["lag1_nights", "lag2_nights", "lag1_arrivals", "lag2_arrivals"])
+    g["destination"] = g.dest_name
+    g["method"], g["is_estimate"], g["grade"] = "M1 pooled LightGBM", False, np.where(big, "A", "B")
     g["source"] = "Statistik Austria (CC BY 4.0), model M1/M2 c04-data-models"
     gui = ROOT / "out" / "gui"
     gui.mkdir(parents=True, exist_ok=True)
     g.to_parquet(gui / "m1_origin_month.parquet")
     g[["destination", "month", "origin", "origin_name", "length_of_stay"]].to_parquet(gui / "m2_los.parquet")
-    b = g[g.origin == "80"].set_index("month")[["arrivals", "nights", "nights_p10", "nights_p90", "nights_last_year", "length_of_stay"]]
-    print(f"\nProduction forecast from {last.date()}: {g.month.min().date()}..{g.month.max().date()}, {g.origin.nunique()} origins")
-    print("Bavaria:"); print(b.round(1).to_string())
+    b = g[(g.origin == "80") & (g.dest == "W96-7")].set_index("month")[
+        ["arrivals", "nights", "nights_p10", "nights_p90", "nights_last_year", "length_of_stay"]]
+    print(f"\nProduction forecast from {last.date()}: {g.month.min().date()}..{g.month.max().date()}, "
+          f"{g.dest.nunique()} destinations, {len(g.groupby(['dest', 'origin']))} destination-origin pairs")
+    print("Bavaria -> Tirol:"); print(b.round(1).to_string())
 
 
 if __name__ == "__main__":
