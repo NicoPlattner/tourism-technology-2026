@@ -29,6 +29,7 @@ import pandas as pd
 
 ROOT = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
+from holiday_corrections import fix  # noqa: E402
 HD = ROOT / "raw" / "open" / "holidays"
 STATIC = ROOT / "static" / "school_holidays_extra.csv"
 
@@ -98,7 +99,7 @@ def school(idx: pd.DatetimeIndex) -> pd.DataFrame:
         p = HD / f"{c}_SchoolHolidays.json"
         if not p.exists():
             continue
-        recs = json.loads(p.read_text())
+        recs = fix(c, json.loads(p.read_text()))
         if c == "DE" and "DE_ORIGIN" in POP:
             w = {f"DE-{k}": v for k, v in POP["DE_ORIGIN"].items()}
         elif c in POP:
