@@ -155,3 +155,33 @@ derive and share with attribution).
 Order of work: M1 → M2 (same data, fastest value) → M4 → M3 → M5.
 Missing for later: lead time by origin (no source), Tirol-wide lead time
 (Paznaun used as proxy), daily Tirol actuals after 2025 (open index ends 2025).
+
+## 8. Execution plan (8 Nov): acquisition → preparation → model decision → models
+
+**A. Data acquisition** (status)
+- Have: Statistik Austria Tirol × origin × month (arrivals, nights, 1973–2026);
+  Landesstatistik Tirol Paznaun origin mix, beds; TVB daily stays, free beds,
+  lead time, events; open daily index 2022–2025 for all regions; holidays
+  (school for 13 markets incl. German and Austrian states, public for any
+  country); Salzburg guest cards (age × origin); snow; macro.
+- To acquire: nothing new. Refresh the Statistik Austria file before the final run.
+
+**B. Data preparation**
+1. `data/build_origin_panel.py`: Tirol × origin × month panel (origins with
+   meaningful volume), origin → holiday calendar mapping (German regions →
+   their Länder, Austrian states → state calendars, countries → national),
+   monthly holiday features (school days, public-holiday weekdays, long
+   weekends, bridge days, Easter), COVID-safe lags (same month in the most
+   recent non-COVID years).
+2. Tirol daily pattern: aggregate the open daily index of the Tirol regions.
+3. Combined lead-time dataset: TVB lead-time mix per arrival week × estimated
+   market mix of that week (market split).
+4. Age profile per origin from guest cards (winter seasons).
+
+**C. Model and output decision**: M1 nights and arrivals per origin and month;
+M2 length of stay; M3 daily distribution; M4 lead time (all markets + by
+market, grade C); M5 age (proxy, optional). Each with baselines, backtest and
+confidence grade; data blocks only via the selection rule (section 7).
+
+**D. Models**: M1 → M2 → M4 → M3 → M5, outputs to `out/gui/`, results to
+RESULTS.md section C. Then, if time: the push–pull feature test (section 6).
