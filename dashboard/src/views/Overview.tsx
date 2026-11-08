@@ -1,4 +1,5 @@
-import { DEFAULT_TARGET_AUDIENCE, TARGET_AGES, type TargetAudience } from "../campaigns/types";
+import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
+import { DEFAULT_TARGET_AUDIENCE, type TargetAudience } from "../campaigns/types";
 import { useCaptionAssistant } from "../campaigns/captions/useCaptionAssistant";
 import { useEffect, useState } from "react";
 import type { ViewProps } from "../App";
@@ -119,17 +120,7 @@ export default function Overview({
         </div>
         <div className="cp-controls">
           <TravelPeriodSelector value={period} onChange={setPeriod} />
-          <label className="cp-period-label">
-            Target audience age
-            <select aria-label="Target audience age" value={`${targetAudience.ageMin}-${targetAudience.ageMax}`}
-              onChange={event => {
-                const age = TARGET_AGES.find(age => `${age.ageMin}-${age.ageMax}` === event.target.value);
-                if (age) setTargetAudience(age);
-              }}>
-              {TARGET_AGES.map(age => <option key={age.ageMin} value={`${age.ageMin}-${age.ageMax}`}>{age.ageMin}–{age.ageMax}</option>)}
-            </select>
-            <span>Your marketing preference.</span>
-          </label>
+          <TargetAgeSelector value={targetAudience} onChange={setTargetAudience} />
         </div>
       </div>
       <div className="cp-demo-strip">

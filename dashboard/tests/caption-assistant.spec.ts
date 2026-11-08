@@ -3,6 +3,10 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://naechtigungen.pol.joanneum.at/**", route => route.fulfill({contentType:"application/json",body:'{"forecast_data":[]}'}));
   await page.route("https://api.open-meteo.com/**", route => route.fulfill({contentType:"application/json",body:'{"daily":{"time":[]}}'}));
 });
+async function selectAge(page: import("@playwright/test").Page, value: string) {
+  await page.getByRole("button",{name:/Target audience age/}).click();
+  await page.getByRole("option",{name:value.replace("-","–"),exact:true}).click();
+}
 const captionText = (text: string, min = 40) => text.length >= min ? text : (text + " Lass dich von einer neuen Alpenidee inspirieren. ".repeat(8)).slice(0,min);
 const answer = (caption: string, language = "de", min = 40) => ({caption: captionText(caption,min), hashtags:["#Ischgl","#Alpen"], language, source:"ai"});
 test("all markets and periods are ready without AI calls", async ({page}) => {
@@ -104,11 +108,13 @@ test("age choices update targeting immediately, use generic preview and reach re
     return route.fulfill({contentType:"application/json",body:JSON.stringify(answer(`Alpenidee für ${m.ageMin}–${m.ageMax}.`, "de", m.targetCaptionLength.min))});
   });
   await page.goto("./");
-  const select=page.getByRole("combobox",{name:"Target audience age",exact:true});
-  await expect(select).toHaveValue("18-24");
-  await expect(select.locator("option")).toHaveText(["18–24","25–34","35–44","45–60"]);
+  const select=page.getByRole("button",{name:/Target audience age/});
+  await expect(select).toContainText("18–24");
+  await select.click();
+  await expect(page.getByRole("listbox").getByRole("option")).toHaveText(["18–24","25–34","35–44","45–60"]);
+  await page.keyboard.press("Escape");
   const image = await page.locator(".cp-social-image").getAttribute("src");
-  await select.selectOption("45-60");
+  await selectAge(page,"45-60");
   expect(await page.locator(".cp-social-image").getAttribute("src")).toBe(image);
   await expect(page.locator(".cp-summary")).toContainText("Selected target audience");
   await expect(page.locator(".cp-summary")).toContainText("45–60 years");
@@ -120,13 +126,13 @@ test("age choices update targeting immediately, use generic preview and reach re
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 45–60.",180));
   expect(payloads[0].ageMin).toBe(45);expect(payloads[0].ageMax).toBe(60);
   expect(payloads[0].visualDescription).toContain("cat");
-  await select.selectOption("25-34");
+  await selectAge(page,"25-34");
   await expect(page.locator(".cp-caption-source")).toHaveText("Demo preview");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 25–34.",80));
-  await select.selectOption("45-60");
+  await selectAge(page,"45-60");
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Alpenidee für 45–60.",180));
-  await select.selectOption("18-24");
+  await selectAge(page,"18-24");
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
   expect(payloads).toHaveLength(2);
 });
@@ -137,14 +143,13 @@ test("age switching during regeneration keeps each result with its exact audienc
     await gate;await route.fulfill({contentType:"application/json",body:JSON.stringify(answer("Eine einladende Alpenidee.","de",180))});
   });
   await page.goto("./");
-  const select=page.getByRole("combobox",{name:"Target audience age",exact:true});
-  await select.selectOption("45-60");
+  await selectAge(page,"45-60");
   await page.getByRole("button",{name:"Regenerate",exact:true}).click();
-  await select.selectOption("18-24");
+  await selectAge(page,"18-24");
   const initial=await page.locator(".cp-caption-text").innerText();release();
   await expect(page.locator(".cp-caption-text")).toHaveText(initial);
   await expect(page.locator(".cp-caption-source")).toHaveText("Pre-generated AI caption");
-  await select.selectOption("45-60");
+  await selectAge(page,"45-60");
   await expect(page.locator(".cp-caption-text")).toHaveText(captionText("Eine einladende Alpenidee.",180));
   await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
 });
@@ -154,7 +159,7 @@ test("age instantly adapts platform icons, demo voice and length without making 
   await page.goto("./");
   const seen=new Set<string>();
   for(const [age,platform,min,max] of [["18-24","TikTok",40,100],["25-34","Instagram",80,160],["35-44","Instagram",120,220],["45-60","Facebook",180,350]] as const) {
-    await page.getByRole("combobox",{name:"Target audience age",exact:true}).selectOption(age);
+    await selectAge(page,age);
     await expect(page.locator(".cp-platform")).toContainText(platform);
     await expect(page.locator(`.cp-social-header [data-platform-icon="${platform}"]`)).toHaveCount(1);
     await expect(page.getByRole("region",{name:`Germany ${platform} post preview`,exact:true})).toBeVisible();
@@ -164,4 +169,20 @@ test("age instantly adapts platform icons, demo voice and length without making 
     seen.add(caption);
   }
   expect(seen.size).toBe(4);expect(calls).toBe(0);
+});
+test("age dropdown opens below its trigger and supports keyboard selection and dismissal", async ({page}) => {
+  await page.goto("./");
+  const trigger=page.getByRole("button",{name:/Target audience age/});
+  await trigger.focus();await page.keyboard.press("ArrowDown");
+  const menu=page.getByRole("listbox",{name:"Target audience age"});
+  await expect(menu).toBeVisible();
+  const anchor=await trigger.boundingBox(), popup=await menu.boundingBox();
+  expect(popup!.y).toBeGreaterThanOrEqual(anchor!.y+anchor!.height);
+  expect(popup!.width).toBeCloseTo(anchor!.width,0);
+  await page.keyboard.press("End");await page.keyboard.press("Enter");
+  await expect(trigger).toContainText("45–60");await expect(menu).toHaveCount(0);
+  await trigger.click();await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();await expect(menu).toHaveCount(0);
+  await trigger.click();await page.getByRole("heading",{name:"Campaign overview",exact:true}).click();
+  await expect(menu).toHaveCount(0);
 });
