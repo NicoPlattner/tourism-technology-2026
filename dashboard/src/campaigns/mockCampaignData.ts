@@ -172,7 +172,7 @@ export class MockCampaignDataProvider implements CampaignDataProvider {
       description: visual.visualDescription,
     };
     const profile = socialProfile(targetAudience.ageMin);
-    const genericCaption = demoCaption(scenario.language, targetAudience.ageMin);
+    const genericCaption = demoCaption(scenario.language, targetAudience.ageMin, season);
     const recommendation: CampaignRecommendation = {
       id: `campaign-${market}-${period}${travelDates ? `-${travelDates.start}-${travelDates.end}` : ""}-${targetAudience.ageMin}-${targetAudience.ageMax}-v1`,
       market,

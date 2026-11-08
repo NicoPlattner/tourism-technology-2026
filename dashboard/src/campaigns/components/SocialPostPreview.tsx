@@ -1,3 +1,4 @@
+import CampaignImage from "./CampaignImage";
 import CaptionAssistant from "./CaptionAssistant";
 import type { CaptionAssistantState } from "../captions/useCaptionAssistant";
 import type { CampaignRecommendation } from "../types";
@@ -49,10 +50,11 @@ export default function SocialPostPreview({
           ···
         </span>
       </div>
-      <img
-        className="cp-social-image"
+      <CampaignImage
+        key={`${campaign.marketingPreferences.travelDates?.start}:${campaign.marketingPreferences.travelDates?.end}:${campaign.market}:${campaign.ageGroup}:${campaign.asset.src}`}
         src={campaign.asset.src}
         alt={campaign.asset.alt}
+        waiting={campaign.dataStatus === "loading" || campaign.windowRecommendation?.status === "loading"}
       />
       <div className="cp-social-copy">
         <div className="cp-social-marks" aria-hidden="true">

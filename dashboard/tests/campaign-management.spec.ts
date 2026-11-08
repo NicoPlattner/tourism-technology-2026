@@ -1,5 +1,7 @@
+import { mockDemand } from "./helpers/demand";
 import { test, expect } from '@playwright/test';
 test.beforeEach(async ({page}) => {
+  await mockDemand(page);
   await page.route('https://naechtigungen.pol.joanneum.at/**', route => route.fulfill({contentType:'application/json',body:'{"forecast_data":[]}'}));
   await page.route('https://api.open-meteo.com/**', route => route.fulfill({contentType:'application/json',body:'{"daily":{"time":[]}}'}));
 });
@@ -35,7 +37,7 @@ test('transfer, edit, approve, schedule, reschedule and refresh keep the exact c
   await page.reload();
   await expect(page.locator('.am-campaign.is-open .am-status')).toHaveText('SCHEDULED');
   await expect(page.locator('.am-campaign.is-open .am-post').first()).toContainText('Unser nächstes Alpenabenteuer');
-  await expect(page.locator('.am-campaign')).toHaveCount(4);
+  await expect(page.locator('.am-campaign')).toHaveCount(5);
   await expect(page.locator('.am-stats')).toContainText('9Scheduled posts');
   expect(calls).toBe(0);
 });
