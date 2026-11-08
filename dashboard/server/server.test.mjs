@@ -204,3 +204,26 @@ test('analytics API: token, on/off switch, realtime, insights, history, queries'
   r = await v1('GET', '/properties');
   assert.equal(r.status, 403);
 });
+
+test('OpenAPI description and Swagger UI are public and match the API', async () => {
+  let res = await fetch(`${base}/v1/openapi.json`, { headers: { 'X-Forwarded-Host': 'hackathon.example.com', 'X-Forwarded-Proto': 'https' } });
+  assert.equal(res.status, 200);
+  const spec = await res.json();
+  assert.equal(spec.openapi, '3.1.0');
+  assert.match(spec.servers[0].url, /^https:\/\/hackathon\.example\.com(\/.*)?\/api\/v1$/);
+  const days = spec.paths['/properties/{id}/history'].get.parameters.find((p) => p.name === 'days');
+  assert.deepEqual([days.in, days.schema.minimum, days.schema.maximum, days.schema.default], ['query', 1, 180, 7]);
+  assert.equal(spec.components.securitySchemes.bearerAuth.scheme, 'bearer');
+  assert.deepEqual(spec.paths['/'].get.security, [], 'only the overview is open');
+  // Every documented path answers (401 without a token, not 404).
+  for (const [path, ops] of Object.entries(spec.paths)) {
+    for (const method of Object.keys(ops)) {
+      const r = await fetch(`${base}/v1${path.replace('{id}', 'default')}`, { method: method.toUpperCase(), headers: method === 'post' ? { 'Content-Type': 'application/json' } : {}, body: method === 'post' ? '{}' : undefined });
+      assert.notEqual(r.status, 404, `${method} ${path}`);
+    }
+  }
+  res = await fetch(`${base}/v1/docs/`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /text\/html/);
+  assert.match(await res.text(), /SwaggerUIBundle/);
+});
