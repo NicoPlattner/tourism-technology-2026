@@ -227,7 +227,7 @@ jobs:
           printf 'GOOGLE_SECRET_CHECKSUM=%s\n' "$checksum" >> "$GITHUB_ENV"
 
       - name: Store the TTF Data Space key for the c04 refresh pipeline
-        if: inputs.c04_api
+        if: inputs.c04_api && github.ref_name == 'demand-api'
         env:
           TTF_SPACE_API_KEY: ${{ secrets.TTF_SPACE_API_KEY }}
         run: |
