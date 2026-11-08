@@ -70,18 +70,20 @@ const REALTIME = [
   ['device', ['deviceCategory'], RT_METRICS],
   ['platform', ['platform'], RT_METRICS],
   ['page', ['unifiedScreenName'], RT_METRICS],
-  ['event', ['eventName'], ['eventCount', 'activeUsers', 'keyEvents']],
-  ['audience', ['audienceName'], ['activeUsers', 'eventCount', 'keyEvents']],
+  // Realtime: event name only goes with event metrics, audiences only with users.
+  ['event', ['eventName'], ['eventCount', 'keyEvents']],
+  ['audience', ['audienceName'], ['activeUsers']],
 ];
 
-// What the collector keeps per minute: [name, dimensions, label from dimension values]
+// What the collector keeps per minute: [name, dimensions, metrics]. Values are
+// stored as [activeUsers, eventCount, screenPageViews, keyEvents].
 const COLLECT = [
-  ['country', ['country']],
-  ['city', ['city', 'country']],
-  ['device', ['deviceCategory']],
-  ['platform', ['platform']],
-  ['page', ['unifiedScreenName']],
-  ['event', ['eventName']],
+  ['country', ['country'], RT_METRICS],
+  ['city', ['city', 'country'], RT_METRICS],
+  ['device', ['deviceCategory'], RT_METRICS],
+  ['platform', ['platform'], RT_METRICS],
+  ['page', ['unifiedScreenName'], RT_METRICS],
+  ['event', ['eventName'], ['eventCount', 'keyEvents']],
 ];
 const HIST_LABEL = { country: 'country', city: 'city', device: 'deviceCategory', platform: 'platform', page: 'unifiedScreenName', event: 'eventName' };
 
@@ -348,15 +350,15 @@ export function createAnalytics({ token, dataDir, dataUrl, google, HttpError, co
 
   async function collectProperty(prop) {
     const h = (hist[prop.id] ??= { since: new Date().toISOString(), minutes: {}, hours: {} });
-    const groups = [['total', []], ...COLLECT];
+    const groups = [['total', [], RT_METRICS], ...COLLECT];
     const errors = [];
-    await pool(groups, 3, async ([g, dims]) => {
+    await pool(groups, 3, async ([g, dims, mets]) => {
       const now = Date.now();
       let res;
       try {
         res = await runRealtime(prop.id, {
           dimensions: ['minutesAgo', ...dims].map((name) => ({ name })),
-          metrics: RT_METRICS.map((name) => ({ name })),
+          metrics: mets.map((name) => ({ name })),
           limit: 10_000,
         });
       } catch (e) { errors.push(`${g}: ${e.message}`); return; }
@@ -368,7 +370,7 @@ export function createAnalytics({ token, dataDir, dataUrl, google, HttpError, co
         const ago = Number(r.dimensionValues?.[0]?.value);
         const key = minuteKey(now - ago * 60_000);
         if (!(key in seen)) continue;
-        const v = (r.metricValues ?? []).map((x) => Number(x.value ?? 0));
+        const v = RT_METRICS.map((name) => Number(r.metricValues?.[mets.indexOf(name)]?.value ?? 0));
         if (g === 'total') seen[key] = v;
         else {
           const label = dims.map((_, i) => r.dimensionValues?.[i + 1]?.value || '(not set)').join(', ');
