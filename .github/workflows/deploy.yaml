@@ -215,6 +215,22 @@ jobs:
           checksum=$(printf '%s:%s:%s' "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$ANALYTICS_API_TOKEN" | sha256sum | cut -c1-16)
           printf 'GOOGLE_SECRET_CHECKSUM=%s\n' "$checksum" >> "$GITHUB_ENV"
 
+      - name: Store the TTF Data Space key for the c04 refresh pipeline
+        if: inputs.c04_api
+        env:
+          TTF_SPACE_API_KEY: ${{ secrets.TTF_SPACE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TTF_SPACE_API_KEY" ]]; then
+            echo "::warning::TTF_SPACE_API_KEY is not set: the c04 pipeline refreshes open sources only."
+            exit 0
+          fi
+          # Read from stdin so the key never appears on a command line.
+          printf 'TTF_SPACE_API_KEY=%s\n' "$TTF_SPACE_API_KEY" |
+            kubectl -n tourism-technology-2026 create secret generic "$RELEASE_NAME-ttf" \
+              --from-env-file=/dev/stdin --dry-run=client -o yaml |
+            kubectl apply -f -
+
       - name: Deploy Helm release
         env:
           CAPTION_PROVIDER: ${{ vars.CAPTION_PROVIDER || secrets.CAPTION_PROVIDER || 'openai' }}
@@ -248,6 +264,7 @@ jobs:
             --set-string "googleSecretChecksum=$GOOGLE_SECRET_CHECKSUM" \
             --set "c04Api.enabled=${{ inputs.c04_api }}" \
             --set-string "c04Api.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-api:latest" \
+            --set-string "c04Pipeline.image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/c04-pipeline:latest" \
             --wait --timeout 3m
 
       - name: Verify dashboard through service
