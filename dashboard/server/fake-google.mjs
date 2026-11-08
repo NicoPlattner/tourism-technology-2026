@@ -35,6 +35,11 @@ const fakeGoogle = createServer(async (req, res) => {
     calls.reports.push(m[1]);
     const req = JSON.parse(body);
     const dims = (req.dimensions ?? []).map((d) => d.name);
+    const mets = req.metrics.map((x) => x.name);
+    // Like Google: in realtime, eventName only goes with event metrics, audienceName only with activeUsers.
+    if ((dims.includes('eventName') && mets.includes('activeUsers')) || (dims.includes('audienceName') && mets.some((x) => x !== 'activeUsers'))) {
+      return json(400, { error: { message: 'Selected dimensions and metrics cannot be queried together.' } });
+    }
     // The analytics API asks for named dimensions and metrics; answer in GA's shape.
     if (dims[0] === 'minutesAgo' || req.metrics.length > 1 || dims.length > 1 || req.minuteRanges) {
       const value = { country: 'Netherlands', countryId: 'NL', city: 'Amsterdam', deviceCategory: 'mobile', platform: 'web', unifiedScreenName: 'Ski pass prices', eventName: 'page_view', audienceName: 'All Users' };
