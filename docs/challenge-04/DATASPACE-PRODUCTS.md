@@ -71,3 +71,17 @@ Description:
 > Paznaun-Ischgl with feratel (TTF 2026 data licence).
 
 Examples: `/c04-api/actions?limit=10`, `/c04-api/forecast`, `/c04-api/deviations?season=winter%2025/26`, `/c04-api/warnings?kind=spare_capacity`
+
+## Published (8 Nov 2026)
+
+Published with `data/publish_dataspace.py` (draft, publish) on the API source "Tirol & Austria Demand by
+Origin (live APIs)" (`700ffe3d-82e3-4606-8ab8-ec223ea7f650`), access: members (contract).
+
+| Product | Catalogue ID | Licence | Operations |
+|---|---|---|---|
+| Tirol & Austria Demand by Origin (live API) | `686b6ee9-b02a-425f-bc82-b46edcd0718d` | `odbl-1.0` (team licence) | query-demand, get-meta, list-tables, get-table, get-health |
+| Paznaun-Ischgl Demand Outlook & Actions (live API) | `b22c8ce1-bd62-431e-bcd0-03a0fa90a1dc` | `c04-tvb-derived-nc-v1` (team licence) | get-actions, get-forecast, get-deviations, get-warnings, get-table, get-health |
+
+"Everyone" (open) is not offered for connected APIs in TTF Space, so both are for members. TVB and Salzburger
+Sportwelt products are named as linked sources: restricted TTF products cannot be formal sources of a product
+under another licence.

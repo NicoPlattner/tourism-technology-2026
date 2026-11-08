@@ -19,7 +19,8 @@ from ttf_mcp import Client
 NS = uuid.UUID("6f1d3c2a-8b4e-4c1a-9f0e-0c04da7a5ace")
 BASE = "https://hackathon.daria-and-nico.com"
 API = f"{BASE}/c04-api/"
-SOURCE_NAME = "Tirol & Austria Demand by Origin (live API)"  # API source created in the UI from API + openapi.json
+SOURCE_ID = "700ffe3d-82e3-4606-8ab8-ec223ea7f650"  # API source "Tirol & Austria Demand by Origin (live APIs)",
+# created in the TTF Space UI from the API's openapi.json (no fixed parameters)
 CONTACT = {"name": "Team WeMissYouFlo<3, Challenge 04 data", "url": API}
 
 LICENCES = [
@@ -48,7 +49,7 @@ PRODUCTS = [
      "title": "Tirol & Austria Demand by Origin (live API)",
      "licence": "odbl-1.0",
      "themes": ["overnight-data", "off-season", "calendar", "weather"],
-     "operations": ["queryDemand", "getMeta", "listTables", "getTable", "getHealth"],
+     "operations": ["query-demand", "get-meta", "list-tables", "get-table", "get-health"],
      "places": ["AT11", "AT12", "AT13", "AT21", "AT22", "AT31", "AT32", "AT33", "AT34"], "start": "2024-01", "end": "2027-12",
      "sources": ["Guest card usage, Salzburger Sportwelt"],
      "urls": [("https://data.statistik.gv.at/", "Statistik Austria, accommodation statistics by origin (CC BY 4.0)"),
@@ -75,7 +76,7 @@ PRODUCTS = [
      "title": "Paznaun-Ischgl Demand Outlook & Actions (live API)",
      "licence": "c04-tvb-derived-nc-v1",
      "themes": ["overnight-data", "accommodation", "events"],
-     "operations": ["getActions", "getForecast", "getDeviations", "getWarnings", "getTable", "getHealth"],
+     "operations": ["get-actions", "get-forecast", "get-deviations", "get-warnings", "get-table", "get-health"],
      "places": ["AT334"], "start": "2025-11", "end": "2027-04",
      "sources": ["Overnight stays Paznaun-Ischgl: previous year, forecast and actuals", "Available beds Paznaun-Ischgl",
                  "Booking lead time Paznaun-Ischgl, 2023–2026", "Event calendar Paznaun-Ischgl 2026–2027"],
@@ -137,7 +138,9 @@ def draft(s: Space):
                    themes=p["themes"])
         pid = r.get("productId") or r.get("product", {}).get("productId")
         print(p["title"], "->", pid)
-        sources = [{"product": srcs[t]} for t in p["sources"] if t in srcs]
+        # restricted TTF products (TVB, Sportwelt) cannot be formal sources of a relicensed product
+        # ("restricted sources must retain their licence"): named by their catalogue link instead
+        sources = [{"url": srcs[t], "title": f"{t} (TTF Space)"} for t in p["sources"] if t in srcs]
         sources += [{"url": u, "title": t} for u, t in p["urls"]]
         steps = [("provenance", dict(sources=sources, outputKind="result")),
                  ("contact", dict(name=CONTACT["name"], url=CONTACT["url"], landingPage=API)),
@@ -152,22 +155,29 @@ def draft(s: Space):
 
 def publish(s: Space):
     opts = s.call("get_product_options")
-    src = next((x for x in opts["serviceSources"] if x["name"] == SOURCE_NAME), None)
+    src = next((x for x in opts["serviceSources"] if x["id"] == SOURCE_ID), None)
     if not src:
-        sys.exit(f"API source {SOURCE_NAME!r} not found")
-    if src["fixed"] or "queryDemand" not in src["operations"]:
-        sys.exit(f"API source still has the old spec (fixed {src['fixed']}, operations {src['operations'][:3]}...): "
-                 "refresh it from " + API + "openapi.json in the UI first")
+        sys.exit(f"API source {SOURCE_ID} not found")
+    if src["fixed"]:
+        sys.exit(f"API source has fixed parameters {src['fixed']}: refresh it from " + API + "openapi.json first")
+    for p in PRODUCTS:
+        missing = set(p["operations"]) - set(src["operations"])
+        if missing:
+            sys.exit(f"{p['title']}: operations not in the source: {missing}")
     for p in PRODUCTS:
         prod = find_product(s, p["title"], p["slug"])
         if not prod:
             sys.exit(f"draft {p['title']!r} missing: run draft first")
         pid = prod["productId"]
         if prod.get("state") != "ACTIVE":
-            s.call("set_content", productId=pid, path="connected", sourceId=src["id"], operations=p["operations"],
-                   idempotencyKey=key("content", p["slug"]))
-            s.call("set_access", productId=pid, access="members", idempotencyKey=key("access", p["slug"]))
-            print(p["title"], "publish:", s.call("publish_product", productId=pid, idempotencyKey=key("publish", p["slug"])))
+            if prod.get("contentPath") != "connected" or not (s.call("get_product", productId=pid).get("service")):
+                body = json.dumps([src["id"], p["operations"]])
+                s.call("set_content", productId=pid, path="connected", sourceId=src["id"], operations=p["operations"],
+                       idempotencyKey=key("content", p["slug"], body))
+            if prod.get("accessOption") != "members":
+                s.call("set_access", productId=pid, access="members", idempotencyKey=key("access-members", p["slug"]))
+            print(p["title"], "publish:", s.call("publish_product", productId=pid,
+                                                 idempotencyKey=key("publish-v2", p["slug"])))
         print(p["title"], "catalogue:", s.call("list_in_catalogue", productId=pid, idempotencyKey=key("list", p["slug"])))
 
 
