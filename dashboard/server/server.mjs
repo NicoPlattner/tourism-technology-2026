@@ -12,6 +12,9 @@
 //   DATA_DIR      where ga.json is stored (default ./data)
 //   STORE_PERSISTENT  'false' if DATA_DIR is lost on restart (shown in the UI)
 //   PORT          default 8787
+//   ANALYTICS_API_TOKEN  bearer token for the analytics API (/api/v1, see
+//                 analytics.mjs); switched on and off in the dashboard
+//   ANALYTICS_COLLECT_MS  how often realtime data is collected (default 10 min)
 //   GOOGLE_OAUTH_URL, GA_ADMIN_URL, GA_DATA_URL  overridable for tests
 
 import { createServer } from 'node:http';
@@ -20,6 +23,7 @@ import { realpathSync } from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { createAnalytics } from './analytics.mjs';
 
 const env = process.env;
 const CLIENT_ID = env.GOOGLE_CLIENT_ID ?? '';
@@ -53,7 +57,7 @@ const open = (sealed) => {
   } catch { return null; } // e.g. the client secret changed
 };
 
-/** @type {{ accounts: { id: string, email: string, refresh: string, error?: string }[], connections: { property: { id: string, name: string, account: string }, accountId: string }[] }} */
+/** @type {{ accounts: { id: string, email: string, refresh: string, error?: string }[], connections: { property: { id: string, name: string, account: string }, accountId: string }[], analyticsApi?: { enabled: boolean } }} */
 let store = { accounts: [], connections: [] };
 const access = new Map(); // accountId -> { token, expiresAt } (memory only)
 
@@ -94,7 +98,7 @@ async function google(url, init = {}) {
   const res = await fetch(url, init);
   const json = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const e = new HttpError(res.status === 401 || res.status === 403 ? res.status : 502, json?.error?.message || json?.error_description || json?.error || `Google returned ${res.status}`);
+    const e = new HttpError([400, 401, 403].includes(res.status) ? res.status : 502, json?.error?.message || json?.error_description || json?.error || `Google returned ${res.status}`);
     e.google = json?.error;
     throw e;
   }
@@ -179,6 +183,7 @@ const publicState = () => ({
   ...(storageError && { storageError }),
   accounts: store.accounts.map(({ id, email, error }) => ({ id, email, ...(error && { error }) })),
   connections: store.connections,
+  analyticsApi: { enabled: !!store.analyticsApi?.enabled, tokenConfigured: analytics.tokenConfigured, collectingSince: analytics.collectingSince() },
 });
 
 const account = (id) => {
@@ -186,6 +191,24 @@ const account = (id) => {
   if (!a) throw new HttpError(404, 'Unknown Google account.');
   return a;
 };
+
+// The token-protected analytics API for other tools (/api/v1).
+const analytics = createAnalytics({
+  token: env.ANALYTICS_API_TOKEN?.trim() ?? '',
+  dataDir: DATA_DIR,
+  dataUrl: DATA,
+  google,
+  HttpError,
+  connections: () => store.connections,
+  accessTokenFor: (propertyId) => {
+    const c = store.connections.find((x) => x.property.id === propertyId);
+    if (!c) throw new HttpError(404, 'This property is not connected.');
+    return accessToken(account(c.accountId));
+  },
+  isEnabled: () => !!store.analyticsApi?.enabled,
+  collectMs: Number(env.ANALYTICS_COLLECT_MS ?? 600_000),
+});
+export const collectAnalytics = () => analytics.collect();
 
 const routes = [
   ['GET', /^\/api\/health$/, () => ({ ok: true })],
@@ -246,13 +269,24 @@ const routes = [
     return realtime(await accessToken(account(c.accountId)), c.property.id);
   }],
 
+  // Switch the analytics API (/api/v1) on or off for everyone.
+  ['POST', /^\/api\/ga\/analytics-api$/, async (_m, body) => {
+    if (typeof body.enabled !== 'boolean') throw new HttpError(400, 'Send {"enabled": true} or {"enabled": false}.');
+    store.analyticsApi = { enabled: body.enabled };
+    await save();
+    if (body.enabled) analytics.collect().catch((e) => console.error('analytics collect:', e.message));
+    return publicState();
+  }],
+
   // Sign out everywhere: revoke every account and forget everything.
   ['DELETE', /^\/api\/ga$/, async () => {
     await Promise.all(store.accounts.map(revoke));
-    store = { accounts: [], connections: [] };
+    store = { accounts: [], connections: [], analyticsApi: store.analyticsApi };
     await save();
     return publicState();
   }],
+
+  ...analytics.routes,
 ];
 
 async function readJson(req) {
@@ -272,10 +306,20 @@ export function createApp() {
     const full = new URL(req.url, 'http://x').pathname;
     const at = full.indexOf('/api/');
     const path = at >= 0 ? full.slice(at) : full;
-    const send = (status, body) => {
-      res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+    // The analytics API is for other tools, also in browsers: it allows any
+    // origin, which is safe because it needs the bearer token (no cookies).
+    // The dashboard's own routes stay same-origin.
+    const cors = path.startsWith('/api/v1') ? {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Max-Age': '600',
+    } : {};
+    const send = (status, body, headers = {}) => {
+      res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...cors, ...headers });
       res.end(JSON.stringify(body));
     };
+    if (req.method === 'OPTIONS' && path.startsWith('/api/v1')) { res.writeHead(204, cors); return res.end(); }
     try {
       const route = routes.find(([method, re]) => method === req.method && re.test(path));
       if (!route) return send(404, { error: 'Not found.' });
@@ -283,7 +327,7 @@ export function createApp() {
     } catch (e) {
       const status = e instanceof HttpError ? e.status : 500;
       if (status >= 500) console.error(req.method, path, e.message);
-      send(status, { error: status === 500 ? 'Server error.' : e.message });
+      send(status, { error: status === 500 ? 'Server error.' : e.message }, e.headers);
     }
   });
 }
@@ -299,6 +343,7 @@ async function check() {
 
 export async function start(port = Number(env.PORT ?? 8787)) {
   await load();
+  await analytics.start();
   // Fail visibly, not silently, if the store cannot be written.
   try {
     await mkdir(DATA_DIR, { recursive: true });
@@ -313,7 +358,7 @@ export async function start(port = Number(env.PORT ?? 8787)) {
   await new Promise((r) => server.listen(port, r));
   const timer = setInterval(check, CHECK_MS);
   timer.unref();
-  server.on('close', () => clearInterval(timer));
+  server.on('close', () => { clearInterval(timer); analytics.stop(); });
   console.log(`demand-radar api on :${server.address().port}${configured ? '' : ' (Google client not configured)'}`);
   return server;
 }

@@ -153,21 +153,25 @@ jobs:
           done
           kubectl get deployments -n tourism-technology-2026
 
-      - name: Store Google OAuth client for the API
+      - name: Store Google OAuth client and analytics API token for the API
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
         run: |
           set -euo pipefail
           if [[ -z "$GOOGLE_CLIENT_ID" || -z "$GOOGLE_CLIENT_SECRET" ]]; then
             echo "::warning::Set the GOOGLE_CLIENT_ID variable and GOOGLE_CLIENT_SECRET secret to enable Google Analytics."
           fi
-          # Read from stdin so the secret never appears on a command line.
-          printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\n' "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" |
+          if [[ -z "$ANALYTICS_API_TOKEN" ]]; then
+            echo "::warning::Set the ANALYTICS_API_TOKEN secret to enable the analytics API (/api/v1)."
+          fi
+          # Read from stdin so the secrets never appear on a command line.
+          printf 'GOOGLE_CLIENT_ID=%s\nGOOGLE_CLIENT_SECRET=%s\nANALYTICS_API_TOKEN=%s\n' "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$ANALYTICS_API_TOKEN" |
             kubectl -n tourism-technology-2026 create secret generic "$RELEASE_NAME-google" \
               --from-env-file=/dev/stdin --dry-run=client -o yaml |
             kubectl apply -f -
-          checksum=$(printf '%s:%s' "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" | sha256sum | cut -c1-16)
+          checksum=$(printf '%s:%s:%s' "$GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_SECRET" "$ANALYTICS_API_TOKEN" | sha256sum | cut -c1-16)
           printf 'GOOGLE_SECRET_CHECKSUM=%s\n' "$checksum" >> "$GITHUB_ENV"
 
       - name: Deploy Helm release

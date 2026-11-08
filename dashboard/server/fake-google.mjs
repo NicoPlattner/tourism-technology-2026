@@ -2,8 +2,8 @@
 import { createServer } from 'node:http';
 
 export async function startFakeGoogle() {
-  const calls = { grants: [], revoked: [], reports: [] };
-  const control = { refreshValid: true };
+  const calls = { grants: [], revoked: [], reports: [], standard: [] };
+  const control = { refreshValid: true, realtimeEmpty: false };
   const jwt = (o) => ['e30', Buffer.from(JSON.stringify(o)).toString('base64url'), 'sig'].join('.');
 const fakeGoogle = createServer(async (req, res) => {
   let body = '';
@@ -33,9 +33,46 @@ const fakeGoogle = createServer(async (req, res) => {
   const m = url.pathname.match(/^\/v1beta\/properties\/(\d+):runRealtimeReport$/);
   if (m) {
     calls.reports.push(m[1]);
-    const dim = JSON.parse(body).dimensions?.[0]?.name;
+    const req = JSON.parse(body);
+    const dims = (req.dimensions ?? []).map((d) => d.name);
+    // The analytics API asks for named dimensions and metrics; answer in GA's shape.
+    if (dims[0] === 'minutesAgo' || req.metrics.length > 1 || dims.length > 1 || req.minuteRanges) {
+      const value = { country: 'Netherlands', countryId: 'NL', city: 'Amsterdam', deviceCategory: 'mobile', platform: 'web', unifiedScreenName: 'Ski pass prices', eventName: 'page_view', audienceName: 'All Users' };
+      const minutes = dims[0] === 'minutesAgo' ? ['00', '03', '12'] : [null];
+      return json(200, {
+        dimensionHeaders: dims.map((name) => ({ name })),
+        metricHeaders: req.metrics.map((x) => ({ name: x.name, type: 'TYPE_INTEGER' })),
+        rows: control.realtimeEmpty ? [] : minutes.map((min) => ({
+          dimensionValues: dims.map((d) => ({ value: d === 'minutesAgo' ? min : value[d] })),
+          metricValues: req.metrics.map((x) => ({ value: x.name === 'activeUsers' ? '2' : '5' })),
+        })),
+        ...(req.metricAggregations && { totals: [{ dimensionValues: dims.map(() => ({ value: 'RESERVED_TOTAL' })), metricValues: req.metrics.map((x) => ({ value: x.name === 'activeUsers' ? '2' : '5' })) }] }),
+      });
+    }
+    const dim = dims[0];
     if (!dim) return json(200, { rows: [{ metricValues: [{ value: '4' }] }] });
     return json(200, { rows: [{ dimensionValues: [{ value: dim === 'country' ? 'Netherlands' : 'Home' }], metricValues: [{ value: '4' }] }] });
+  }
+  const r = url.pathname.match(/^\/v1beta\/properties\/(\d+):runReport$/);
+  if (r) {
+    calls.standard.push(JSON.parse(body));
+    const req = JSON.parse(body);
+    const dims = (req.dimensions ?? []).map((d) => d.name);
+    if (dims.includes('notADimension')) return json(400, { error: { message: 'Field notADimension is not a valid dimension.' } });
+    // Demographics are empty, like on a new property without Google signals.
+    const empty = dims.some((d) => ['userAgeBracket', 'userGender', 'brandingInterest'].includes(d));
+    const value = { country: 'Netherlands', countryId: 'NL', date: '20261108', sessionDefaultChannelGroup: 'Organic Search', sessionSource: 'google', sessionMedium: 'organic', dayOfWeek: '0', dayOfWeekName: 'Sunday', hour: '20' };
+    return json(200, {
+      dimensionHeaders: dims.map((name) => ({ name })),
+      metricHeaders: req.metrics.map((x) => ({ name: x.name, type: x.name === 'engagementRate' ? 'TYPE_FLOAT' : 'TYPE_INTEGER' })),
+      rows: empty ? [] : [{ dimensionValues: dims.map((d) => ({ value: value[d] ?? 'x' })), metricValues: req.metrics.map((x) => ({ value: x.name === 'engagementRate' ? '0.612345678' : '10' })) }],
+      rowCount: empty ? 0 : 1,
+      metadata: { currencyCode: 'EUR', timeZone: 'Europe/Vienna', ...(dims.includes('country') && { subjectToThresholding: true }) },
+      ...(req.returnPropertyQuota && { propertyQuota: { tokensPerDay: { consumed: 5, remaining: 199995 } } }),
+    });
+  }
+  if (/^\/v1beta\/properties\/\d+\/metadata$/.test(url.pathname)) {
+    return json(200, { dimensions: [{ apiName: 'userAgeBracket', uiName: 'Age', category: 'Demographics', description: 'Age brackets' }, { apiName: 'customUser:tier', uiName: 'Tier', category: 'Custom', customDefinition: true }], metrics: [{ apiName: 'activeUsers', uiName: 'Active users', category: 'User' }] });
   }
   json(404, {});
 });
