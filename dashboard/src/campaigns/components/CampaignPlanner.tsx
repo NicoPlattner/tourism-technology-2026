@@ -20,7 +20,7 @@ export default function CampaignPlanner({
       <div className="card-head">
         <div>
           <p className="eyebrow">02 / A story for your market</p>
-          <h2 id="cp-planner-heading">AI campaign planner</h2>
+          <h2 id="cp-planner-heading">Campaign planner</h2>
         </div>
         <span className={`status ${approval ? "connected" : "snapshot"}`}>
           {approval ? "Approved · demo" : "Mock proposal"}

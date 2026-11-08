@@ -23,7 +23,7 @@ test("all four geographical countries update audience, localized copy, asset and
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("./");
-  const planner = page.getByRole("region", { name: "AI campaign planner" });
+  const planner = page.getByRole("region", { name: "Campaign planner" });
   await expect(
     planner.getByRole("heading", { name: "Germany", exact: true }),
   ).toBeVisible();
