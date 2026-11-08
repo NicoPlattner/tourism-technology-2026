@@ -89,3 +89,54 @@ detail of the current ensemble (winter 25/26: 9.4 % daily error).
    summer does not get worse; otherwise keep push–pull for explanation and the
    market split only.
 5. If adopted: re-run `forecast_winter.py`, `market_split.py`, update RESULTS.
+
+## 7. Model suite for the GUI (planned, not run)
+
+The GUI asks: destination (Tirol for now) × time frame × origin (e.g. Bavaria) →
+guests, nights, length of stay, booking lead time, age, distribution over the
+time frame. No single model answers all of this; each output gets its own
+model and only the data it needs.
+
+```
+GUI input: destination=Tirol, origin=Bavaria, time frame=15 Jan-15 Mar 2027
+   |
+   +-- M1 guests + nights per origin per month ---- Statistik Austria Tirol x origin x month (1973-2026)
+   +-- M2 length of stay per origin per month ----- same data (nights / arrivals)
+   +-- M3 daily distribution in the time frame ---- origin holidays (push) x Tirol daily pattern (pull)
+   +-- M4 booking lead time per arrival month ----- TVB lead-time classes (Paznaun, 2023-2026)
+   +-- M5 age profile per origin ------------------- Salzburg guest cards (age x origin), T-MONA reports
+   |
+   +-- existing Paznaun models (daily forecast, deviations, capacity) stay for destination = Paznaun
+```
+
+| Model | Predicts | Data | Method | Validation | Confidence |
+|---|---|---|---|---|---|
+| **M1** | arrivals (guests) and nights per origin and month, 12 months ahead, with interval | Statistik Austria OGD `touextsai` HKL: Tirol × 70 origins (Germany in 7 regions, Austria by state) × month, monthly update | global LightGBM across all origins (lags 12/24, month, Easter, **origin's own holiday days in that month**, origin trend) + seasonal-naive / 2-season-average baselines + ETS per large origin; combination; split-conformal per horizon | rolling origin 2010–2026 without COVID seasons, per origin and horizon, MASE / wMAPE | high for large origins (DE regions, NL, BE, GB, CH), lower for small ones |
+| **M2** | average nights per guest (length of stay) per origin and month | same | smoothed history (last 3 seasons, same month) + trend; ratio of M1 nights / M1 arrivals as cross-check | same backtest | high (stable series) |
+| **M3** | distribution of guests over the days / weeks of the selected time frame | origin holiday calendar (school + public + long weekends; population-weighted states, e.g. Bavarian holidays for "Bavaria"), Tirol daily pattern from the open daily index of the Tirol regions 2022–2025 (aggregated), Paznaun real data as a check | push–pull disaggregation: M1 monthly total → days ∝ (1 + γ_origin · holidays_origin) × Tirol daily pull; γ from the push–pull fit and mobile-data priors | Paznaun real daily data (market-split sums), held-out weeks | medium |
+| **M4** | share of bookings 0 / 8 / 31 / 61 / 90 / 180+ days before arrival, per arrival month; "advertise by" date | TVB booking lead time (arrival weeks, 2023–2026, Paznaun, no origin split) | multinomial shares per arrival month + linear trend per class (winter books earlier, summer later) | leave-one-season-out | medium for Paznaun as proxy for Tirol; **no origin split** in any available data (shown as "all markets") |
+| **M5** (optional) | age bands, median age per origin | Salzburg guest-card usage (age band × origin, 7 winters, comparable ski region); T-MONA Tirol reports (state level) | empirical distribution per origin and season, shrunk to the all-origin distribution for small origins | stability across seasons | low (proxy region) |
+
+Data each model does **not** need: M1/M2 need no TVB data; M4 needs no holidays
+or market mix; M5 needs neither. The Paznaun forecast (sections 1–6) keeps
+using everything.
+
+Derived GUI outputs:
+- **Advertising window** for an origin and time frame = arrival weeks of
+  the origin's holidays (M3) minus the lead-time distribution (M4): "for
+  Bavarian guests arriving 15–21 Feb, 50 % of bookings are made by …".
+- **Potential** = M1 forecast vs last year and vs trend, plus the origin's
+  share growth (e.g. Bavaria's share of Tirol nights over 5 seasons).
+- Every number carries its source and grade.
+
+Data contract (precomputed, the GUI only reads): one table per model,
+`out/gui/m1_origin_month.parquet` (destination, origin, month, arrivals, nights,
+p10, p90), `m2_los.parquet`, `m3_daily_share.parquet` (origin, date, share of
+month), `m4_leadtime.parquet` (arrival month, class, share, trend),
+`m5_age.parquet` (origin, age band, share). Tirol data is open (CC BY 4.0,
+credit Statistik Austria); TVB lead-time shares are aggregates (TVB licence:
+derive and share with attribution).
+
+Order of work: M1 → M2 (same data, fastest value) → M4 → M3 → M5.
+Missing for later: lead time by origin (no source), Tirol-wide lead time
+(Paznaun used as proxy), daily Tirol actuals after 2025 (open index ends 2025).
