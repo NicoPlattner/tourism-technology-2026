@@ -102,10 +102,20 @@ jobs:
           version: ${{ vars.KUBECTL_VERSION || 'v1.31.14' }}
 
       - name: Install Pangolin
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           curl --fail --show-error --silent --location --max-time 60 \
             https://static.pangolin.net/get-cli.sh -o "$RUNNER_TEMP/install-pangolin.sh"
-          sudo bash "$RUNNER_TEMP/install-pangolin.sh"
+          if ! sudo bash "$RUNNER_TEMP/install-pangolin.sh"; then
+            # Release-page downloads occasionally return 504. Use GitHub's asset API
+            # for the same official CLI rather than blocking a tested deployment.
+            mkdir -p "$RUNNER_TEMP/pangolin-cli"
+            gh release download --repo fosrl/cli --pattern pangolin-cli_linux_amd64 \
+              --dir "$RUNNER_TEMP/pangolin-cli" --clobber
+            sudo install -m 0755 "$RUNNER_TEMP/pangolin-cli/pangolin-cli_linux_amd64" /usr/local/bin/pangolin
+          fi
+          pangolin version
 
       - name: Configure Kubernetes
         env:
