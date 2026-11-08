@@ -239,6 +239,11 @@ def main():
         mode = "full" if not state or not (WORK / "snapshots" / "current").exists() else "fast"
     has_key = bool(os.environ.get("TTF_SPACE_API_KEY"))
     log(f"refresh {mode}; key {'present' if has_key else 'missing'}; work {WORK}")
+    started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    status_p = WORK / "snapshots" / "status.json"  # read by the API (/meta): last run, also when it failed
+    status = {"mode": mode, "started": started, "running": True, "ttf_key": has_key}
+    old = json.loads(status_p.read_text()) if status_p.exists() else {}
+    status_p.write_text(json.dumps({**old, "current_run": status}, indent=1))
     try:
         fetch(mode, has_key)
         prepare(mode)
@@ -246,8 +251,15 @@ def main():
         ts = publish(mode, ran)
     except Exception as e:  # keep the last good snapshot
         log("FAILED:", e)
+        status.update(running=False, ok=False, finished=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+                      error=str(e)[-1500:])
+        status_p.write_text(json.dumps({**old, "current_run": None, "last_run": status,
+                                        "last_failure": status}, indent=1))
         sys.exit(1)
     state_p.write_text(json.dumps(state, indent=1))
+    status.update(running=False, ok=True, finished=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+                  snapshot=ts, models_rerun=ran)
+    status_p.write_text(json.dumps({**old, "current_run": None, "last_run": status, "last_success": status}, indent=1))
     log(f"published snapshot {ts}; models re-run: {ran or 'none'}")
 
 

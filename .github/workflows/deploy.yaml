@@ -102,9 +102,17 @@ jobs:
 
       - name: Install Pangolin
         run: |
-          curl --fail --show-error --silent --location --max-time 60 \
-            https://static.pangolin.net/get-cli.sh -o "$RUNNER_TEMP/install-pangolin.sh"
-          sudo bash "$RUNNER_TEMP/install-pangolin.sh"
+          # GitHub release downloads fail now and then (504): retry for up to ~5 minutes.
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --show-error --silent --location --max-time 60 \
+                 https://static.pangolin.net/get-cli.sh -o "$RUNNER_TEMP/install-pangolin.sh" &&
+               sudo bash "$RUNNER_TEMP/install-pangolin.sh" && command -v pangolin >/dev/null; then
+              exit 0
+            fi
+            echo "Pangolin install attempt $attempt failed; retrying in $((attempt * 15))s"
+            sleep $((attempt * 15))
+          done
+          exit 1
 
       - name: Configure Kubernetes
         env:
