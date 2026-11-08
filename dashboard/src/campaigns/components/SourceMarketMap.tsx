@@ -1,3 +1,5 @@
+import { heatColor, HEAT_COLORS, type DemandQuery } from "../demand/contracts";
+import type { TravelDates } from "../types";
 import ArrowIcon from "./ArrowIcon";
 import { useState } from "react";
 import geography from "../data/europe.json";
@@ -20,11 +22,16 @@ const CENTRES: Record<SourceMarket, [number, number]> = {
 };
 export default function SourceMarketMap({
   selected,
-  onSelect,
+  onSelect, demand = {}, dates, loading = false,
 }: {
+  demand?: Partial<Record<SourceMarket, DemandQuery>>;
+  dates?: TravelDates;
+  loading?: boolean;
   selected: SourceMarket;
   onSelect: (market: SourceMarket) => void;
 }) {
+  const nights = (market:SourceMarket) => demand[market]?.nights.value;
+  const count = (market:SourceMarket) => nights(market) === undefined ? "No data" : `${nights(market)!.toLocaleString("en-GB")} nights`;
   const [hover, setHover] = useState<SourceMarket | null>(null);
   const [x, y] = coordinate(...CENTRES[selected]);
   const [targetX, targetY] = coordinate(10.2917, 47.0127);
@@ -41,7 +48,7 @@ export default function SourceMarketMap({
         <div className="cp-map-caption">
           <span>EUROPE / SOURCE MARKETS</span>
           <span aria-live="polite">
-            {MARKETS.find((m) => m.code === (hover || selected))?.name}
+            {MARKETS.find((m) => m.code === (hover || selected))?.name} · {count(hover || selected)}
           </span>
         </div>
         <svg
@@ -79,6 +86,8 @@ export default function SourceMarketMap({
                   aria-label={`Select ${MARKETS.find((m) => m.code === country.id)?.name}`}
                   aria-pressed={selected === country.id}
                   className={`cp-country ${selected === country.id ? "selected" : ""}`}
+                  style={{fill:heatColor(nights(country.id as SourceMarket))}}
+                  data-nights={nights(country.id as SourceMarket)}
                   onClick={() => onSelect(country.id as SourceMarket)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
@@ -92,8 +101,7 @@ export default function SourceMarketMap({
                   onBlur={() => setHover(null)}
                 >
                   <title>
-                    {MARKETS.find((m) => m.code === country.id)?.name} · select
-                    source market
+                    {MARKETS.find((m) => m.code === country.id)?.name} · {count(country.id as SourceMarket)} · {dates?.start} – {dates?.end}
                   </title>
                 </path>
               ))}
@@ -128,7 +136,7 @@ export default function SourceMarketMap({
                   key={market.code}
                   x={px}
                   y={py}
-                  className={selected === market.code ? "selected" : ""}
+                  style={{fill:(nights(market.code) || 0) >= 50000 ? "white" : "#72142f"}}
                 >
                   {market.code}
                 </text>
@@ -149,14 +157,11 @@ export default function SourceMarketMap({
             </text>
           </g>
         </svg>
-        <div className="cp-map-key">
-          <span>
-            <i /> Selected source market
-          </span>
-          <span>
-            <i /> Available market
-          </span>
-          <span>Click a country to explore</span>
+        <div className="cp-heat-key" aria-label="Guest nights heatmap legend">
+          <strong>Estimated guest nights</strong>
+          <span>{dates?.start} – {dates?.end}</span>
+          <div>{['<1k','1k–10k','10k–50k','50k–100k','100k+'].map((label,index) => <span key={label}><i style={{background:HEAT_COLORS[index]}}/>{label}</span>)}<span><i style={{background:'#dce2e7'}}/>No data</span></div>
+          <small>{loading ? 'Updating markets…' : 'Same color scale across periods. Outline marks the selected origin.'}</small>
         </div>
       </div>
       <div
@@ -172,7 +177,7 @@ export default function SourceMarketMap({
             aria-pressed={market.code === selected}
           >
             <b>{market.code}</b>
-            <span>{market.name}</span>
+            <span>{market.name}<small className="cp-market-demand">{count(market.code)}</small></span>
             <span aria-hidden="true">
               {market.code === selected ? "✓" : <ArrowIcon />}
             </span>

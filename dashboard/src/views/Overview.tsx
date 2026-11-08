@@ -1,3 +1,5 @@
+import { useDemand } from "../campaigns/demand/useDemand";
+import { withDemand } from "../campaigns/demand/recommendation";
 import { DEFAULT_TRAVEL_DATES } from "../campaigns/travelDates";
 import { SEASONAL_ASSETS } from "../campaigns/seasonalAssets";
 import TargetAgeSelector from "../campaigns/components/TargetAgeSelector";
@@ -19,8 +21,7 @@ import { receive } from "../campaigns/management/model";
 import { updateCampaigns } from "../campaigns/management/store";
 import "../campaigns/overview.css";
 
-// The provider boundary is the only part that needs replacing for a real campaign service.
-// Dashboard data and other pages remain independent of these explicitly fictional scenarios.
+// Creative previews are immediate; demand evidence is fetched separately and never replaced by mock metrics.
 export default function Overview({
   provider = campaignDataProvider, go,
 }: ViewProps & { provider?: CampaignDataProvider }) {
@@ -63,13 +64,19 @@ export default function Overview({
       current = false;
     };
   }, [market, period, travelDates, targetAudience, provider, retry]);
-  const currentCampaign =
+  const baseCampaign =
     campaign?.market === market && campaign.period === period && campaign.travel.start === travelDates.start && campaign.travel.end === travelDates.end && campaign.captionMetadata.ageMin === targetAudience.ageMin && campaign.captionMetadata.ageMax === targetAudience.ageMax ? campaign : provider.getImmediateRecommendation?.(market, period, targetAudience, travelDates) || null;
+  const demand = useDemand(travelDates);
+  const query = demand.data[market];
+  const dataStatus = query ? query.nights.value > 0 && query.guests.value > 0 ? "ready" : "empty" : demand.errors[market] ? "error" : "loading";
+  const currentCampaign = baseCampaign ? withDemand(baseCampaign,query,dataStatus) : null;
   const assistant = useCaptionAssistant(currentCampaign);
   const selectedAsset = assistant.result?.assetId ? SEASONAL_ASSETS.find(asset => asset.id === assistant.result?.assetId) : undefined;
   const visibleCampaign = currentCampaign
     ? {
         ...currentCampaign,
+        reasoningSource: assistant.result?.campaignReasoning ? "ai" as const : currentCampaign.reasoningSource,
+        reasoning: assistant.result?.campaignReasoning || currentCampaign.reasoning,
         asset: selectedAsset ? { id:selectedAsset.id,src:selectedAsset.path,alt:selectedAsset.visualDescription,
           source:"AI_GENERATED" as const,credit:currentCampaign.asset.credit,description:selectedAsset.visualDescription } : currentCampaign.asset,
         theme: selectedAsset?.creativeTheme || currentCampaign.theme,
@@ -103,14 +110,14 @@ export default function Overview({
         </div>
       </div>
       <div className="cp-demo-strip">
-        <span className="status sample">Campaign demo</span>
-        <p>
-          Illustrative booking patterns and campaign recommendations. You choose the target audience.
-          Independent of the dashboard’s real and connected data.
+        <span className={`status ${dataStatus === "ready" ? "connected" : "sample"}`}>{dataStatus === "ready" ? "API demand" : dataStatus === "loading" ? "Loading demand" : "Demand unavailable"}</span>
+        <p role={dataStatus === "error" ? "alert" : undefined} aria-live="polite">
+          {dataStatus === "ready" ? "Data-informed planning · estimates and proxy methods apply. Creative images and initial captions remain illustrative." : dataStatus === "loading" ? "Loading evidence for the selected market and dates. The creative preview is available immediately." : demand.errors[market] || "No guest nights for this market and period. Choose different dates."}
         </p>
+        {dataStatus === "error" && <button className="link" onClick={demand.retry}>Retry demand data</button>}
       </div>
       <div className="cp-layout">
-        <SourceMarketMap selected={market} onSelect={setMarket} />
+        <SourceMarketMap selected={market} onSelect={setMarket} demand={demand.data} dates={travelDates} loading={demand.loading} />
         {currentCampaign ? (
           <CampaignPlanner
             campaign={visibleCampaign!}

@@ -23,7 +23,7 @@ export default function CampaignPlanner({
           <h2 id="cp-planner-heading">Campaign planner</h2>
         </div>
         <span className={`status ${approval ? "connected" : "snapshot"}`}>
-          {approval ? "Approved · demo" : "Mock proposal"}
+          {approval ? "Approved · demo" : campaign.dataStatus === "ready" ? "Data-informed proposal" : "Creative preview"}
         </span>
       </div>
       <div className="cp-plan-title">
@@ -42,7 +42,7 @@ export default function CampaignPlanner({
         </div>
         <div>
           <dt>Booking lead time</dt>
-          <dd>{campaign.assumedLeadDays} days</dd>
+          <dd>{campaign.dataStatus && campaign.dataStatus !== "ready" ? "—" : `${campaign.assumedLeadDays} days`}</dd>
         </div>
         <div>
           <dt>Guests travel</dt>
@@ -50,12 +50,13 @@ export default function CampaignPlanner({
         </div>
         <div className="cp-campaign-dates">
           <dt>Recommended campaign</dt>
-          <dd>{displayRange(campaign.campaign)}</dd>
+          <dd>{campaign.dataStatus && campaign.dataStatus !== "ready" ? "—" : displayRange(campaign.campaign)}</dd>
         </div>
+        {campaign.dataStatus && <><div><dt>Average stay</dt><dd>{campaign.tourismContext?.averageStayNights != null ? `${campaign.tourismContext.averageStayNights.toFixed(1)} nights` : "—"}</dd></div><div><dt>Guest nights · estimate</dt><dd>{campaign.tourismContext ? campaign.tourismContext.guestNights.toLocaleString("en-GB") : "—"}</dd></div></>}
       </dl>
       <SocialPostPreview campaign={campaign} assistant={assistant} />
       <div className="cp-plan-action">
-        <button className="btn" onClick={onReview}>
+        <button className="btn" disabled={!!campaign.dataStatus && campaign.dataStatus !== "ready"} onClick={onReview}>
           Review &amp; Schedule <ArrowIcon />
         </button>
         <span className={approval ? "cp-approved" : "muted"} role="status">

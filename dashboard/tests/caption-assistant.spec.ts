@@ -1,6 +1,8 @@
+import { mockDemand } from "./helpers/demand";
 import { selectPeriod } from "./helpers/travel";
 import { test, expect } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
+  await mockDemand(page);
   await page.route("https://naechtigungen.pol.joanneum.at/**", route => route.fulfill({contentType:"application/json",body:'{"forecast_data":[]}'}));
   await page.route("https://api.open-meteo.com/**", route => route.fulfill({contentType:"application/json",body:'{"daily":{"time":[]}}'}));
 });
@@ -13,6 +15,7 @@ const answer = (caption: string, language = "de", min = 40, request?: {candidate
   caption: captionText(caption,min), hashtags:["#Ischgl","#Alpen"], language, source:"ai",
   assetId:request?.candidateAssets[0].id || "winter-18-24", platform:request?.platform.toLowerCase() || "tiktok",
   creativeReason:"Bild und Text passen zur gewählten Zielgruppe.",
+  campaignReasoning:"API evidence informs the selected market and period. The lead-time proxy shapes promotion timing, while the estimated average stay guides the creative invitation.",
 });
 test("all markets and periods are ready without AI calls", async ({page}) => {
   let calls=0;
@@ -273,16 +276,16 @@ test("calendar date range accepts exact dates, rejects a reversed range and send
  const start=page.getByLabel("Travel start date",{exact:true}),end=page.getByLabel("Travel end date",{exact:true});
  await expect(start).toHaveAttribute("type","text");await expect(end).toHaveAttribute("type","text");
  await expect(start).toHaveValue("15.02.2027");await expect(end).toHaveValue("21.02.2027");
- await start.fill("2028-07-15");await expect(page.getByRole("status").filter({hasText:"End date must be on or after start date."})).toBeVisible();
+ await start.fill("2027-07-15");await expect(page.getByRole("status").filter({hasText:"End date must be on or after start date."})).toBeVisible();
  await expect(page.locator(".cp-summary")).toContainText("15 Feb 2027");
- await end.fill("2028-07-22");await expect(page.locator(".cp-summary")).toContainText("15 Jul 2028 – 22 Jul 2028");
+ await end.fill("2027-07-22");await expect(page.locator(".cp-summary")).toContainText("15 Jul 2027 – 22 Jul 2027");
  await expect(page.locator(".cp-social-image")).toHaveAttribute("alt",/turquoise Alpine lake/);
  await page.getByRole("button",{name:"Select Netherlands",exact:true}).click();
- await expect(start).toHaveValue("15.07.2028");await expect(end).toHaveValue("22.07.2028");expect(calls).toBe(0);
+ await expect(start).toHaveValue("15.07.2027");await expect(end).toHaveValue("22.07.2027");expect(calls).toBe(0);
  await page.getByRole("button",{name:"Regenerate",exact:true}).click();await expect(page.locator(".cp-caption-source")).toHaveText("AI generated");
- expect(request.travelPeriod).toBe("custom");expect(request.travelDates).toEqual({start:"2028-07-15",end:"2028-07-22"});expect(request.season).toBe("summer");
+ expect(request.travelPeriod).toBe("custom");expect(request.travelDates).toEqual({start:"2027-07-15",end:"2027-07-22"});expect(request.season).toBe("summer");
  await end.fill("");await expect(page.getByText("Choose both dates to update the campaign.")).toBeVisible();
- await expect(page.locator(".cp-summary")).toContainText("15 Jul 2028 – 22 Jul 2028");
+ await expect(page.locator(".cp-summary")).toContainText("15 Jul 2027 – 22 Jul 2027");
 });
 test("styled calendar selects a date range with red endpoints, month/year navigation and keyboard dismissal",async({page})=>{
  await page.goto("./");const start=page.getByRole("button",{name:"Open start date calendar",exact:true});

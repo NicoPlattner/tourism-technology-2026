@@ -154,7 +154,7 @@ export class OpenAICompatibleCaptionProvider implements CaptionProvider {
           body: JSON.stringify({
             model: this.config.model,
             messages: buildMessages(metadata),
-            max_completion_tokens: this.config.maxOutputTokens,
+            max_completion_tokens: metadata.tourismContext ? Math.max(this.config.maxOutputTokens, 650) : this.config.maxOutputTokens,
             response_format:
               this.config.jsonMode === "json_schema"
                 ? {
@@ -259,7 +259,7 @@ export class N8nCaptionProvider implements CaptionProvider {
           model: this.config.model,
           messages: buildMessages(metadata),
           responseSchema: captionJsonSchema(metadata),
-          maxOutputTokens: this.config.maxOutputTokens,
+          maxOutputTokens: metadata.tourismContext ? Math.max(this.config.maxOutputTokens, 650) : this.config.maxOutputTokens,
         }),
       });
       if (!response.ok)
