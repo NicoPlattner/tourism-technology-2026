@@ -4,7 +4,7 @@ The Overview keeps the selected **analysis period** for the country heatmap. The
 
 ## Data and scope
 
-The existing API is documented in `c04/api/README.md` and `docs/challenge-04/C04-RESULTS-README.md`.
+The existing API is documented in `c04/api/README.md` and `c04/docs/tables-c04.md`.
 
 - `/query` supplies selected-origin demand, average stay, arrival-period median lead time, methods and reasoning. It is queried again for the chosen shorter window. Planner metrics and AI evidence then refer to that window; the map still shows the full analysis period.
 - `/forecast?start=&end=` supplies **destination-wide** daily guest-night forecasts, estimated capacity and an official reference forecast. Daily forecasts by origin are not exposed. We never present the regional occupancy as the selected country's occupancy.

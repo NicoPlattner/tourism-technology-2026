@@ -181,6 +181,21 @@ nothing to winter forecasts (few public holidays in winter) and slightly hurt
 summer forecasts; they stay in the explanation layer, where bridge-day
 weekends show a small, significant summer over-forecast.
 
+# B. Supporting results (long history and open data)
+
+| Finding | Number | Script |
+|---|---|---|
+| Monthly baselines, TR53, winter months, rolling origin 2023-10 → 2025-08 | 2-season average 7.5 / 4.9 / 4.9 % median error at 1–3 / 4–6 / 7–12 months; ETS 8.5 / 6.5 / 4.7 %; seasonal naive 9.0 / 9.0 / 5.7 % | `probe_open_forecast.py` |
+| Chronos-2 zero-shot, same test | with Easter covariate 5.5 / 11.6 / 8.1 %: best at 1–3 months only | `probe_chronos2.py` |
+| Easter effect | April share of Mar+Apr = −0.062 + 0.0040 × Easter day-of-year (25 seasons, r 0.75); 2027: 0.287 → April about 15k below the official forecast (grade C) | `anchor.py` |
+| Official daily forecast | lowest day of the year forced to 0 (2025-11-10, 2026-11-09); static bed cap 22,078 exceeded on 4 forecast days and by real demand around New Year; misses the season opening | `probe_open_forecast.py`, RESULTS A |
+| Open daily index vs real actuals | corr 0.993, 5.7 % daily error (winter 24/25), level ×1.036 | `build_features.py` |
+| Calendar shift | 25 % of the day-level deviation between actual and the TVB previous-year column disappears with weekday and holiday alignment (winter 25/26) | `real_backtest.py` helpers |
+| Macro drivers vs season growth (20 seasons) | all \|r\| < 0.31; leave-one-out error 2.69 pp (ridge) vs 2.24 pp (mean growth) | `probe_macro.py` |
+| Snow vs season growth | r 0.50; +0.45 pp per +10 cm Dec–Mar mean snow vs last season | `probe_macro.py` |
+| Mobile network data (Drei, Salzburger Sportwelt) vs official stays | 47–49 % of official stays in winter, 30–36 % in summer; country shares biased by roaming (vs guest cards: share correlation 0.81) | `probe_mobile_guestcards.py` |
+| Holiday response per market (mobile data, Feb–Apr 2026) | presence on own holiday days vs other days: NL ×10, GB ×7, BE ×5, LU ×3, DK ×2.8, FR ×2.6, SE ×2.3, DE ×0.9 | `probe_mobile_guestcards.py` |
+
 # C. GUI models (Tirol × origin × time frame)
 
 Built 8 Nov from open data plus the TVB lead-time file.
@@ -220,7 +235,7 @@ Data used per model (selection rule: only blocks that improved the backtest):
 M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
 (push uses the origin's own calendar). M4 no holidays. M5 none of these.
 
-## C-update (8 Nov, review)
+## C2. Review and updates
 
 - M1 now trained on all 9 Austrian states: Tirol post-COVID monthly error
   9.9–10.1 % (62 origins incl. small ones and country groups; the origin code
@@ -236,18 +251,3 @@ M1/M2 no TVB data; holiday features kept (12.8 → 10.4 %). M3 no market mix
   field as `{value, is_estimate, method, grade, note}`. Examples in
   `c04/out/gui/example_*.json`, e.g. Tirol ← Hesse, Feb 2027: 186k nights,
   estimate (Central Germany split by population), grade C.
-
-# B. Supporting results (long history and open data)
-
-| Finding | Number | Script |
-|---|---|---|
-| Monthly baselines, TR53, winter months, rolling origin 2023-10 → 2025-08 | 2-season average 7.5 / 4.9 / 4.9 % median error at 1–3 / 4–6 / 7–12 months; ETS 8.5 / 6.5 / 4.7 %; seasonal naive 9.0 / 9.0 / 5.7 % | `probe_open_forecast.py` |
-| Chronos-2 zero-shot, same test | with Easter covariate 5.5 / 11.6 / 8.1 %: best at 1–3 months only | `probe_chronos2.py` |
-| Easter effect | April share of Mar+Apr = −0.062 + 0.0040 × Easter day-of-year (25 seasons, r 0.75); 2027: 0.287 → April about 15k below the official forecast (grade C) | `anchor.py` |
-| Official daily forecast | lowest day of the year forced to 0 (2025-11-10, 2026-11-09); static bed cap 22,078 exceeded on 4 forecast days and by real demand around New Year; misses the season opening | `probe_open_forecast.py`, RESULTS A |
-| Open daily index vs real actuals | corr 0.993, 5.7 % daily error (winter 24/25), level ×1.036 | `build_features.py` |
-| Calendar shift | 25 % of the day-level deviation between actual and the TVB previous-year column disappears with weekday and holiday alignment (winter 25/26) | `real_backtest.py` helpers |
-| Macro drivers vs season growth (20 seasons) | all \|r\| < 0.31; leave-one-out error 2.69 pp (ridge) vs 2.24 pp (mean growth) | `probe_macro.py` |
-| Snow vs season growth | r 0.50; +0.45 pp per +10 cm Dec–Mar mean snow vs last season | `probe_macro.py` |
-| Mobile network data (Drei, Salzburger Sportwelt) vs official stays | 47–49 % of official stays in winter, 30–36 % in summer; country shares biased by roaming (vs guest cards: share correlation 0.81) | `probe_mobile_guestcards.py` |
-| Holiday response per market (mobile data, Feb–Apr 2026) | presence on own holiday days vs other days: NL ×10, GB ×7, BE ×5, LU ×3, DK ×2.8, FR ×2.6, SE ×2.3, DE ×0.9 | `probe_mobile_guestcards.py` |
