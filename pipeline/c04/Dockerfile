@@ -14,6 +14,7 @@ COPY docs/challenge-04/*.md docs/challenge-04/
 COPY api/c04/app.py api/c04/
 COPY api/c04/tests/ api/c04/tests/
 COPY results/ baked-results/
+COPY pipeline/c04/seed/ pipeline/c04/seed/
 # the scripts write to data/raw, data/processed, out and results: refresh.py links them to /work
 RUN chown -R 1000:1000 /app
 USER 1000:1000
